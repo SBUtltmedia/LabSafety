@@ -1,0 +1,220 @@
+<html>
+  <head>
+   
+    <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@d52af46565230a33c0fa23e045fb74e877df7dc9/dist/aframe-master.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
+    <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v4.1.2/dist/aframe-extras.min.js"></script>
+    <script src="https://unpkg.com/super-hands@^3.0.1/dist/super-hands.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script src="main.js"></script>
+    <script>
+
+AFRAME.registerComponent('capture-mouse', {
+      init: function () {
+        this.eventRepeater = this.eventRepeater.bind(this)
+        this.el.sceneEl.addEventListener('loaded', () => {
+          this.el.sceneEl.canvas.addEventListener('mousedown', this.eventRepeater)
+          this.el.sceneEl.canvas.addEventListener('mouseup', this.eventRepeater)
+          this.el.sceneEl.canvas.addEventListener('touchstart', this.eventRepeater)
+          this.el.sceneEl.canvas.addEventListener('touchmove', this.eventRepeater)
+          this.el.sceneEl.canvas.addEventListener('touchend', this.eventRepeater)
+        }, { once: true })
+      },
+      eventRepeater: function (evt) {
+        if (evt.type.startsWith('touch')) {
+          evt.preventDefault()
+          // avoid repeating touchmove because it interferes with look-controls
+          if (evt.type === 'touchmove') { return }
+        }
+        this.el.emit(evt.type, evt.detail)
+      }
+    })
+AFRAME.registerComponent("autofit", {
+
+init() {
+  this.el.addEventListener("model-loaded", () => {
+      this.el.setAttribute("ammo-shape", "type:box");
+  });
+}
+});
+
+    </script>
+    <title>bARsketball</title>
+    <meta property="og:title" content="bARsketball" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@adarosecannon" />
+    <meta name="twitter:creator" content="@adarosecannon" />
+    <meta property="og:url" content="https://ada.is/rollAR-coaster/" />
+    <meta
+      name="description"
+      content="Shoot some hoops in your own home with Augmented Reality!"
+    />
+    <meta
+      property="og:description"
+      content="Shoot some hoops in your own home with Augmented Reality!"
+    />
+    <meta
+      property="og:image"
+      content="https://cdn.glitch.com/96535d07-cfdb-4bbf-b141-8b97f776d9f9%2Fdownload.png?v=1632309327442"
+    />
+    <meta
+      name="twitter:image:src" 
+      content="https://cdn.glitch.com/96535d07-cfdb-4bbf-b141-8b97f776d9f9%2Fdownload.png?v=1632309327442"
+    />
+    
+    <style>
+      body {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      #message {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        padding: 1em;
+        background: #33333355;
+        border-top: 5px solid #ffffff55;
+        color: white;
+      }
+
+      .a-dom-overlay button {
+        padding: 1em;
+        appearance: none;
+        background: #00000055;
+        border: 3px solid white;
+        border-radius: 1em;
+        margin: 1em 1em 0 0;
+        color: white;
+      }
+      
+      /* Hide the controls unless in xr*/
+      #controls {
+        display: none;
+      }
+      .a-dom-overlay:xr-overlay #controls {
+        display: block;
+      }
+    </style>  
+  </head>
+  <body>
+    <a-scene
+      webxr="overlayElement:#dom-overlay;"
+      background="directionalLight:#dirlight;"
+      ar-hit-test="type:map;"
+      physics="driver: ammo; debug: false; debugDrawMode: 1;"
+      basketball-game
+    >
+
+      <a-assets>
+        <a-mixin id="controllerEvents" hoverable
+        grabbable stretchable draggable droppable
+        ammo-body="type: dynamic;" ammo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
+      </a-mixin>
+        <a-asset-item id="beaker" src="beaker.glb"></a-asset-item>
+        <a-asset-item id="liquid_red" src="liquid_red.glb"></a-asset-item>
+        <a-asset-item id="liquid_green" src="liquid_green.glb"></a-asset-item>
+        <a-asset-item id="liquid_blue" src="liquid_blue.glb"></a-asset-item>
+        <img id="balltexture" src="https://cdn.glitch.com/96535d07-cfdb-4bbf-b141-8b97f776d9f9%2Fballdimpled.png?v=1631725609500" />
+      </a-assets>
+      <a-light auto-shadow-cam id="dirlight" light="castShadow:true;" type="directional" intensity="0.7" position="1 1 1" color="#ffeeaa"></a-light>
+      <a-light type="ambient" intensity="0.3" color="#001155"></a-light>
+    </a-entity>
+    <a-entity camera look-controls wasd-controls position="0 10 10" capture-mouse raycaster cursor="rayOrigin:mouse"
+    body="type: static; shape: sphere; sphereRadius: 0.001" super-hands="colliderEvent: raycaster-intersection;
+                       colliderEventProperty: els;
+                       colliderEndEvent:raycaster-intersection-cleared;
+                       colliderEndEventProperty: clearedEls;">
+  </a-entity>
+        <a-entity id="hoop" rotation="90 0 0" position="0 2 -2" scale="0.6 0.6 0.6">
+        <a-gltf-model shadow="cast:false;" src="https://cdn.glitch.com/96535d07-cfdb-4bbf-b141-8b97f776d9f9%2Fhoop.glb?v=1631728404800"></a-gltf-model>
+        <a-torus
+          ammo-body="type: static;"
+          ammo-shape="type: hacd"
+          segments-tubular="9"
+          segments-radial="6"
+          radius="0.29"
+          radius-tubular="0.02"
+          position="0 0.4 -0.10"
+          rotation="-5 0 0"
+          scale="1 1 4"
+          visible="false"
+        ></a-torus>
+        <a-box
+          ammo-body="type:static;"
+          ammo-shape="type:box"
+          width="2"
+          height="1.4"
+          depth="0.1"
+          rotation="-90 0 0"
+          position="0 0 -0.65"
+          ammo-restitution="0.1"
+          shadow
+          visible="false"
+        ></a-box>
+      </a-entity>
+      <a-entity mixin="controllerEvents" scale="1 1 1" position="0 2 0" color="#7BC8A4" gltf-model="#beaker">
+        <a-animation attribute="model-opacity" dur="100" from="1" to="0" repeat="indefinite"></a-animation>
+        <a-entity position=".1 .01 -.3" scale=".9 .9 .9" gltf-model="#liquid_red">
+        </a-entity>
+      </a-entity>
+
+      <!-- texture by Downdate https://opengameart.org/content/basket-ball-texture -->
+      <a-sphere
+        id="ball"
+        shadow
+        material="color:orange;src:#balltexture"
+        position="0.1 2.5 -1.8"
+        scale="0.5 0.5 0.5"
+        ammo-body="type: dynamic;"
+        ammo-shape="type: sphere"
+        radius="0.19"
+        ammo-restitution="1.5"
+      ></a-sphere>
+
+      <a-box
+        ammo-body="type:static;"
+        ammo-shape="type:box"
+        width="20"
+        height="20"
+        depth="1"
+        rotation="-90 0 0"
+        visible="false"
+        position="0 -0.5 0"
+        ammo-restitution="0.5"
+        visible="false"
+      ></a-box>
+      
+      <!-- This plane is only visible in AR and follows the given target to provide it with shadows.-->
+      <a-entity
+        material="shader:shadow; depthWrite:false; opacity:0.9;"
+        visible="false"
+        geometry="primitive:shadow-plane;"
+        shadow="cast:false;receive:true;"
+        ar-shadow-helper="target:#ball;light:#dirlight;floor:true;border:1;"
+      ></a-entity>
+  
+      <a-entity
+        hide-on-enter-ar
+        environment="preset: forest; groundColor: #445; lighting: none; shadow: true;"
+      >
+        <a-cylinder
+          radius="0.05"
+          height="2.4"
+          position="0 1 -2.1"
+        ></a-cylinder>
+      </a-entity>
+    </a-scene>
+
+    <div id="dom-overlay">
+      <div id="message">Enter AR to start.</div>
+      <div id="controls"></div>
+    </div>
+	  
+    <script>
+      document.write(`<img src="https://adalytics-live.glitch.me/counter.png?fallback=${encodeURIComponent(location.href)}&color=black" alt="" style="vertical-align: bottom;" aria-hidden="true">`);
+    </script>
+    <div class="glitchButton" style="position: absolute; top: 1em; right: 1em;"></div><script src="https://button.glitch.me/button.js"></script>
+  </body>
+</html>
