@@ -15,6 +15,7 @@
   <script src="https://unpkg.com/aframe-event-set-component@^4.1.1/dist/aframe-event-set-component.min.js"></script>
   <!-- <script src="https://unpkg.com/aframe-physics-extras/dist/aframe-physics-extras.min.js"></script> -->
   <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
+  <script src="aframe-particle-system-component.min.js"></script> 
   <script>
     document.addEventListener('cntextmenu', function (ev) {
       ev.preventDefault();
@@ -90,15 +91,12 @@
     grabbable stretchable draggable droppable
     ammo-body="type: static;" ammo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
   </a-mixin>
+  <a-mixin id="liquidPour" particle-system="velocityValue:0 20 0;opacity:1,0;velocitySpread:0 0 0;velocityValue:0 10 0;size:.5;blending:1;maxAge:.8;maxParticleCount:400;"></a-mixin>
   
-      <a-mixin id="controllerEvents" hoverable
-        grabbable stretchable draggable droppable
-        dynamic-body shadow shape="cube" angularDamping="0"></a-mixin>
-      </a-mixin>
+  
       <a-asset-item id="beaker" src="beaker.glb"></a-asset-item>
-      <a-asset-item id="liquid_red" src="liquid_red.glb"></a-asset-item>
-      <a-asset-item id="liquid_green" src="liquid_green.glb"></a-asset-item>
-      <a-asset-item id="liquid_blue" src="liquid_blue.glb"></a-asset-item>
+      <a-asset-item id="liquid" src="liquid.obj"></a-asset-item>
+
     </a-assets>
 
     <a-entity camera look-controls wasd-controls position="0 10 10" capture-mouse raycaster cursor="rayOrigin:mouse"
@@ -111,18 +109,18 @@
       <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> -->
 
       <a-entity mixin="controllerEvents" scale="1 1 1" position="0 9 0" color="#7BC8A4" gltf-model="#beaker">
-      
-        <a-entity position=".1 .01 -.3" scale=".9 .9 .9" gltf-model="#liquid_red">
+        <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #ff0000"></a-entity>
+        <a-entity scale=".9 .9 .9" obj-model="obj: #liquid;"  material="color: red;roughness: 0;transparent:true;opacity:1.0;" >
         </a-entity>
       </a-entity>
       <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0" color="#7BC8A4" gltf-model="#beaker">
-      
-        <a-entity position=".1 .01 -.3" scale=".9 .9 .9" gltf-model="#liquid_green">
+        <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #00ff00"></a-entity>
+        <a-entity  scale=".9 .9 .9" obj-model="obj: #liquid;" material="color: green;roughness: 0;transparent:true;opacity:1.0;"  >
         </a-entity>
       </a-entity>
       <a-entity mixin="controllerEvents" scale="1 1 1" position="8 9 0" color="#7BC8A4" gltf-model="#beaker">
-      
-        <a-entity position=".1 .01 -.3" scale=".9 .9 .9" gltf-model="#liquid_blue">
+        <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #0000ff"></a-entity>
+        <a-entity scale=".9 .9 .9"  obj-model="obj: #liquid;" material="color: blue;roughness: 0;transparent:true;opacity:1.0;">
         </a-entity>
       </a-entity>
       <a-box
