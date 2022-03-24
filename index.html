@@ -7,14 +7,12 @@
   <!-- <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js"></script> -->
 
   <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@d52af46565230a33c0fa23e045fb74e877df7dc9/dist/aframe-master.min.js"></script>
-  <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v4.1.2/dist/aframe-extras.min.js"></script> -->
-  <!-- <script src="https://unpkg.com/super-hands@^3.0.1/dist/super-hands.min.js"></script> -->
+
   <script src="super-hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.js"></script>
   <script src="https://unpkg.com/aframe-event-set-component@^4.1.1/dist/aframe-event-set-component.min.js"></script>
-  <!-- <script src="https://unpkg.com/aframe-physics-extras/dist/aframe-physics-extras.min.js"></script> -->
   <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
+  <script src="https://unpkg.com/aframe-render-order-component@1.0.0/dist/aframe-render-order-component.min.js"></script> 
   <script src="aframe-particle-system-component.min.js"></script> 
   <script>
     document.addEventListener('cntextmenu', function (ev) {
@@ -33,8 +31,10 @@
           this.el.sceneEl.canvas.addEventListener('touchmove', this.eventRepeater)
           this.el.sceneEl.canvas.addEventListener('touchend', this.eventRepeater)
         }, { once: true })
+        this.el.addEventListener('start-grab',(e)=>{console.log(e)})
       },
       eventRepeater: function (evt) {
+
         if (evt.type.startsWith('touch')) {
           evt.preventDefault()
           // avoid repeating touchmove because it interferes with look-controls
@@ -78,7 +78,7 @@
 
 <body>
 
-  <a-scene
+  <a-scene render-order="layer1, layer2, layer3"
   webxr="overlayElement:#dom-overlay;"
   background="directionalLight:#dirlight;"
   ar-hit-test="type:map;"
@@ -89,7 +89,7 @@
   <a-assets>
     <a-mixin id="controllerEvents" hoverable
     grabbable stretchable draggable droppable
-    ammo-body="type: static;" ammo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
+    amo-body="type: static;" amo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
   </a-mixin>
   <a-mixin id="liquidPour" particle-system="velocityValue:0 20 0;opacity:1,0;velocitySpread:0 0 0;velocityValue:0 10 0;size:.5;blending:1;maxAge:.8;maxParticleCount:400;"></a-mixin>
   
@@ -100,7 +100,8 @@
     </a-assets>
 
     <a-entity camera look-controls wasd-controls position="0 10 10" capture-mouse raycaster cursor="rayOrigin:mouse"
-      body="type: static; shape: sphere; sphereRadius: 0.001" super-hands="colliderEvent: raycaster-intersection;
+    ammo-body="type:static;"
+    ammo-shape="type:box" super-hands="colliderEvent: raycaster-intersection;
                          colliderEventProperty: els;
                          colliderEndEvent:raycaster-intersection-cleared;
                          colliderEndEventProperty: clearedEls;">
@@ -108,12 +109,15 @@
     <!-- <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
       <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> -->
 
-      <a-entity mixin="controllerEvents" scale="1 1 1" position="0 9 0" color="#7BC8A4" gltf-model="#beaker">
-        <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #ff0000"></a-entity>
-        <a-entity scale=".9 .9 .9" obj-model="obj: #liquid;"  material="color: red;roughness: 0;transparent:true;opacity:1.0;" >
+      <a-entity  animation="property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000" mixin="controllerEvents" render-order="layer2" scale="1 1 1" position="0 9 0" color="#7BC8A4" gltf-model="#beaker">
+        <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #ff0000">
+         
+        </a-entity>
+        <a-entity  render-order="layer1"  animation="property: components.material.material.opacity; from: 1; to: 0"  scale=".9 .9 .9" obj-model="obj: #liquid;"  material="color: red;roughness: 0;transparent:true;opacity:1.0;premultipliedAlpha: true;" >
+         
         </a-entity>
       </a-entity>
-      <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0" color="#7BC8A4" gltf-model="#beaker">
+      <a-entity   mixin="controllerEvents" scale="1 1 1" position="4 9 0" color="#7BC8A4" gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour"  particle-system="color: #00ff00"></a-entity>
         <a-entity  scale=".9 .9 .9" obj-model="obj: #liquid;" material="color: green;roughness: 0;transparent:true;opacity:1.0;"  >
         </a-entity>
