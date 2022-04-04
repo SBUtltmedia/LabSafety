@@ -55,7 +55,11 @@
         })
       }
     });
-
+    AFRAME.registerComponent('watch', { 
+      schema: { default: 1.0 },
+      tick: function(){console.log(this.el.getAttribute('rotation').z)}
+    }
+      )
     AFRAME.registerComponent('model-opacity', {
       schema: { default: 1.0 },
       init: function () {
@@ -88,13 +92,14 @@
         amo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
       </a-mixin>
       <a-mixin id="liquidPour"
-        particle-system="velocityValue:0 20 0;opacity:1,0;velocitySpread:0 0 0;velocityValue:0 10 0;size:.5;blending:1;maxAge:.8;maxParticleCount:400;">
+        particle-system="enabled: false; velocityValue:0 20 0;opacity:1,0;velocitySpread:0 0 0;velocityValue:0 10 0;size:.5;blending:1;maxAge:.8;maxParticleCount:400;">
       </a-mixin>
 
 
       <a-asset-item id="beaker" src="beaker.glb"></a-asset-item>
       <a-asset-item id="table" src="table.glb"></a-asset-item>
       <a-asset-item id="liquid" src="liquid.obj"></a-asset-item>
+      <a-asset-item id="clipboard" src="clipboard.glb"></a-asset-item>
 
     </a-assets>
 
@@ -104,10 +109,15 @@
                          colliderEndEvent:raycaster-intersection-cleared;
                          colliderEndEventProperty: clearedEls;">
     </a-entity>
+    <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0"  rotation = "0 -90 0"  gltf-model="#clipboard"><a-entity
+  
+rotation = "0 90 0" position = ".15 5 0"
+      text="color: black; value: This text will be 4 units wide."></a-entity>
+  </a-entity>
     <!-- <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
       <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> -->
     <a-entity  scale="1 1 1" position="0 0 0" color="#7BC8A4" gltf-model="#table">
-      <a-entity animation="property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000"
+      <a-entity watch animation="startEvents: 'startanim001';property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000"
         mixin="controllerEvents" render-order="layer2" scale="1 1 1" position="0 9 0" color="#7BC8A4"
         gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #ff0000">
