@@ -31,8 +31,9 @@
           this.el.sceneEl.canvas.addEventListener('touchstart', this.eventRepeater)
           this.el.sceneEl.canvas.addEventListener('touchmove', this.eventRepeater)
           this.el.sceneEl.canvas.addEventListener('touchend', this.eventRepeater)
+
         }, { once: true })
-        this.el.addEventListener('start-grab', (e) => { console.log(e) })
+
       },
       eventRepeater: function (evt) {
 
@@ -55,11 +56,19 @@
         })
       }
     });
-    AFRAME.registerComponent('watch', { 
+    AFRAME.registerComponent('watch', {
+      init: function () {
+
+        this.el.addEventListener('grab-start', (e) => { this.position = JSON.stringify(this.el.getAttribute('position')); })
+        this.el.addEventListener('grab-end', (e) => {
+          console.log(this)
+          this.el.setAttribute('position', JSON.parse(this.position))
+        })
+      },
       schema: { default: 1.0 },
-      tick: function(){console.log(this.el.getAttribute('rotation').z)}
+      tick: function () { console.log(this.el.getAttribute('rotation').z) }
     }
-      )
+    )
     AFRAME.registerComponent('model-opacity', {
       schema: { default: 1.0 },
       init: function () {
@@ -85,11 +94,16 @@
 
   <a-scene render-order="layer1, layer2, layer3" webxr="overlayElement:#dom-overlay;"
     background="directionalLight:#dirlight;" ar-hit-test="type:map;"
-    physics="driver: ammo; debug: false; debugDrawMode: 1;" basketball-game>
+    physics="driver: ammo; debug: false; debugDrawMode: 1;">
 
     <a-assets>
       <a-mixin id="controllerEvents" hoverable grabbable stretchable draggable droppable amo-body="type: static;"
-        amo-shape="type: sphere; fit: manual; sphereRadius:0.5"></a-mixin>
+        amo-shape="type: sphere; fit: manual; sphereRadius:0.5" watch
+        animation="startEvents: 'startanim001';property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000">
+      </a-mixin>
+      </a-mixin>
+      <a-mixin id="liquidMesh"  scale=".9 .9 .9" obj-model="obj: #liquid;" material="depthTest:false;roughness: 0;transparent:true;opacity:1.0;">
+
       </a-mixin>
       <a-mixin id="liquidPour"
         particle-system="enabled: false; velocityValue:0 20 0;opacity:1,0;velocitySpread:0 0 0;velocityValue:0 10 0;size:.5;blending:1;maxAge:.8;maxParticleCount:400;">
@@ -109,38 +123,31 @@
                          colliderEndEvent:raycaster-intersection-cleared;
                          colliderEndEventProperty: clearedEls;">
     </a-entity>
-    <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0"  rotation = "0 -90 0"  gltf-model="#clipboard"><a-entity
-  
-rotation = "0 90 0" position = ".15 5 0"
-      text="color: black; value: This text will be 4 units wide."></a-entity>
-  </a-entity>
+    <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0" rotation="0 -90 0" gltf-model="#clipboard">
+      <a-entity rotation="0 90 0" position=".15 5 0" text="color: black; value: This text will be 4 units wide.">
+      </a-entity>
+    </a-entity>
     <!-- <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
       <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> -->
-    <a-entity  scale="1 1 1" position="0 0 0" color="#7BC8A4" gltf-model="#table">
-      <a-entity watch animation="startEvents: 'startanim001';property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000"
-        mixin="controllerEvents" render-order="layer2" scale="1 1 1" position="0 9 0" color="#7BC8A4"
+    <a-entity scale="1 1 1" position="0 0 0" color="#7BC8A4" gltf-model="#table">
+      <a-entity mixin="controllerEvents" render-order="layer2" scale="1 1 1" position="0 9 0" color="#7BC8A4"
         gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #ff0000">
 
         </a-entity>
-        <a-entity render-order="layer1"
-          animation="property: components.material.material.opacity; from: 1; to: 0;loop: true; dur: 2000"
-          scale=".9 .9 .9" obj-model="obj: #liquid;"
-          material="color: red;roughness: 0;transparent:true;opacity:1.0;premultipliedAlpha: true;">
+        <a-entity  mixin="liquidMesh" material="color: red;">
 
         </a-entity>
       </a-entity>
 
       <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0" color="#7BC8A4" gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #00ff00"></a-entity>
-        <a-entity scale=".9 .9 .9" obj-model="obj: #liquid;"
-          material="color: green;roughness: 0;transparent:true;opacity:1.0;">
+        <a-entity   mixin="liquidMesh" material="color: green;">
         </a-entity>
       </a-entity>
       <a-entity mixin="controllerEvents" scale="1 1 1" position="8 9 0" color="#7BC8A4" gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #0000ff"></a-entity>
-        <a-entity scale=".9 .9 .9" obj-model="obj: #liquid;"
-          material="color: blue;roughness: 0;transparent:true;opacity:1.0;">
+        <a-entity mixin="liquidMesh" material="color: blue;">
         </a-entity>
       </a-entity>
     </a-entity>
