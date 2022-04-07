@@ -60,6 +60,8 @@
 
         this.el.addEventListener('grab-start', (e) => { this.position = JSON.stringify(this.el.getAttribute('position')); })
         this.el.addEventListener('grab-end', (e) => {
+        this,el.setAttribute(animation__001, {'property': position,
+                                 'to': {x: 1, y: 1: z: 1},       
           this.el.setAttribute('position', JSON.parse(this.position))
         })
         this.el.addEventListener('dragover-start', (evt) => {
@@ -72,6 +74,22 @@
       tick: function () { console.log(this.el.getAttribute('rotation').z) }
     }
     )
+    AFRAME.registerComponent('look-at-roll-yaw', {
+  schema: {
+    target: {type: 'selector', default: '[camera]'},
+  },
+  init: function () {
+    this.targetWorldPos = new THREE.Vector3();
+    this.myWorldPos = new THREE.Vector3();
+  },
+  tick: function () {
+    if (!this.data.target) return;
+    this.data.target.object3D.getWorldPosition(this.targetWorldPos);
+    this.el.object3D.getWorldPosition(this.myWorldPos);
+    this.targetWorldPos.y = this.myWorldPos.y;
+    this.el.object3D.lookAt(this.targetWorldPos);
+  }
+});
     AFRAME.registerComponent('model-opacity', {
       schema: { default: 1.0 },
       init: function () {
@@ -126,12 +144,14 @@
                          colliderEndEvent:raycaster-intersection-cleared;
                          colliderEndEventProperty: clearedEls;">
     </a-entity>
-    <a-entity mixin="controllerEvents" scale="1 1 1" position="4 9 0" rotation="0 -90 0" gltf-model="#clipboard">
+    <a-entity look-at-roll-yaw  mixin="controllerEvents" >
+    <a-entity scale="1 1 1" position="4 9 0" rotation="0 -90 0" gltf-model="#clipboard">
       <a-entity rotation="0 90 0" position=".15 5 0" text="color: black; value: This text will be 4 units wide.">
       </a-entity>
     </a-entity>
-    <!-- <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
-      <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> -->
+    </a-entity>
+ <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
+   <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity> 
     <a-entity scale="1 1 1" position="0 0 0" color="#7BC8A4" gltf-model="#table">
       <a-entity id="redBeaker" mixin="controllerEvents" render-order="layer2" scale="1 1 1" position="0 9 0" color="#7BC8A4"
         gltf-model="#beaker">
