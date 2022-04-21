@@ -1,61 +1,60 @@
 <html>
 
 <head>
-  <script
-  src="https://code.jquery.com/jquery-3.6.0.min.js"
- ></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.misc.min.js"></script>
   <!-- <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js"></script> -->
 
   <!-- <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script> -->
-
+  <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
   <script src="super-hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.js"></script>
   <script src="https://unpkg.com/aframe-event-set-component@^4.1.1/dist/aframe-event-set-component.min.js"></script>
   <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
   <!-- <script src="https://unpkg.com/aframe-render-order-component@1.0.0/dist/aframe-render-order-component.min.js"></script> -->
   <script src="aframe-particle-system-component.min.js"></script>
-  <script src="https://unpkg.com/aframe-aabb-collider-component@3.1.0/dist/aframe-aabb-collider-component.min.js"></script>
+  <script
+    src="https://unpkg.com/aframe-aabb-collider-component@3.1.0/dist/aframe-aabb-collider-component.min.js"></script>
   <script>
 
-$(()=>{
+    $(() => {
 
-  document.querySelector('a-scene').addEventListener('loaded', createBeakers)
-}
-);
+      document.querySelector('a-scene').addEventListener('loaded', createBeakers)
+    }
+    );
 
-function createBeakers(){
+    function createBeakers() {
 
-for([i,v] of ["red","green","blue"].entries()){
+      for ([i, v] of ["red", "green", "blue"].entries()) {
 
-  $('[gltf-model="#table"]').append(
-    $('<a-entity>',{id:`${v}Beaker`,mixin:"controllerEvents","gltf\-model":"#beaker"}).append(
-[
-     $('<a-entity>',{mixin:"liquidPour","particle\-system":`color:${v}`}),
-      $('<a-entity>',{mixin:"liquidMesh","material":`color:${v}`})
-    
-    
-    ]   
-    
-    ))
- let currentBeakerEl= document.querySelector(`#${v}Beaker`)
- currentBeakerEl.setAttribute("position",`${i*3} 9 0`)
-//  currentBeakerEl.setAttribute("mixin","controlerEvents")
-//   <a-entity id="redBeaker" mixin="controllerEvents" scale="1 1 1" position="0 9 0"
-//        gltf-model="#beaker">
-//         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #ff0000">
-//         </a-entity>
-//         <a-entity mixin="liquidMesh" material="color: red;">
-//         </a-entity>
-//       </a-entity>
-// console.log(i,v)
-
-}
+        $('[gltf-model="#table"]').append(
+          $('<a-entity>', { id: `${v}Beaker`, mixin: "controllerEvents", "gltf\-model": "#beaker" }).append(
+            [
+              $('<a-entity>', { mixin: "liquidPour", "particle\-system": `color:${v}` }),
+              $('<a-entity>', { mixin: "liquidMesh", "material": `color:${v}` })
 
 
-}
- 
+            ]
+
+          ))
+        let currentBeakerEl = document.querySelector(`#${v}Beaker`)
+        currentBeakerEl.setAttribute("position", `${i * 3} 9 0`)
+        //  currentBeakerEl.setAttribute("mixin","controlerEvents")
+        //   <a-entity id="redBeaker" mixin="controllerEvents" scale="1 1 1" position="0 9 0"
+        //        gltf-model="#beaker">
+        //         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #ff0000">
+        //         </a-entity>
+        //         <a-entity mixin="liquidMesh" material="color: red;">
+        //         </a-entity>
+        //       </a-entity>
+        // console.log(i,v)
+
+      }
+
+
+    }
+
     document.addEventListener('cntextmenu', function (ev) {
       ev.preventDefault();
       // alert('success!');
@@ -88,14 +87,14 @@ for([i,v] of ["red","green","blue"].entries()){
     AFRAME.registerComponent('watch-hands', {
       init: function () {
         this.el.addEventListener('grab-start', function (evt) {
-         console.log(evt)
+          console.log(evt)
         })
       },
-      tick:function(){
-     //  console.log(document.querySelector("#redBeaker").is("grabbed"))
-   
+      tick: function () {
+        //  console.log(document.querySelector("#redBeaker").is("grabbed"))
+
       }
-   
+
     });
 
     AFRAME.registerComponent('phase-shift', {
@@ -114,8 +113,8 @@ for([i,v] of ["red","green","blue"].entries()){
       init: function () {
         var el = this.el
         el.addEventListener('dragover-start', (evt) => {
+          console.log(evt)
 
-  
         });
 
       }
@@ -125,13 +124,14 @@ for([i,v] of ["red","green","blue"].entries()){
 
     AFRAME.registerComponent('watch', {
       init: function () {
-        this.el.addEventListener("hitstart",console.log);
-        // this.el.addEventListener('grab-start', (e) => { this.position = JSON.stringify(this.el.getAttribute('position')); })
-        // this.el.addEventListener('grab-end', (e) => {
-        //   // this,el.setAttribute(animation__001, {'property': position,
-        //   //                          'to': {x: 1, y: 1: z: 1},       
-        //   this.el.setAttribute('position', JSON.parse(this.position))
-        // })
+        this.el.addEventListener("hitstart", console.log);
+
+        this.el.addEventListener('grab-start', (e) => { this.position = JSON.stringify(this.el.getAttribute('position')); })
+        this.el.addEventListener('grab-end', (e) => {
+          // this,el.setAttribute(animation__001, {'property': position,
+          //                          'to': {x: 1, y: 1: z: 1},       
+          this.el.setAttribute('position', JSON.parse(this.position))
+        })
         // this.el.addEventListener('dragover-start', (evt) => {
         //   //console.log(evt.detail)
         //   //this.el.setAttribute('position', JSON.parse(this.position))
@@ -140,11 +140,11 @@ for([i,v] of ["red","green","blue"].entries()){
       },
       schema: { default: 1.0 },
       tick: function () {
-        var x= this.el.getAttribute("position").x;
-        var y= this.el.getAttribute("position").y;
-        var z= 0;//this.el.getAttribute("position").y;
-        this.el.setAttribute("position",`${x} ${y} ${z}`)
-       }
+        var x = this.el.getAttribute("position").x;
+        var y = this.el.getAttribute("position").y;
+        var z = 0;//this.el.getAttribute("position").y;
+        this.el.setAttribute("position", `${x} ${y} ${z}`)
+      }
     }
     )
     AFRAME.registerComponent('look-at-roll-yaw', {
@@ -191,20 +191,21 @@ for([i,v] of ["red","green","blue"].entries()){
     physics="driver: ammo; debug: false; debugDrawMode: 1;">
 
     <a-assets>
-      <a-mixin id="controllerEvents" aabb-collider suppressY="true" grabbable draggable ammo-body="type: dynamic;"
+      <a-mixin id="controllerEvents" aabb-collider grabbable draggable ammo-body="type: dynamic;"
         ammo-shape="type: sphere; fit: manual; sphereRadius:0.5" watch
         animation="startEvents: 'startanim001';property: rotation; from: 0 0 90; to: 0 0 360; loop: true; dur: 2000">
       </a-mixin>
       </a-mixin>
       <a-mixin id="liquidMesh" scale=".9 .9 .9" obj-model="obj: #liquid;"
-        material="depthTest:false;depthWrite:false;side: double;transparent:true;opacity:1.0;"   animation="property: components.material.material.opacity; from: 1.0; to: 0; loop: true; dur: 2000">
-      
+        material="depthest:false;side: double;transparent:true;opacity:1.0;"
+        animation="property: components.material.material.opacity; from: 1.0; to: 0; loop: true; dur: 2000">
+
       </a-mixin>
       <a-mixin id="liquidPour"
         particle-system="enabled: true; texture:star2.png;opacity:.30;opacitySpread:1;velocitySpread:0 0 0;velocityValue:0 30 0;size:.75;blending:1;maxAge:.3;maxParticleCount:900;">
       </a-mixin>
 
-
+      <img id="my-image" src="SOP1.png">
       <a-asset-item id="beaker" src="beaker.glb"></a-asset-item>
       <a-asset-item id="table" src="table.glb"></a-asset-item>
       <a-asset-item id="liquid" src="liquid.obj"></a-asset-item>
@@ -218,17 +219,20 @@ for([i,v] of ["red","green","blue"].entries()){
                          colliderEndEvent:raycaster-intersection-cleared;
                          colliderEndEventProperty: clearedEls;">
     </a-entity>
-    <a-entity look-at-roll-yaw mixin="controllerEvents">
-      <a-entity scale="1 1 1" position="4 9 0" rotation="0 -90 0" gltf-model="#clipboard">
-        <a-entity rotation="0 90 0" position=".15 5 0" text="color: black; value: This text will be 4 units wide.">
-        </a-entity>
+    <a-entity scale="6 6 6" look-at="[camera]" mixin="controllerEvents" position="0 2 0"  bringToCamera>
+
+      <a-entity  rotation="0 -90 -30" gltf-model="#clipboard">
+        <a-image rotation="0 90 0" width="2.5" height="3.5" position=".15 4 0"  src="#my-image"></a-image>
+        <!-- <a-entity rotation="0 90 0" position=".15 5 0" text="color: black; value: This text will be 4 units wide.">
+
+        </a-entity> -->
       </a-entity>
     </a-entity>
     <!-- <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: left"></a-entity>
    <a-entity sphere-collider="objects: a-box" super-hands hand-controls="hand: right"></a-entity>  -->
-    <a-entity scale="1 1 1" position="0 0 0" gltf-model="#table">
-      <a-box position="8 12 0" drag-zone droppable></a-box>
-<!-- 
+    <a-entity scale="1 1 1" position="0 0 -5" gltf-model="#table">
+      <a-box position="8 12 0" drag-zone sphere-collider watch></a-box>
+      <!-- 
       <a-entity id="redBeaker" mixin="controllerEvents" scale="1 1 1" position="0 9 0"
        gltf-model="#beaker">
         <a-entity position="0 0 0" mixin="liquidPour" particle-system="color: #ff0000">
