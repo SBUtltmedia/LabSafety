@@ -3,7 +3,7 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
-        body,#renderCanvas { width: 100%; height: 100%;}
+      #renderCanvas { width: 100%; height: 100%;}
     </style>
 </head>
 <body>
@@ -11,7 +11,7 @@
     <script>
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
-
+        let ground;
         const createScene = async function() {
             const scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color3.Black;
@@ -48,12 +48,12 @@
                 let beakers=[];
                 for (const n of [1,2,3])
                 {
-                    console.log(beakers[n])
+                    console.log({assetBlob})
                  beakers[n]=await BABYLON.SceneLoader.AppendAsync(assetUrl, undefined, scene, undefined, ".glb")
                  console.log(beakers[n].meshes)
                  beakers[n].meshes[3*n].material = boxMaterial
                 }
-   
+                mousePointer(scene,camera)
              //   console.log(result)
 //                 BABYLON.SceneLoader.Append("./", "beaker+liquid2.glb", scene, function (scene) {
 //                     console.log(scene.meshes[7].parent)
@@ -62,15 +62,30 @@
 // });
 
 
-            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 40, height: 40});
+         ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 40, height: 40});
 
             const xrPromise = scene.createDefaultXRExperienceAsync({
                 floorMeshes: [ground]
             });
 
-            var startingPoint;
-    var currentMesh;
 
+
+
+
+
+
+            return xrPromise.then((xrExperience) => {
+                console.log("Done, WebXR is enabled.");
+                return scene;
+            });
+        };
+
+        createScene().then(sceneToRender => {
+            engine.runRenderLoop(() => sceneToRender.render());
+        });
+function mousePointer(scene,camera){
+    var startingPoint;
+    var currentMesh;
     var getGroundPosition = function () {
         var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == ground; });
         if (pickinfo.hit) {
@@ -131,15 +146,10 @@
     });
 
 
-            return xrPromise.then((xrExperience) => {
-                console.log("Done, WebXR is enabled.");
-                return scene;
-            });
-        };
+}
 
-        createScene().then(sceneToRender => {
-            engine.runRenderLoop(() => sceneToRender.render());
-        });
+
+
     </script>
 </body>
 </html>
