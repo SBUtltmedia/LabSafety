@@ -11,17 +11,22 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { CannonJSPlugin } from '@babylonjs/core/Physics';
 import { PhysicsImpostor } from '@babylonjs/core/Physics/physicsImpostor';
 import { PhysicsJoint } from '@babylonjs/core/Physics/physicsJoint';
+import { PhysicsViewer } from '@babylonjs/core/Debug/physicsViewer';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
+import { BoundingInfo } from '@babylonjs/core';
 
 import '@babylonjs/core/Physics/physicsEngineComponent';  // To populate the scene.enablePhysics method
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
+import '@babylonjs/core/Rendering/boundingBoxRenderer';
 
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
 
     // Enable Cannon physics engine
-    scene.enablePhysics(new Vector3(0, -9.81, 0), new CannonJSPlugin());  // TODO: this line causes an error with an undefined message
+    scene.enablePhysics(new Vector3(0, -9.81, 0), new CannonJSPlugin());
+    const physicsViewer = new PhysicsViewer(scene);
     
     // Add a camera
     const camera = new ArcRotateCamera('camera', -Math.PI/2, Math.PI / 2.5, 3, new Vector3(0, 0, 0), scene);
@@ -31,7 +36,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
 
     // My code
-    // const ground = CreateGround('ground', { width: 10, height: 10 });
+    const ground = CreateGround('ground', { width: 100, height: 100 });
+    const groundLevel = ground.getBoundingInfo().boundingBox.maximum.y;
+    ground.physicsImpostor = new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, { mass: 0 }, scene);
     // SceneLoader.ImportMeshAsync('', '../models/', 'fireAlarm.glb').then(result => {
     //     const mesh = result.meshes.find(m => m.name === '__root__')!;
     //     console.log(result);
@@ -54,22 +61,39 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
 
     SceneLoader.ImportMeshAsync('', '../models/', 'graduated_cylinder+liquid.glb').then(result => {
         const mesh = result.meshes.find(m => m.name === '__root__')!;
-        // new PhysicsImpostor(mesh, PhysicsImpostor.CylinderImpostor, { mass: 1 }, scene);
         mesh.addBehavior(new PointerDragBehavior());
-
-        // Move mesh to ground level
-        let minY = 0;
+        
+        // Determine bounding info from child meshes
+        let meshMinimum = mesh.position;
+        let meshMaximum = mesh.position;
         mesh.getChildMeshes().forEach(childMesh => {
-            const childMinY = childMesh.getBoundingInfo().boundingBox.minimum.y;
-            if (childMinY < minY) minY = childMinY;
+            const childBoundingBox = childMesh.getBoundingInfo().boundingBox;
+            meshMinimum = Vector3.Minimize(meshMinimum, childBoundingBox.minimum);
+            meshMaximum = Vector3.Maximize(meshMaximum, childBoundingBox.maximum);
         });
-        mesh.position.y -= minY;
+        mesh.setBoundingInfo(new BoundingInfo(meshMinimum, meshMaximum));
+        mesh.position.y += groundLevel - meshMinimum.y;
+        
+        mesh.physicsImpostor = new PhysicsImpostor(mesh, PhysicsImpostor.CylinderImpostor, { mass: 1 }, scene);
+        mesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor!, () => console.log('collide'));
+        // physicsViewer.showImpostor(mesh.physicsImpostor);
         
         // Clone mesh, sharing geometries
         // Note: cloning prefixes the clone's child meshes with `${childMesh.parent.name}.`
         const clone = mesh.clone('cylinder2', null)!;
+        let cloneMinimum = clone.position;
+        let cloneMaximum = clone.position;
+        clone.getChildMeshes().forEach(childMesh => {
+            const childBoundingBox = childMesh.getBoundingInfo().boundingBox;
+            cloneMinimum = Vector3.Minimize(cloneMinimum, childBoundingBox.minimum);
+            cloneMaximum = Vector3.Maximize(cloneMaximum, childBoundingBox.maximum);
+        });
+        clone.setBoundingInfo(new BoundingInfo(cloneMinimum, cloneMaximum));
+        console.log(clone.getBoundingInfo());
+        clone.physicsImpostor = new PhysicsImpostor(clone, PhysicsImpostor.CylinderImpostor, { mass: 1 }, scene);
         clone.addBehavior(new PointerDragBehavior());
-        clone.position.x -= 2;
+        clone.position.x -= 5;
+        // physicsViewer.showImpostor(clone.physicsImpostor);
 
         // Set liquid colors
         const meshLiquid = mesh.getChildMeshes().find(m => m.name === 'BeakerLiquid');
@@ -85,11 +109,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             cloneLiquid.material = liquidMaterial;
         }
 
-        mesh.rotationQuaternion = null;
-        clone.rotationQuaternion = null;
-        scene.registerBeforeRender(() => {
-            mesh.rotation.x = 3 - Vector3.Distance(mesh.position, Vector3.Zero());
-        });
+        // mesh.rotationQuaternion = null;
+        // clone.rotationQuaternion = null;
+        // scene.registerBeforeRender(() => {
+        //     mesh.rotation.x = 3 - Vector3.Distance(mesh.position, Vector3.Zero());
+        // });
     });
 
     // SceneLoader.ImportMeshAsync('', '../models/', 'clipboard.glb').then(result => {
