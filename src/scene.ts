@@ -103,7 +103,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         camera.setTarget(cylinderEmpty);
     });
 
-    SceneLoader.ImportMeshAsync('', '../models/', 'scienceLabInstructorTable.glb').then(result => {
+    SceneLoader.ImportMeshAsync('', '../models/', 'newRoomEnvironmentTLL_draco.glb').then(result => {
         table = result.meshes.find(mesh => mesh.name === '__root__')!;
         setBoundingInfoFromChildren(table);
         
@@ -113,6 +113,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         table.rotation.y = -Math.PI / 2;
     });
 
-    const xr = await scene.createDefaultXRExperienceAsync();
+    //const xr = await scene.createDefaultXRExperienceAsync();
     return scene;
 };
