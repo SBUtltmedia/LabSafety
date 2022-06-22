@@ -6,6 +6,7 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { WebRequest }  from '@babylonjs/core/Misc';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { CannonJSPlugin } from '@babylonjs/core/Physics';
@@ -128,13 +129,13 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     //     }
     // });
 
-    // SceneLoader.ImportMeshAsync('', '../models/room.glb').then(result => {
-    //     const mesh = result.meshes.find(mesh => mesh.name === '__root__');
-    //     if (mesh) {
-    //         mesh.scaling = new Vector3(10, 10, 10);
-    //     }
-    //     console.log(result);
-    // });
+    SceneLoader.ImportMeshAsync('', '../models/newRoomEnvironmentTLL_KTX.glb').then(result => {
+        const mesh = result.meshes.find(mesh => mesh.name === '__root__');
+        // if (mesh) {
+        //     mesh.scaling = new Vector3(10, 10, 10);
+        // }
+        console.log(result);
+    });
     const xr = await scene.createDefaultXRExperienceAsync();
     return scene;
 };
