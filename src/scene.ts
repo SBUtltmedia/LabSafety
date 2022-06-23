@@ -248,6 +248,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
 
     });
 
-    const xr = await scene.createDefaultXRExperienceAsync();
+    //const xr = await scene.createDefaultXRExperienceAsync();
     return scene;
 };
