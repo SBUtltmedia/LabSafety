@@ -1,141 +1,172 @@
+// import { 
+//     Scene,
+//     HemisphericLight,
+//     Vector3,
+//     Color3, 
+//     Color4,
+//     ArcRotateCamera,
+//     SceneLoader,
+//     PointerDragBehavior,
+//     CreateGround,
+//     AbstractMesh,
+//     Engine ,
+//     StandardMaterial,
+//     BoundingInfo,
+//     Nullable,
+//     Animation,
+//     ActionManager,
+//     ExecuteCodeAction,
+// MeshBuilder
+// } from '@babylonjs/core/';
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
-import { WebRequest }  from '@babylonjs/core/Misc';
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { CannonJSPlugin } from '@babylonjs/core/Physics';
-import { PhysicsImpostor } from '@babylonjs/core/Physics/physicsImpostor';
-import { PhysicsJoint } from '@babylonjs/core/Physics/physicsJoint';
-import { PhysicsViewer } from '@babylonjs/core/Debug/physicsViewer';
-import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
-import { BoundingInfo } from '@babylonjs/core';
-
-import '@babylonjs/core/Physics/physicsEngineComponent';  // To populate the scene.enablePhysics method
+import { BoundingInfo } from '@babylonjs/core/Culling/boundingInfo';
+import { Nullable } from '@babylonjs/core/types';
+import { Animation } from '@babylonjs/core/Animations/animation';
+import {ActionManager} from '@babylonjs/core/Actions/actionManager';
+import {ExecuteCodeAction} from '@babylonjs/core/Actions/directActions';
+import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder';
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
 import '@babylonjs/core/Rendering/boundingBoxRenderer';
 
 
+function setBoundingInfoFromChildren(mesh: AbstractMesh): [Vector3, Vector3] {
+    const { min, max } = mesh.getHierarchyBoundingVectors();  // Note: this method works strangely with cloned meshes
+    mesh.setBoundingInfo(new BoundingInfo(min, max));
+    return [min, max];
+}
+
+function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
+    // Note: this function only changes the vertical position of the meshes, so a mesh may not be within the bounds of the surface.
+    const surfaceLevel = surface.getBoundingInfo().boundingBox.maximum.y;
+    meshes.forEach(mesh => {
+        const offset = mesh.position.y - mesh.getBoundingInfo().boundingBox.minimum.y;
+        mesh.position.y = surfaceLevel + offset;
+    });
+}
+
+function showBoundingBoxes(...meshes: AbstractMesh[]) {
+    meshes.forEach(mesh => mesh.showBoundingBox = true);
+}
+
+function hideBoundingBoxes(...meshes: AbstractMesh[]) {
+    meshes.forEach(mesh => mesh.showBoundingBox = false);
+}
+
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
-
-    // Enable Cannon physics engine
-    scene.enablePhysics(new Vector3(0, -9.81, 0), new CannonJSPlugin());
-    const physicsViewer = new PhysicsViewer(scene);
     
-    // Add a camera
-    const camera = new ArcRotateCamera('camera', -Math.PI/2, Math.PI / 2.5, 3, new Vector3(0, 0, 0), scene);
+    const camera = new ArcRotateCamera('camera', -Math.PI/2, Math.PI / 2.5, 25, new Vector3(0, 0, 0), scene);
     camera.attachControl(canvas, true);
 
-    // Add lights
     const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
 
-    // My code
-    const ground = CreateGround('ground', { width: 100, height: 100 });
-    const groundLevel = ground.getBoundingInfo().boundingBox.maximum.y;
-    ground.physicsImpostor = new PhysicsImpostor(ground, PhysicsImpostor.BoxImpostor, { mass: 0 }, scene);
-    // SceneLoader.ImportMeshAsync('', '../models/', 'fireAlarm.glb').then(result => {
-    //     const mesh = result.meshes.find(m => m.name === '__root__')!;
-    //     console.log(result);
-    //     // The origin of realLeverFinal is the pivot point
-    //     const lever = result.meshes.find(m => m.name === 'realLeverFinal')!;
-    //     lever.rotationQuaternion = null;
-    //     lever.rotation = new Vector3(0, 0, 0);
-    //     scene.registerBeforeRender(() => {
-    //         lever.position = Vector3.Zero()
-    //     });
-    //     lever.addBehavior(new PointerDragBehavior());
-    //     // const joint = new PhysicsJoint(PhysicsJoint.HingeJoint, {
-    //     //     collision: true,
-    //     //     mainAxis: new Vector3(0, 0, 0),
-    //     //     connectedAxis: new Vector3(0, 0, 0),
-    //     //     mainPivot: mesh.position.negate(),
-    //     //     connectedPivot: mesh.position.negate()
-    //     // });
-    // });
+    // const ground = CreateGround('ground', { width: 100, height: 100 });
+    // const groundMaterial = new StandardMaterial('ground-material', scene);
+    // groundMaterial.diffuseColor = new Color3(1 , 228/255, 196/255);
+    // ground.material = groundMaterial;
+
+    let cylinders: AbstractMesh[] = [];
+    let table: Nullable<AbstractMesh> = null;
 
     SceneLoader.ImportMeshAsync('', '../models/', 'graduated_cylinder+liquid.glb').then(result => {
-        const mesh = result.meshes.find(m => m.name === '__root__')!;
-        mesh.addBehavior(new PointerDragBehavior());
-        
-        // Determine bounding info from child meshes
-        let meshMinimum = mesh.position;
-        let meshMaximum = mesh.position;
-        mesh.getChildMeshes().forEach(childMesh => {
-            const childBoundingBox = childMesh.getBoundingInfo().boundingBox;
-            meshMinimum = Vector3.Minimize(meshMinimum, childBoundingBox.minimum);
-            meshMaximum = Vector3.Maximize(meshMaximum, childBoundingBox.maximum);
-        });
-        mesh.setBoundingInfo(new BoundingInfo(meshMinimum, meshMaximum));
-        mesh.position.y += groundLevel - meshMinimum.y;
-        
-        mesh.physicsImpostor = new PhysicsImpostor(mesh, PhysicsImpostor.CylinderImpostor, { mass: 1 }, scene);
-        mesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor!, () => console.log('collide'));
-        // physicsViewer.showImpostor(mesh.physicsImpostor);
-        
+        const cylinder1 = result.meshes.find(mesh => mesh.name === '__root__')!;
+        const wheelRB = MeshBuilder.CreateCylinder("wheelRB", {diameter: 0.125, height: 0.05})
         // Clone mesh, sharing geometries
         // Note: cloning prefixes the clone's child meshes with `${childMesh.parent.name}.`
-        const clone = mesh.clone('cylinder2', null)!;
-        let cloneMinimum = clone.position;
-        let cloneMaximum = clone.position;
-        clone.getChildMeshes().forEach(childMesh => {
-            const childBoundingBox = childMesh.getBoundingInfo().boundingBox;
-            cloneMinimum = Vector3.Minimize(cloneMinimum, childBoundingBox.minimum);
-            cloneMaximum = Vector3.Maximize(cloneMaximum, childBoundingBox.maximum);
-        });
-        clone.setBoundingInfo(new BoundingInfo(cloneMinimum, cloneMaximum));
-        console.log(clone.getBoundingInfo());
-        clone.physicsImpostor = new PhysicsImpostor(clone, PhysicsImpostor.CylinderImpostor, { mass: 1 }, scene);
-        clone.addBehavior(new PointerDragBehavior());
-        clone.position.x -= 5;
-        // physicsViewer.showImpostor(clone.physicsImpostor);
+        const cylinder2 = cylinder1.clone('cylinder2', null)!;
+        const cylinderEmpty = cylinder1.clone('cylinder-empty', null)!;
+        
+        setBoundingInfoFromChildren(cylinder1);
+        setBoundingInfoFromChildren(cylinder2);
+        setBoundingInfoFromChildren(cylinderEmpty);
 
+        cylinder1.addBehavior(new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) }));
+        cylinder2.addBehavior(new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) }));
+        
         // Set liquid colors
-        const meshLiquid = mesh.getChildMeshes().find(m => m.name === 'BeakerLiquid');
-        if (meshLiquid) {
-            const liquidMaterial = new StandardMaterial('liquid-material', scene);
-            liquidMaterial.diffuseColor = new Color3(1, 0, 0);
-            meshLiquid.material = liquidMaterial;
-        }
-        const cloneLiquid = clone.getChildMeshes().find(m => m.name === `${m.parent!.name}.BeakerLiquid`);
-        if (cloneLiquid) {
-            const liquidMaterial = new StandardMaterial('liquid-material', scene);
-            liquidMaterial.diffuseColor = new Color3(0, 0, 1);
-            cloneLiquid.material = liquidMaterial;
-        }
+        const cylinder1Liquid = cylinder1.getChildMeshes().find(mesh => mesh.name === 'BeakerLiquid')!;
+        const cylinder1LiquidMaterial = new StandardMaterial('liquid-material', scene);
+        cylinder1LiquidMaterial.diffuseColor = new Color3(1, 0, 0);
+        cylinder1Liquid.material = cylinder1LiquidMaterial;
 
-        // mesh.rotationQuaternion = null;
-        // clone.rotationQuaternion = null;
-        // scene.registerBeforeRender(() => {
-        //     mesh.rotation.x = 3 - Vector3.Distance(mesh.position, Vector3.Zero());
-        // });
+        const cylinder2Liquid = cylinder2.getChildMeshes().find(mesh => mesh.name === `${mesh.parent!.name}.BeakerLiquid`)!;
+        const cylinder2LiquidMaterial = new StandardMaterial('liquid-material', scene);
+        cylinder2LiquidMaterial.diffuseColor = new Color3(0, 0, 1);
+        cylinder2Liquid.material = cylinder2LiquidMaterial;
+
+        const cylinderEmptyLiquid = cylinderEmpty.getChildMeshes().find(mesh => mesh.name === `${mesh.parent!.name}.BeakerLiquid`)!;
+        const cylinderEmptyLiquidMaterial = new StandardMaterial('liquid-material', scene);
+        cylinderEmptyLiquidMaterial.alpha = 0;
+        cylinderEmptyLiquid.material = cylinderEmptyLiquidMaterial;
+        
+        // Set positions
+        cylinders.push(cylinder1, cylinder2, cylinderEmpty);
+        cylinders.forEach(c => console.log(c.rotation, c.rotationQuaternion));
+        cylinder1.position.x += 5;
+        cylinder2.position.x -= 5;
+        cylinder1.rotationQuaternion = cylinder2.rotationQuaternion = cylinderEmpty.rotationQuaternion = null;
+        cylinder1.rotation = new Vector3(0, Math.PI, 0);
+        cylinder2.rotation = Vector3.Zero();
+        cylinderEmpty.rotation = Vector3.Zero();
+
+        if (table) placeOnSurface(table, ...cylinders);
+
+        // Focus camera at the empty cylinder
+        camera.setTarget(cylinderEmpty);
     });
-
-    // SceneLoader.ImportMeshAsync('', '../models/', 'clipboard.glb').then(result => {
-    //     const mesh = result.meshes.find(mesh => mesh.name === '__root__');
-    //     if (mesh) {
-    //         mesh.position.z += 3;
-    //         // Set rotation
-    //         mesh.rotationQuaternion = null;
-    //         mesh.rotation = new Vector3(0, Math.PI/2, 0);
-
-    //         mesh.addBehavior(new PointerDragBehavior());
-    //     }
+    // SceneLoader.ImportMeshAsync('', '../models/', 'newRoomEnvironmentTLL_KTX.glb').then(result => {
+    //     table = result.meshes.find(mesh => mesh.name === '__root__')!;
+    //     setBoundingInfoFromChildren(table);
+        
+    //     if (cylinders.length) placeOnSurface(table, ...cylinders);
+        
+    //     table.rotationQuaternion = null;
+    //     table.rotation.y = -Math.PI / 2;
     // });
 
-    SceneLoader.ImportMeshAsync('', '../models/newRoomEnvironmentTLL_KTX.glb').then(result => {
-        const mesh = result.meshes.find(mesh => mesh.name === '__root__');
-        // if (mesh) {
-        //     mesh.scaling = new Vector3(10, 10, 10);
-        // }
-        console.log(result);
+
+
+    SceneLoader.ImportMeshAsync('', '../models/', 'fireAlarm.glb').then(result => {
+        const root = result.meshes.find(mesh => mesh.name === '__root__')!;
+      
+        root.rotationQuaternion = null
+        root.rotation.y= .5*Math.PI
+        const frameRate=10
+    const xSlide = new Animation("xSlide", "rotation.z", frameRate, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    const lever = result.meshes.find(mesh => mesh.name === 'LeverRedone'); 
+    lever.rotationQuaternion = null
+    lever.actionManager = new ActionManager(scene);
+	lever.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, function () {
+        scene.beginAnimation(  lever, 0, 2 * frameRate, true);
+	}));
+
+    xSlide.setKeys([{
+        frame: 0,
+        value: 0
+    },{
+        frame: frameRate,
+        value:- .5* Math.PI
+    }]);
+
+    lever.animations.push(xSlide);
+
+  
+       console.log(result)
     });
+    scene.registerBeforeRender(() => {
+       // mesh.position.z = zPos
+      })
     const xr = await scene.createDefaultXRExperienceAsync();
     return scene;
 };

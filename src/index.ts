@@ -8,7 +8,7 @@ type config = {
 const CONFIG: config = {
     mode: 'vr'
 };
- 
+
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement; // Get the canvas element
 const engine = new Engine(canvas, true); // Generate the BABYLON 3D engine
 
