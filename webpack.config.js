@@ -12,7 +12,7 @@ const plugins = [
   }),
   new HtmlWebpackPlugin({
     title: 'Typescript Webpack Starter',
-    template: '!!ejs-loader!src/index.html'
+    template: '!!ejs-loader!dist/index.html'
   }),
   new webpack.LoaderOptionsPlugin({
     options: {
@@ -65,7 +65,9 @@ var config = {
     compress: true,
     port: 3000,
     hot: true
-  }
+  },
+  mode: 'production'
+
 };
 
 module.exports = config;

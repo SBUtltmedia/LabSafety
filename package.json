@@ -27,6 +27,7 @@
   "author": "",
   "bundleDependencies": false,
   "deprecated": false,
+  "sideEffects": false,
   "description": "",
   "dependencies": {
     "@babylonjs/loaders": "^5.8.2",
