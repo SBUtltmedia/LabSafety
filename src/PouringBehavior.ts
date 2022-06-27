@@ -32,18 +32,14 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
 
     calculatePouringRotation = (): Vector3 => {
         const targetCylinderBoundingBox = this.target.getBoundingInfo().boundingBox;
-        const xTgt = (targetCylinderBoundingBox.minimumWorld.x + targetCylinderBoundingBox.maximumWorld.x) / 2;
-        const yTgt = targetCylinderBoundingBox.maximumWorld.y;
+        const xTgt = (targetCylinderBoundingBox.minimumWorld.x + targetCylinderBoundingBox.maximumWorld.x) / 2 - this.source.position.x;
+        const yTgt = targetCylinderBoundingBox.maximumWorld.y - this.source.position.y;
 
-        // Set the center of the pouring cylinder to be the origin. Variables oX and oY are poorly named; they should probably be xTgt and yTgt instead.
-        const oX = xTgt - this.source.position.x;
-        const oY = yTgt - this.source.position.y;
-        // const oXNorm = oX/Math.sqrt(oX**2 + oY**2);
-        const oYNorm = oY/Math.sqrt(oX**2 + oY**2);
+        const yTgtNorm = yTgt/Math.hypot(xTgt, yTgt);
 
-        const numerator = oX ** 2;
-        const denominator = 2 * this.sourceRadius * (Math.asin(oYNorm) - this.sourceRadius/2);
-        const quotient = numerator/denominator;  // TODO: why is this negative?
+        const numerator = xTgt ** 2;
+        const denominator = 2 * this.sourceRadius * (Math.asin(yTgtNorm) - this.sourceRadius/2);
+        const quotient = numerator/denominator;
         const root = Math.sqrt(Math.abs(quotient));
         const theta = Math.acos(root) + Math.PI/2;  // Note the Math.PI/2 offset.
         if (!Number.isFinite(theta) || Vector3.Distance(new Vector3(xTgt, yTgt, this.target.position.z), this.source.position) < this.sourceRadius) {
