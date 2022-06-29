@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "npx webpack serve",
-    "build": "npx webpack"
+    "build": "npx webpack --mode production"
   },
   "devDependencies": {
     "source-map-loader": "^3.0.1",
