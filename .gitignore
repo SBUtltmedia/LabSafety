@@ -1,2 +1,4 @@
 node_modules
+dist
+legacy
 .DS_Store
