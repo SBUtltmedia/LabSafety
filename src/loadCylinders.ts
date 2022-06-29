@@ -8,7 +8,7 @@ import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { setBoundingInfoFromChildren } from './utils';
 import PouringBehavior from './PouringBehavior';
 
-export const loadCylinders = () => SceneLoader.ImportMeshAsync('', 'models/', 'graduated_cylinder+liquid.glb').then(result => {
+export const loadCylinders = () => SceneLoader.ImportMeshAsync('', '../models/', 'graduated_cylinder+liquid.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
         
         // Clone mesh, sharing geometries
