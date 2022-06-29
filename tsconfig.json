@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
+    "strict":true,
     "target": "ES6",
-    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+     "lib": ["dom"],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
     "module": "ESNext",
     "moduleResolution": "node",
     "outDir": "./bin",
     "noEmitOnError": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "skipLibCheck": true,
+  
   },
   "include": ["src/*.ts"],
   "exclude": ["node_modules"]
