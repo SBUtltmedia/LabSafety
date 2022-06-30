@@ -52,7 +52,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const quotient = numerator/denominator;
         const root = Math.sqrt(Math.abs(quotient));
         const theta = Math.acos(root) + Math.PI/2;  // Note the Math.PI/2 offset.
-        if (!Number.isFinite(theta) || Vector3.Distance(new Vector3(xTgt, yTgt, this.target.position.z), this.source.position) < this.sourceRadius) {
+        if (yTgt > 0 || !Number.isFinite(theta) || Vector3.Distance(new Vector3(xTgt, yTgt, this.target.position.z - this.source.position.z), Vector3.Zero()) < this.sourceRadius) {  // TODO: why is the yTgt > 0 condition necessary?
             if (this.pouring) this.pouring = false;
             return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         }
