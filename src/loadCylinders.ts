@@ -10,11 +10,12 @@ import PouringBehavior from './PouringBehavior';
 
 export const loadCylinders = () => SceneLoader.ImportMeshAsync('', '../models/', 'graduated_cylinder+liquid.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
+    leftCylinder.name = 'left-cylinder';
         
         // Clone mesh, sharing geometries
         // Note: cloning prefixes the clone's child meshes with `${childMesh.parent.name}.`
-        const rightCylinder = leftCylinder.clone('cylinder2', null)!;
-        const staticCylinder = leftCylinder.clone('cylinder-empty', null)!;
+        const rightCylinder = leftCylinder.clone('right-cylinder', null)!;
+        const staticCylinder = leftCylinder.clone('static-cylinder', null)!;
         const cylinders = [leftCylinder, rightCylinder, staticCylinder];
         cylinders.forEach(cylinder => {
             setBoundingInfoFromChildren(cylinder);
@@ -43,6 +44,7 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', '../models/',
         const cylinderEmptyLiquid = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!;
         const cylinderEmptyLiquidMaterial = new StandardMaterial('liquid-material');
         cylinderEmptyLiquidMaterial.alpha = 0;
+        cylinderEmptyLiquidMaterial.diffuseColor = Color3.Black();
         cylinderEmptyLiquid.material = cylinderEmptyLiquidMaterial;
 
         // Set positions

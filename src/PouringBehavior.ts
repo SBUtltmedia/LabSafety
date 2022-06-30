@@ -3,6 +3,8 @@ import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { KeyboardEventTypes, KeyboardInfo } from '@babylonjs/core/Events/keyboardEvents';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -59,14 +61,39 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     }
 
     #renderFn = (): void => {
+        // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
         this.source.rotationQuaternion = null;
         let rotation: Vector3;
         if (this.pouring) {
-            rotation = this.calculatePouringRotation();
+            rotation = this.calculatePouringRotation();  // This can set this.pouring
         } else {
             rotation = new Vector3(0, this.source.position.x < this.target.position.x ? 0 : Math.PI, 0);
         }
         this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(0.1));  // 0.1 is the velocity factor. TODO: extract this into a parameter.
+        if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
+            this.#pour(0.01);  // TODO: 0.01 is a hardcoded rate. Extract this into a parameter.
+        }
+    }
+
+    #pour = (rate: number): void => {
+        const sourceLiquidMaterial = this.source.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material! as StandardMaterial;
+        const targetLiquidMaterial = this.target.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material! as StandardMaterial;
+        const sourceAlpha = sourceLiquidMaterial.alpha;
+        const targetAlpha = targetLiquidMaterial.alpha;
+        const sourceColor = sourceLiquidMaterial.diffuseColor;
+        const targetColor = targetLiquidMaterial.diffuseColor;
+        if (sourceAlpha > 0) {
+            const aInc = Math.min(sourceAlpha, rate);  // Note that we want this to pour even if targetAlpha === 1
+            const colorInc = new Color3(Math.min(1 - targetColor.r, sourceColor.r, rate),
+                                        Math.min(1 - targetColor.g, sourceColor.g, rate),
+                                        Math.min(1 - targetColor.b, sourceColor.b, rate));
+            sourceLiquidMaterial.alpha -= aInc;
+            targetLiquidMaterial.alpha += Math.min(1 - targetAlpha, aInc);
+            sourceLiquidMaterial.diffuseColor = sourceColor.subtract(colorInc);
+            targetLiquidMaterial.diffuseColor = targetColor.add(colorInc);
+        } else {
+            sourceLiquidMaterial.diffuseColor = Color3.Black();
+        }
     }
 
     #pourKeyFn = ({ event, type }: KeyboardInfo) => {
