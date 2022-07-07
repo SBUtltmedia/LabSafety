@@ -30,8 +30,25 @@
    <body>
 
 	<canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
+<script>
 
-	<script src="main.js" type="module"></script>
+let head = document.getElementsByTagName('head')[0];
+let js = document.createElement("script");
+let path ="";
+js.type = "text/javascript";
+
+if (document.location.href.includes("github"))
+{
+   path= "dist/";
+}
+
+js.src = `${path}main.js`;
+head.appendChild(js);
+    
+</script>
+
+
+	<!-- <script src="main.js" type="module"></script> -->
 
    </body>
 
