@@ -17,6 +17,9 @@ module.exports = {
             }
         ]
     },
+    output: {
+        publicPath: '/dist'
+    },
     devServer: {
         allowedHosts: 'auto',
         static: __dirname,
