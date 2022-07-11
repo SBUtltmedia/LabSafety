@@ -1,9 +1,10 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 
 import { setBoundingInfoFromChildren } from "./utils";
+import { modelsPath } from './constants';
 
 
-export const loadRoom = () => SceneLoader.ImportMeshAsync('', '../models/', 'newRoomEnvironmentTLL.glb').then(result => {
+export const loadRoom = () => SceneLoader.ImportMeshAsync('', modelsPath, 'newRoomEnvironmentTLL.glb').then(result => {
     const room = result.meshes.find(mesh => mesh.name === '__root__')!;
     const table = result.meshes.find(mesh => mesh.name === 'Table.002')!;
     const walls = result.meshes.find(mesh => mesh.name === 'Walls')!;
