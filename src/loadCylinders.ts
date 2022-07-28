@@ -5,11 +5,9 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
-import { setBoundingInfoFromChildren } from './utils';
-import PouringBehavior from './PouringBehavior';
-import { modelsPath } from './constants';
+import { modelsPath, GrabbableAbstractMesh } from './constants';
 
-export const loadCylinders = () => SceneLoader.ImportMeshAsync('', modelsPath, 'graduated_cylinder+liquid.glb').then(result => {
+export const loadCylinders = () => SceneLoader.ImportMeshAsync('', modelsPath, 'TLLGraduatedCylinder.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
     leftCylinder.name = 'left-cylinder';
         
@@ -19,7 +17,6 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', modelsPath, '
         const staticCylinder = leftCylinder.clone('static-cylinder', null)!;
         const cylinders = [leftCylinder, rightCylinder, staticCylinder];
         cylinders.forEach(cylinder => {
-            setBoundingInfoFromChildren(cylinder);
             cylinder.getChildMeshes().forEach(childMesh => {
                 switch (childMesh.name.split('.').at(-1)!) {
                     case 'BeakerwOpacity':
@@ -49,21 +46,29 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', modelsPath, '
         cylinderEmptyLiquid.material = cylinderEmptyLiquidMaterial;
 
         // Set positions
-        leftCylinder.position.x += 5;
-        rightCylinder.position.x -= 5;
+        // leftCylinder.position.x += 5;
+        // rightCylinder.position.x -= 5;
 
         leftCylinder.rotationQuaternion = null;
         rightCylinder.rotationQuaternion = null;
         staticCylinder.rotationQuaternion = null;
         
-        leftCylinder.rotation = new Vector3(0, Math.PI, 0);
-        rightCylinder.rotation = Vector3.Zero();
-        staticCylinder.rotation = Vector3.Zero();
+        // leftCylinder.rotation = new Vector3(0, Math.PI, 0);
+        // rightCylinder.rotation = Vector3.Zero();
+        // staticCylinder.rotation = Vector3.Zero();
         
-        cylinders.forEach(cylinder => cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.checkCollisions = true);
-        const r = (staticCylinder.getBoundingInfo().boundingBox.maximum.y - staticCylinder.getBoundingInfo().boundingBox.minimum.y) / 2;
-        leftCylinder.addBehavior(new PouringBehavior(staticCylinder, r));
-        rightCylinder.addBehavior(new PouringBehavior(staticCylinder, r));
+        cylinders.forEach(cylinder => {
+            const cylinderMesh = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')! as GrabbableAbstractMesh;
+            cylinderMesh.checkCollisions = true;
+            cylinderMesh.grabbable = true;
+        });
+
+        // cylinders.forEach(cylinder => {
+        //     const cylinderOpacity = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+        //     cylinderOpacity.showBoundingBox = true;
+        //     cylinder.setPivotPoint(cylinderOpacity.getBoundingInfo().boundingBox.center);
+        //     console.log(`cylinder position: ${cylinder.position}\ncylinder pivot point: ${cylinder.getPivotPoint()}`);
+        // });
         
         return {
             leftCylinder,

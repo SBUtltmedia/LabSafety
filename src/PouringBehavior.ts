@@ -5,6 +5,9 @@ import { KeyboardEventTypes, KeyboardInfo } from '@babylonjs/core/Events/keyboar
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
+
+import { POURING_RATE } from './constants';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -13,10 +16,12 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     source!: AbstractMesh;
     pouring!: boolean;
     pourKey = 'e';
+    xr?: WebXRExperienceHelper;
 
-    constructor(target: AbstractMesh, sourceRadius: number) {
+    constructor(target: AbstractMesh, sourceRadius: number, xr?: WebXRExperienceHelper) {
         this.target = target;
         this.sourceRadius = sourceRadius;
+        this.xr = xr;
     }
 
     get name() {
@@ -38,40 +43,71 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const scene = this.source.getScene();
         scene.unregisterBeforeRender(this.#renderFn);
         scene.onKeyboardObservable.removeCallback(this.#pourKeyFn);
+        
     }
 
     calculatePouringRotation = (): Vector3 => {
-        const targetCylinderBoundingBox = this.target.getBoundingInfo().boundingBox;
-        const xTgt = (targetCylinderBoundingBox.minimumWorld.x + targetCylinderBoundingBox.maximumWorld.x) / 2 - this.source.position.x;
-        const yTgt = targetCylinderBoundingBox.maximumWorld.y - this.source.position.y;
+        // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
+        // const origin = this.source.absolutePosition;  // this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox.centerWorld;  // this.source.getAbsolutePivotPoint();
+        // const xTgt = targetCylinderBoundingBox.centerWorld.x - origin.x;
+        // const yTgt = targetCylinderBoundingBox.maximumWorld.y - origin.y;
+        // const tgt = new Vector3(xTgt, yTgt, targetCylinderBoundingBox.centerWorld.z);
+        // const yTgtNorm = yTgt/Math.hypot(xTgt, yTgt);
 
-        const yTgtNorm = yTgt/Math.hypot(xTgt, yTgt);
+        // const numerator = xTgt ** 2;
+        // const denominator = 2 * this.sourceRadius * (Math.asin(yTgtNorm) - this.sourceRadius/2);
+        // const quotient = numerator/denominator;
+        // const root = Math.sqrt(Math.abs(quotient));
+        // const theta = Math.acos(root) + Math.PI/2;  // Note the Math.PI/2 offset.
+        // console.log(`xTgt: ${xTgt}`);
+        // console.log(`yTgt: ${yTgt}`);
+        // if (yTgt > 0 || !Number.isFinite(theta) || Vector3.Distance(origin, tgt) < this.sourceRadius) {  // TODO: why is the yTgt > 0 condition necessary?
+        //     if (this.pouring) this.pouring = false;
+        //     return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
+        // }
 
-        const numerator = xTgt ** 2;
-        const denominator = 2 * this.sourceRadius * (Math.asin(yTgtNorm) - this.sourceRadius/2);
-        const quotient = numerator/denominator;
-        const root = Math.sqrt(Math.abs(quotient));
-        const theta = Math.acos(root) + Math.PI/2;  // Note the Math.PI/2 offset.
-        if (yTgt > 0 || !Number.isFinite(theta) || Vector3.Distance(new Vector3(xTgt, yTgt, this.target.position.z - this.source.position.z), Vector3.Zero()) < this.sourceRadius) {  // TODO: why is the yTgt > 0 condition necessary?
-            if (this.pouring) this.pouring = false;
+        const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
+        const origin = this.source.absolutePosition;
+        const target = new Vector3(this.target.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, this.target.absolutePosition.z);
+        // const theta = target.subtract(origin).normalize();
+        // const r = Math.hypot(...origin.subtract(target).asArray());
+        // const theta = Math.acos((origin.x - target.x) / r) + Math.PI / 2;
+        // const theta = Math.acos((target.x - origin.x) / Math.hypot(target.x - origin.x, target.y - origin.y, target.z - origin.z));
+        const theta = Math.atan((origin.y - target.y) / (origin.x - target.x));
+        if (origin.y < target.y || Vector3.Distance(origin, target) < this.sourceRadius) {
+            this.pouring = false;
             return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         }
-        if (this.source.position.x < this.target.position.x) return new Vector3(0, 0, -theta);
-        return new Vector3(0, Math.PI, -theta);
+        if (origin.x < this.target.position.x) return new Vector3(0, 0, theta - Math.PI / 2);
+        return new Vector3(0, Math.PI, -theta - Math.PI / 2);
     }
 
     #renderFn = (): void => {
         // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
-        this.source.rotationQuaternion = null;
-        let rotation: Vector3;
-        if (this.pouring) {
-            rotation = this.calculatePouringRotation();  // This can set this.pouring
+        // this.source.rotationQuaternion = null;
+        // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')?.getBoundingInfo().boundingBox!;
+        // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
+        if (this.xr?.state === WebXRState.IN_XR) {
+            const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === 'liquid')!.getBoundingInfo()?.boundingBox;
+            const sourceLocalMinimum = sourceBoundingBox.minimum;
+            const sourceLocalMaximum = sourceBoundingBox.maximum;
+            const matrix = this.source.computeWorldMatrix(true);
+            const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
+            if (distance <= 0.5 && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
+                this.#pour(POURING_RATE);
+            }
         } else {
-            rotation = new Vector3(0, this.source.position.x < this.target.position.x ? 0 : Math.PI, 0);
-        }
-        this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(0.1));  // 0.1 is the velocity factor. TODO: extract this into a parameter.
-        if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
-            this.#pour(0.01);  // TODO: 0.01 is a hardcoded rate. Extract this into a parameter.
+            let rotation: Vector3;
+            if (this.pouring) {
+                rotation = this.calculatePouringRotation();  // This can set this.pouring
+            } else {
+                rotation = new Vector3(0, this.source.position.x < this.target.position.x ? 0 : Math.PI, 0);
+            }
+            // this.source.rotation = rotation;
+            this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(0.1));  // 0.1 is the velocity factor. TODO: extract this into a parameter.
+            if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
+                this.#pour(POURING_RATE);
+            }
         }
     }
 

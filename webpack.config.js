@@ -24,6 +24,7 @@ module.exports = {
         allowedHosts: 'auto',
         static: __dirname,
         port: 8887,
+        https: true,
         hot: true
     }
 };
