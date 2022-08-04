@@ -12,3 +12,5 @@ While the server is running, the application can be found at http://localhost:88
 To build the project, run
 
     > npm run build
+
+The current build of the application is deployed at https://sbutltmedia.github.io/LabSafety/.
