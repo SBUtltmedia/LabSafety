@@ -8,6 +8,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 
 import { POURING_RATE } from './constants';
+import { sop, pourRedCylinderTask, pourBlueCylinderTask } from './globals';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -129,6 +130,32 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             targetLiquidMaterial.diffuseColor = targetColor.add(colorInc);
         } else {
             sourceLiquidMaterial.diffuseColor = Color3.Black();
+            
+            // Complete the relevant task.
+            if (this.source.name === 'left-cylinder') {
+                const completed = sop.completeTask(pourRedCylinderTask);
+                console.log(completed);
+                if (completed) {
+                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
+                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Green();
+                } else {
+                    sop.fail();  // The user has failed to properly follow the SOP. Explode.
+                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
+                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Red();
+                }
+            }
+            else if (this.source.name === 'right-cylinder') {
+                const completed = sop.completeTask(pourBlueCylinderTask);
+                console.log(completed);
+                if (completed) {
+                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
+                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Green();
+                } else {
+                    sop.fail();  // The user has failed to properly follow the SOP. Explode.
+                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
+                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Red();
+                }
+            }
         }
     }
 

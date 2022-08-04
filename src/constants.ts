@@ -6,3 +6,11 @@ export const POURING_RATE = 0.01;  // alpha increment per frame
 export interface GrabbableAbstractMesh extends AbstractMesh {
     grabbable: boolean;
 }
+
+export interface Task {
+    complete: boolean;
+    current: boolean;
+    title: string;
+    shortDescription: string;
+    description: string;
+}
