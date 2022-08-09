@@ -19,6 +19,7 @@ import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { sop } from './globals';
+import { rootPath } from './constants';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -117,7 +118,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
 
-        const failSound = new Sound('explosion', '../sound/mi_explosion_03_hpx.mp3', scene, () => {
+        const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene, () => {
             console.log('SOUND IS READY');
         });
         const failCallback = function() {

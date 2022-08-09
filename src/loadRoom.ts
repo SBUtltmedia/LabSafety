@@ -1,11 +1,11 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 
-import { modelsPath } from './constants';
+import { rootPath } from './constants';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 
 
-export const loadRoom = () => SceneLoader.ImportMeshAsync('', modelsPath, 'RoomandNewLabBench.glb').then(result => {
+export const loadRoom = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'RoomandNewLabBench.glb').then(result => {
     const root = result.meshes.find(mesh => mesh.name === '__root__')!;
     const table = result.meshes.find(mesh => mesh.name === 'Table')!;
     const walls = result.meshes.find(mesh => mesh.name === 'Walls')!;

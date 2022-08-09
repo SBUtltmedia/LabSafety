@@ -5,9 +5,9 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
-import { modelsPath, GrabbableAbstractMesh } from './constants';
+import { rootPath, GrabbableAbstractMesh } from './constants';
 
-export const loadCylinders = () => SceneLoader.ImportMeshAsync('', modelsPath, 'TLLGraduatedCylinder.glb').then(result => {
+export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'TLLGraduatedCylinder.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
     leftCylinder.name = 'left-cylinder';
         
