@@ -6,16 +6,19 @@ import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { WebXRState } from '@babylonjs/core/XR';
 import { WebXRFeatureName } from '@babylonjs/core/XR';
+import { Sound } from '@babylonjs/core/Audio/sound';
 
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
 import '@babylonjs/core/Rendering/boundingBoxRenderer';  // To render bounding boxes
 import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisions
+import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { loadCylinders } from './loadCylinders';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
+import { sop } from './globals';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -113,6 +116,15 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         leftCylinder.position = new Vector3(leftCylinderX, cylinderY, cylinderZ);
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
+
+        const failSound = new Sound('explosion', '../sound/mi_explosion_03_hpx.mp3', scene, () => {
+            console.log('SOUND IS READY');
+        });
+        const failCallback = function() {
+            light.setEnabled(false);
+        }
+        sop.failSound = failSound;
+        sop.addFailEffects(failSound, failCallback);
     });
 
     // const gui3dManager = new GUI3DManager(scene);

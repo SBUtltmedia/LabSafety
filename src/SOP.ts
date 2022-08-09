@@ -1,3 +1,4 @@
+import { Sound } from "@babylonjs/core/Audio/sound";
 import { Nullable } from "@babylonjs/core/types";
 import { Task } from "./constants";
 import DAGNode from "./DAGNode";
@@ -12,6 +13,9 @@ export default class SOP {
     description: string;
     tasks: DirectedAcyclicGraph<Task>;
     currentNode: DAGNode<Task>;
+    failed: boolean = false;
+    onFail?: () => void;
+    failSound?: Sound;
 
     constructor(title: string, description: string) {
         this.title = title;
@@ -81,9 +85,19 @@ export default class SOP {
         return this.completeTaskFromNode(node);
     }
 
+    addFailEffects = (failSound: Sound, failCallback: () => void) => {
+        this.failSound = failSound;
+        this.onFail = failCallback;
+    }
+
     fail = () => {
-        // The user has failed to properly follow the SOP. Explode.
-        this.currentNode = this.tasks.root;
-        this.currentNode.dependents = [];  // Strand all tasks.
+        if (!this.failed) {
+            // The user has failed to properly follow the SOP. Explode.
+            this.failed = true;
+            this.currentNode = this.tasks.root;
+            this.currentNode.dependents = [];  // Strand all tasks.
+            this.failSound?.play();
+            if (this.onFail) this.onFail();
+        }
     }
 }

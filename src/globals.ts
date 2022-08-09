@@ -19,5 +19,10 @@ export const pourBlueCylinderTask: Task = {
 
 
 export const sop = new SOP('Pouring Things Into Things', 'Pour a thing into another thing.');
-sop.addDependentTask(pourRedCylinderTask, true);
-sop.addDependentTask(pourBlueCylinderTask);
+
+const addTasks = () => {
+    sop.addDependentTask(pourRedCylinderTask, true);
+    sop.addDependentTask(pourBlueCylinderTask);
+};
+
+addTasks();
