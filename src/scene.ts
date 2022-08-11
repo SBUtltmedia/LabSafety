@@ -80,42 +80,41 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
             const leftCylinderMesh = leftCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
             const rightCylinderMesh = rightCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+            const staticCylinderMesh = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
 
-            if (leftCylinderMesh.intersectsMesh(table)) {
-                const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
-                const tableBoundingBox = table.getBoundingInfo().boundingBox;
-                
-                const offset = calculateNearestOffset(tableBoundingBox, leftCylinderBoundingBox);
-                
-                leftCylinder.position.addInPlace(offset);
-            }
+            // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
+            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh];
 
-            if (rightCylinderMesh.intersectsMesh(table)) {
-                const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
-                const tableBoundingBox = table.getBoundingInfo().boundingBox;
-                
-                const offset = calculateNearestOffset(tableBoundingBox, rightCylinderBoundingBox);
-                
-                rightCylinder.position.addInPlace(offset);
-            }
+            Object.values(cylinders).forEach(cylinder => {
+                const cylinderMesh = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+                collidableMeshes.forEach(collidedMesh => {
+                    if (cylinderMesh !== collidedMesh && cylinderMesh.intersectsMesh(collidedMesh, true)) {
+                        const cylinderBoundingBox = cylinderMesh.getBoundingInfo().boundingBox;
+                        const collidedMeshBoundingBox = collidedMesh.getBoundingInfo().boundingBox;
+                        const offset = calculateNearestOffset(collidedMeshBoundingBox, cylinderBoundingBox);
+                        cylinder.position.addInPlace(offset);
+                    }
+                });
+            });
 
-            if (leftCylinderMesh.intersectsMesh(rightCylinderMesh)) {
-                const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
-                const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
+            // This way of handling cylinder collisions prevents the cylinders from being pushed around
+            // if (leftCylinderMesh.intersectsMesh(rightCylinderMesh)) {
+            //     const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
+            //     const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
 
-                let collidingMesh = rightCylinder;
-                let collidingMeshBoundingBox = rightCylinderBoundingBox;
-                let collidedMeshBoundingBox = leftCylinderBoundingBox;
-                if ((leftCylinder.behaviors.find(behavior => behavior.name === 'PointerDrag') as PointerDragBehavior | undefined)?.dragging) {
-                    collidingMesh = leftCylinder;
-                    collidingMeshBoundingBox = leftCylinderBoundingBox;
-                    collidedMeshBoundingBox = rightCylinderBoundingBox;
-                }
+            //     let collidingMesh = rightCylinder;
+            //     let collidingMeshBoundingBox = rightCylinderBoundingBox;
+            //     let collidedMeshBoundingBox = leftCylinderBoundingBox;
+            //     if ((leftCylinder.behaviors.find(behavior => behavior.name === 'PointerDrag') as PointerDragBehavior | undefined)?.dragging) {
+            //         collidingMesh = leftCylinder;
+            //         collidingMeshBoundingBox = leftCylinderBoundingBox;
+            //         collidedMeshBoundingBox = rightCylinderBoundingBox;
+            //     }
                 
-                const offset = calculateNearestOffset(collidedMeshBoundingBox, collidingMeshBoundingBox);
+            //     const offset = calculateNearestOffset(collidedMeshBoundingBox, collidingMeshBoundingBox);
 
-                collidingMesh.position.addInPlace(offset);
-            }
+            //     collidingMesh.position.addInPlace(offset);
+            // }
         });
 
         const xrOptions = {
