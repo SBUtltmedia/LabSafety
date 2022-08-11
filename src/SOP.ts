@@ -1,8 +1,8 @@
-import { Sound } from "@babylonjs/core/Audio/sound";
-import { Nullable } from "@babylonjs/core/types";
-import { Task } from "./constants";
-import DAGNode from "./DAGNode";
-import DirectedAcyclicGraph from "./DirectedAcyclicGraph";
+import { Sound } from '@babylonjs/core/Audio/sound';
+import { Nullable } from '@babylonjs/core/types';
+import { Task } from './constants';
+import DAGNode from './DAGNode';
+import DirectedAcyclicGraph from './DirectedAcyclicGraph';
 
 export default class SOP {
     /*
@@ -15,7 +15,9 @@ export default class SOP {
     currentNode: DAGNode<Task>;
     failed: boolean = false;
     onFail?: () => void;
+    onSuccess?: () => void;
     failSound?: Sound;
+    successSound?: Sound;
 
     constructor(title: string, description: string) {
         this.title = title;
@@ -76,18 +78,33 @@ export default class SOP {
     }
 
     completeTask = (task: Task): boolean => {
+        if (task.complete) return true;
+
         let node;
         if (this.currentNode.value === task)
             node = this.currentNode;
         else 
             node = this.getNodeByTask(task);
         if (!node) return false;
-        return this.completeTaskFromNode(node);
+        
+        const completed = this.completeTaskFromNode(node);
+        if (completed) {
+            this.successSound?.play();
+            if (this.onSuccess) this.onSuccess();
+        } else {
+            this.fail();
+        }
+        return completed;
     }
 
     addFailEffects = (failSound: Sound, failCallback: () => void) => {
         this.failSound = failSound;
         this.onFail = failCallback;
+    }
+
+    addSuccessEffects = (successSound: Sound, successCallback: () => void) => {
+        this.successSound = successSound;
+        this.onSuccess = successCallback;
     }
 
     fail = () => {

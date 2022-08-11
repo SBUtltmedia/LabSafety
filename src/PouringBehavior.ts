@@ -133,28 +133,10 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             
             // Complete the relevant task.
             if (this.source.name === 'left-cylinder') {
-                const completed = sop.completeTask(pourRedCylinderTask);
-                console.log(completed);
-                if (completed) {
-                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
-                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Green();
-                } else {
-                    sop.fail();  // The user has failed to properly follow the SOP. Explode.
-                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
-                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Red();
-                }
+                sop.completeTask(pourRedCylinderTask);  // This succeeds or fails accordingly and applies the corresponding effects
             }
             else if (this.source.name === 'right-cylinder') {
-                const completed = sop.completeTask(pourBlueCylinderTask);
-                console.log(completed);
-                if (completed) {
-                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
-                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Green();
-                } else {
-                    sop.fail();  // The user has failed to properly follow the SOP. Explode.
-                    // TEMP - FOR DEMONSTRATION PURPOSES ONLY
-                    (this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.material as StandardMaterial).diffuseColor = Color3.Red();
-                }
+                sop.completeTask(pourBlueCylinderTask);
             }
         }
     }

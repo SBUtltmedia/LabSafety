@@ -117,15 +117,20 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         leftCylinder.position = new Vector3(leftCylinderX, cylinderY, cylinderZ);
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
-
-        const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene, () => {
-            console.log('SOUND IS READY');
-        });
-        const failCallback = function() {
+        
+        Engine.audioEngine?.audioContext?.resume();
+        Engine.audioEngine?.setGlobalVolume(1);
+        
+        const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene);
+        const failCallback = () => {
             light.setEnabled(false);
         }
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
+
+        const successSound = new Sound('ding', `${rootPath}sound/ding-idea-40142.mp3`, scene);
+        const successCallback = () => {};
+        sop.addSuccessEffects(successSound, successCallback);
     });
 
     // const gui3dManager = new GUI3DManager(scene);

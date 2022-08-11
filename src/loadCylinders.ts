@@ -37,11 +37,6 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             const cylinderLiquidMaterial = new StandardMaterial('liquid-material');
             cylinderLiquidMaterial.diffuseColor = color as Color3;
             cylinderLiquid.material = cylinderLiquidMaterial;
-
-            // TEMP - FOR DEMONSTRATION PURPOSES ONLY
-            const cylinderGlass = (cylinder as AbstractMesh).getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
-            const cylinderGlassMaterial = new StandardMaterial('glass-material');
-            cylinderGlass.material = cylinderGlassMaterial;
         });
 
         const cylinderEmptyLiquid = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!;
