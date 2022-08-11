@@ -1,5 +1,6 @@
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
+import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
@@ -58,7 +59,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;
 
-    const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene);
+    const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, 0), scene)];
     
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
     camera.speed = 0.2;
@@ -167,7 +168,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         
         const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene);
         const failCallback = () => {
-            light.setEnabled(false);
+            lights.forEach(light => light.setEnabled(false));
         }
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
