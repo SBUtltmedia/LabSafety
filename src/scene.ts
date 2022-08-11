@@ -21,6 +21,8 @@ import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { sop } from './globals';
 import { rootPath } from './constants';
+import { calculateNearestOffset } from './utils';
+import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -71,6 +73,49 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
+
+        // Enable collisions between meshes
+        scene.registerBeforeRender(() => {
+            const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
+            const leftCylinderMesh = leftCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+            const rightCylinderMesh = rightCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+
+            if (leftCylinderMesh.intersectsMesh(table)) {
+                const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
+                const tableBoundingBox = table.getBoundingInfo().boundingBox;
+                
+                const offset = calculateNearestOffset(tableBoundingBox, leftCylinderBoundingBox);
+                
+                leftCylinder.position.addInPlace(offset);
+            }
+
+            if (rightCylinderMesh.intersectsMesh(table)) {
+                const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
+                const tableBoundingBox = table.getBoundingInfo().boundingBox;
+                
+                const offset = calculateNearestOffset(tableBoundingBox, rightCylinderBoundingBox);
+                
+                rightCylinder.position.addInPlace(offset);
+            }
+
+            if (leftCylinderMesh.intersectsMesh(rightCylinderMesh)) {
+                const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
+                const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
+
+                let collidingMesh = rightCylinder;
+                let collidingMeshBoundingBox = rightCylinderBoundingBox;
+                let collidedMeshBoundingBox = leftCylinderBoundingBox;
+                if ((leftCylinder.behaviors.find(behavior => behavior.name === 'PointerDrag') as PointerDragBehavior | undefined)?.dragging) {
+                    collidingMesh = leftCylinder;
+                    collidingMeshBoundingBox = leftCylinderBoundingBox;
+                    collidedMeshBoundingBox = rightCylinderBoundingBox;
+                }
+                
+                const offset = calculateNearestOffset(collidedMeshBoundingBox, collidingMeshBoundingBox);
+
+                collidingMesh.position.addInPlace(offset);
+            }
+        });
 
         const xrOptions = {
             floorMeshes: [floor],
