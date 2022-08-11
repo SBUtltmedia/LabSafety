@@ -62,6 +62,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, 0), scene)];
     
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
+    camera.minZ = 0;  // To prevent clipping through near meshes
     camera.speed = 0.2;
     camera.keysUp.push(87);  // W
     camera.keysDown.push(83);  // S
