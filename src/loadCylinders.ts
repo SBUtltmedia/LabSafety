@@ -41,17 +41,9 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         });
         staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material!.alpha = 0;
 
-        // Set positions
-        // leftCylinder.position.x += 5;
-        // rightCylinder.position.x -= 5;
-
         leftCylinder.rotationQuaternion = null;
         rightCylinder.rotationQuaternion = null;
         staticCylinder.rotationQuaternion = null;
-        
-        // leftCylinder.rotation = new Vector3(0, Math.PI, 0);
-        // rightCylinder.rotation = Vector3.Zero();
-        // staticCylinder.rotation = Vector3.Zero();
         
         cylinders.forEach(cylinder => {
             const cylinderMesh = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')! as GrabbableAbstractMesh;
