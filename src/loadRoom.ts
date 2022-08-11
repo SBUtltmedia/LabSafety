@@ -1,10 +1,9 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
-
-import { rootPath } from './constants';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+
+import { rootPath } from './constants';
 
 
 export const loadRoom = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'RoomandNewLabBench.glb').then(result => {
@@ -30,16 +29,10 @@ export const loadRoom = () => SceneLoader.ImportMeshAsync('', `${rootPath}models
     cabinet.name = 'cabinet';
     floor.name = 'floor';
 
-    // root.rotationQuaternion = null;
-    // root.rotation.y = -Math.PI / 2;
-    // root.position = new Vector3(0, root.position.y - floor.position.y, 3);
-
     table.checkCollisions = true;
     walls.checkCollisions = true;
     cabinet.checkCollisions = true;
     floor.checkCollisions = true;
-    
-    (root as Mesh).bakeCurrentTransformIntoVertices();
 
     return { root, table, walls, cabinet, floor };
 });
