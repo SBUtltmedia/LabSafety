@@ -13,11 +13,16 @@
                 margin: 0;
                 padding: 0;
             }
+            #sopcanvas{
+                width: 99%;
+                height: 100%;  
+            }
 
-            #renderCanvas {
-                width: 100%;
+            #renderCanvas{
+                width: 99%;
                 height: 100%;
                 touch-action: none;
+           
             }
         </style>
 
@@ -30,7 +35,7 @@
    <body>
 
 	<canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
-
+    <canvas id="sopcanvas"></canvas>
 	<script src="dist/main.js" type="module"></script>
 
    </body>
