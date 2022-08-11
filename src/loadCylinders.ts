@@ -29,7 +29,8 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             });
         });
         [[leftCylinder, new Color3(1, 0, 0)],
-         [rightCylinder, new Color3(0, 0, 1)]].forEach(([cylinder, color]) => {
+         [rightCylinder, new Color3(0, 0, 1)],
+         [staticCylinder, Color3.Black()]].forEach(([cylinder, color]) => {
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
             (cylinder as AbstractMesh).addBehavior(pointerDragBehavior);
@@ -38,12 +39,7 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinderLiquidMaterial.diffuseColor = color as Color3;
             cylinderLiquid.material = cylinderLiquidMaterial;
         });
-
-        const cylinderEmptyLiquid = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!;
-        const cylinderEmptyLiquidMaterial = new StandardMaterial('liquid-material');
-        cylinderEmptyLiquidMaterial.alpha = 0;
-        cylinderEmptyLiquidMaterial.diffuseColor = Color3.Black();
-        cylinderEmptyLiquid.material = cylinderEmptyLiquidMaterial;
+        staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material!.alpha = 0;
 
         // Set positions
         // leftCylinder.position.x += 5;
@@ -62,13 +58,6 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinderMesh.checkCollisions = true;
             cylinderMesh.grabbable = true;
         });
-
-        // cylinders.forEach(cylinder => {
-        //     const cylinderOpacity = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
-        //     cylinderOpacity.showBoundingBox = true;
-        //     cylinder.setPivotPoint(cylinderOpacity.getBoundingInfo().boundingBox.center);
-        //     console.log(`cylinder position: ${cylinder.position}\ncylinder pivot point: ${cylinder.getPivotPoint()}`);
-        // });
         
         return {
             leftCylinder,
