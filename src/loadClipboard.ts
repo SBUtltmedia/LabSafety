@@ -25,8 +25,8 @@ export const loadClipboard = (scene:any) => SceneLoader.ImportMeshAsync('', `${r
    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="#ff0000" d="M0 96C0 60.65 28.65 32 64 32H384C419.3 32 448 60.65 448 96V416C448 451.3 419.3 480 384 480H64C28.65 480 0 451.3 0 416V96z"/></svg>`;
 
     const buffer = 'data:image/svg+xml;utf8,' + encodeURIComponent(document.getElementById('sopHolder')!.innerHTML);
-    const texture = Texture.LoadFromDataString(`tex`, buffer, scene);
-
+  
+    const texture = Texture.LoadFromDataString("tex", buffer, scene, undefined, undefined, undefined,Texture.NEAREST_SAMPLINGMODE);
     let material = new StandardMaterial("mat", scene);
    
     material.diffuseTexture = texture;
@@ -39,5 +39,5 @@ export const loadClipboard = (scene:any) => SceneLoader.ImportMeshAsync('', `${r
 
 
    }
-   
+   return result.meshes.find(mesh => mesh.name === '__root__')!;
 });

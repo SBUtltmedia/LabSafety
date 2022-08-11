@@ -71,11 +71,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.checkCollisions = true;
 
 
-    Promise.all([loadCylinders(), loadRoom(), /* loadClipboard(scene) */]).then(async ([cylinders, { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(),loadClipboard(scene), loadRoom()   ]).then(async ([cylinders,clipboard, { root, table, walls, cabinet, floor }]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
-
+        clipboard.position=new Vector3(0, -.5, 0);
         // Enable collisions between meshes
         scene.registerBeforeRender(() => {
             const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
