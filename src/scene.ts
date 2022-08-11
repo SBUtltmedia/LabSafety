@@ -120,9 +120,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
         
-        Engine.audioEngine?.audioContext?.resume();
-        Engine.audioEngine?.setGlobalVolume(1);
-        
         const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene);
         const failCallback = () => {
             light.setEnabled(false);

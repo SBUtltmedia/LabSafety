@@ -3,6 +3,7 @@ import { Nullable } from '@babylonjs/core/types';
 import { Task } from './constants';
 import DAGNode from './DAGNode';
 import DirectedAcyclicGraph from './DirectedAcyclicGraph';
+import { playSound } from './utils';
 
 export default class SOP {
     /*
@@ -89,7 +90,7 @@ export default class SOP {
         
         const completed = this.completeTaskFromNode(node);
         if (completed) {
-            this.successSound?.play();
+            if (this.successSound) playSound(this.successSound);
             if (this.onSuccess) this.onSuccess();
         } else {
             this.fail();
@@ -113,7 +114,7 @@ export default class SOP {
             this.failed = true;
             this.currentNode = this.tasks.root;
             this.currentNode.dependents = [];  // Strand all tasks.
-            this.failSound?.play();
+            if (this.failSound) playSound(this.failSound);
             if (this.onFail) this.onFail();
         }
     }
