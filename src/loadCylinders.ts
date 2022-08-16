@@ -5,7 +5,8 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
-import { rootPath, GrabbableAbstractMesh } from './constants';
+import { rootPath, GrabbableAbstractMesh, CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from './constants';
+import { getChildMeshByName } from './utils';
 
 export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'TLLGraduatedCylinder.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
@@ -20,10 +21,10 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinder.getChildMeshes().forEach(childMesh => {
                 switch (childMesh.name.split('.').at(-1)!) {
                     case 'BeakerwOpacity':
-                        childMesh.name = 'cylinder';
+                        childMesh.name = CYLINDER_MESH_NAME;
                         break;
                     case 'BeakerLiquid':
-                        childMesh.name = 'liquid';
+                        childMesh.name = CYLINDER_LIQUID_MESH_NAME;
                         break;
                 }
             });
@@ -34,19 +35,19 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
             (cylinder as AbstractMesh).addBehavior(pointerDragBehavior);
-            const cylinderLiquid = (cylinder as AbstractMesh).getChildMeshes().find(mesh => mesh.name === 'liquid')!;
+            const cylinderLiquid = getChildMeshByName(cylinder as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
             const cylinderLiquidMaterial = new StandardMaterial('liquid-material');
             cylinderLiquidMaterial.diffuseColor = color as Color3;
             cylinderLiquid.material = cylinderLiquidMaterial;
         });
-        staticCylinder.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material!.alpha = 0;
+        getChildMeshByName(staticCylinder, CYLINDER_LIQUID_MESH_NAME)!.material!.alpha = 0;
 
         leftCylinder.rotationQuaternion = null;
         rightCylinder.rotationQuaternion = null;
         staticCylinder.rotationQuaternion = null;
         
         cylinders.forEach(cylinder => {
-            const cylinderMesh = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')! as GrabbableAbstractMesh;
+            const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)! as GrabbableAbstractMesh;
             cylinderMesh.checkCollisions = true;
             cylinderMesh.grabbable = true;
         });

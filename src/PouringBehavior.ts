@@ -68,7 +68,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         //     return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         // }
 
-        const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
+        const targetCylinderBoundingBox = getChildMeshByName(this.target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const origin = this.source.absolutePosition;
         const target = new Vector3(this.target.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, this.target.absolutePosition.z);
         // const theta = target.subtract(origin).normalize();
