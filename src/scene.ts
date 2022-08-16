@@ -21,8 +21,8 @@ import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { sop } from './globals';
-import { rootPath } from './constants';
-import { calculateNearestOffset } from './utils';
+import { FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
+import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 
 
@@ -71,52 +71,37 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.checkCollisions = true;
 
 
-    Promise.all([loadCylinders(),loadClipboard(scene), loadRoom()   ]).then(async ([cylinders,clipboard, { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, /*clipboard,*/ { root, table, walls, cabinet, floor }]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
-        clipboard.position=new Vector3(0, -.5, 0);
+        // clipboard.position=new Vector3(0, -.5, 0);
         // Enable collisions between meshes
-        scene.registerBeforeRender(() => {
+        const collisionObserver = scene.onBeforeRenderObservable.add((_, eventState) => {
             const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
-            const leftCylinderMesh = leftCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
-            const rightCylinderMesh = rightCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
-            const staticCylinderMesh = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+            const leftCylinderMesh = getChildMeshByName(leftCylinder, 'cylinder')!;
+            const rightCylinderMesh = getChildMeshByName(rightCylinder, 'cylinder')!;
+            const staticCylinderMesh = getChildMeshByName(staticCylinder, 'cylinder')!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
             const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh];
 
             Object.values(cylinders).forEach(cylinder => {
-                const cylinderMesh = cylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+                const cylinderMesh = getChildMeshByName(cylinder, 'cylinder')!;
                 collidableMeshes.forEach(collidedMesh => {
                     if (cylinderMesh !== collidedMesh && cylinderMesh.intersectsMesh(collidedMesh, true)) {
-                        const cylinderBoundingBox = cylinderMesh.getBoundingInfo().boundingBox;
+                        const cylinderMeshBoundingBox = cylinderMesh.getBoundingInfo().boundingBox;
                         const collidedMeshBoundingBox = collidedMesh.getBoundingInfo().boundingBox;
-                        const offset = calculateNearestOffset(collidedMeshBoundingBox, cylinderBoundingBox);
+                        const offset = calculateNearestOffset(collidedMeshBoundingBox, cylinderMeshBoundingBox);
                         cylinder.position.addInPlace(offset);
+                        eventState.skipNextObservers = true;
                     }
                 });
             });
-
-            // This way of handling cylinder collisions prevents the cylinders from being pushed around
-            // if (leftCylinderMesh.intersectsMesh(rightCylinderMesh)) {
-            //     const leftCylinderBoundingBox = leftCylinderMesh.getBoundingInfo().boundingBox;
-            //     const rightCylinderBoundingBox = rightCylinderMesh.getBoundingInfo().boundingBox;
-
-            //     let collidingMesh = rightCylinder;
-            //     let collidingMeshBoundingBox = rightCylinderBoundingBox;
-            //     let collidedMeshBoundingBox = leftCylinderBoundingBox;
-            //     if ((leftCylinder.behaviors.find(behavior => behavior.name === 'PointerDrag') as PointerDragBehavior | undefined)?.dragging) {
-            //         collidingMesh = leftCylinder;
-            //         collidingMeshBoundingBox = leftCylinderBoundingBox;
-            //         collidedMeshBoundingBox = rightCylinderBoundingBox;
-            //     }
-                
-            //     const offset = calculateNearestOffset(collidedMeshBoundingBox, collidingMeshBoundingBox);
-
-            //     collidingMesh.position.addInPlace(offset);
-            // }
         });
+        if (collisionObserver) {
+            scene.onBeforeRenderObservable.makeObserverTopPriority(collisionObserver);
+        }
 
         const xrOptions = {
             floorMeshes: [floor],
@@ -127,7 +112,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const featureManager = xr.baseExperience.featuresManager;
         
         const { leftCylinder, rightCylinder, staticCylinder } = cylinders;
-        const staticCylinderBoundingBox = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
+        const staticCylinderBoundingBox = getChildMeshByName(staticCylinder, 'cylinder')!.getBoundingInfo().boundingBox;
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
         leftCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
         rightCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
@@ -158,7 +143,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         // const rightCylinderX = (staticCylinderX + tableMaximum.x) / 2;
         const leftCylinderX = staticCylinderX - 0.5;
         const rightCylinderX = staticCylinderX + 0.5;
-        const cylinderOpacity = staticCylinder.getChildMeshes().find(mesh => mesh.name === 'cylinder')!;
+        const cylinderOpacity = getChildMeshByName(staticCylinder, 'cylinder')!;
         const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacity.getBoundingInfo().boundingBox.minimum.y;
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
@@ -166,14 +151,14 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
         
-        const failSound = new Sound('explosion', `${rootPath}sound/mi_explosion_03_hpx.mp3`, scene);
+        const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
             lights.forEach(light => light.setEnabled(false));
         }
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
 
-        const successSound = new Sound('ding', `${rootPath}sound/ding-idea-40142.mp3`, scene);
+        const successSound = new Sound('ding', SUCCESS_SOUND_PATH, scene);
         const successCallback = () => {};
         sop.addSuccessEffects(successSound, successCallback);
     });

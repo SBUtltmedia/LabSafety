@@ -4,6 +4,7 @@ import { BoundingInfo } from '@babylonjs/core/Culling/boundingInfo';
 import { BoundingBox } from '@babylonjs/core/Culling/boundingBox';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Sound } from '@babylonjs/core/Audio/sound';
+import { Nullable } from '@babylonjs/core/types';
 
 
 export function setBoundingInfoFromChildren(mesh: AbstractMesh): [Vector3, Vector3] {
@@ -18,6 +19,10 @@ export function showBoundingBoxes(...meshes: AbstractMesh[]) {
 
 export function hideBoundingBoxes(...meshes: AbstractMesh[]) {
     meshes.forEach(mesh => mesh.showBoundingBox = false);
+}
+
+export function getChildMeshByName(mesh: AbstractMesh, name: string): Nullable<AbstractMesh> {
+    return mesh.getChildMeshes().find(mesh => mesh.name === name) || null;
 }
 
 export function playSound(sound: Sound) {
