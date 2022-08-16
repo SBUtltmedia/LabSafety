@@ -77,7 +77,15 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         camera.applyGravity = true;
         // clipboard.position=new Vector3(0, -.5, 0);
         // Enable collisions between meshes
-        const collisionObserver = scene.onBeforeRenderObservable.add((_, eventState) => {
+        interface CylinderPositionIndex {
+            [index: string]: {
+                initialPosition: Vector3
+                offsetPosition: Vector3
+                direction: string
+            }
+        }
+        let cylinderPositionIndex: CylinderPositionIndex = {};
+        const collisionOffsetObserver = scene.onBeforeRenderObservable.add((_, eventState) => {
             const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
             const leftCylinderMesh = getChildMeshByName(leftCylinder, CYLINDER_MESH_NAME)!;
             const rightCylinderMesh = getChildMeshByName(rightCylinder, CYLINDER_MESH_NAME)!;
@@ -93,15 +101,69 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                         const cylinderMeshBoundingBox = cylinderMesh.getBoundingInfo().boundingBox;
                         const collidedMeshBoundingBox = collidedMesh.getBoundingInfo().boundingBox;
                         const offset = calculateNearestOffset(collidedMeshBoundingBox, cylinderMeshBoundingBox);
-                        cylinder.position.addInPlace(offset);
-                        eventState.skipNextObservers = true;
+                        cylinderPositionIndex[cylinder.name] = {
+                            initialPosition: cylinder.position.clone(),
+                            offsetPosition: cylinder.position.add(offset),
+                            direction: offset.x ? 'x' : offset.y ? 'y' : 'z'
+                        };
+                        // eventState.skipNextObservers = true;
                     }
                 });
             });
         });
-        if (collisionObserver) {
-            scene.onBeforeRenderObservable.makeObserverTopPriority(collisionObserver);
+        
+        const collisionOverrideObserver = scene.onBeforeRenderObservable.add(() => {
+            Object.values(cylinders).forEach(cylinder => {
+                if (cylinderPositionIndex[cylinder.name]) {
+                    const { initialPosition, offsetPosition, direction } = cylinderPositionIndex[cylinder.name];
+                    switch (direction) {
+                        case 'x':
+                            if (offsetPosition.x - initialPosition.x > 0) {
+                                if (cylinder.position.x < offsetPosition.x) {
+                                    cylinder.position.x = offsetPosition.x;
+                                }
+                            } else {
+                                if (cylinder.position.x > offsetPosition.x) {
+                                    cylinder.position.x = offsetPosition.x;
+                                }
+                            }
+                            break;
+                        case 'y':
+                            if (offsetPosition.y - initialPosition.y > 0) {
+                                if (cylinder.position.y < offsetPosition.y) {
+                                    cylinder.position.y = offsetPosition.y;
+                                }
+                            } else {
+                                if (cylinder.position.y > offsetPosition.y) {
+                                    cylinder.position.y = offsetPosition.y;
+                                }
+                            }
+                            break;
+                        case 'z':
+                            if (offsetPosition.z - initialPosition.z > 0) {
+                                if (cylinder.position.z < offsetPosition.z) {
+                                    cylinder.position.z = offsetPosition.z;
+                                }
+                            } else {
+                                if (cylinder.position.z > offsetPosition.z) {
+                                    cylinder.position.z = offsetPosition.z;
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            })
+        });
+
+        if (collisionOffsetObserver) {
+            scene.onBeforeRenderObservable.makeObserverTopPriority(collisionOffsetObserver);
         }
+        if (collisionOverrideObserver) {
+            scene.onBeforeRenderObservable.makeObserverBottomPriority(collisionOverrideObserver);
+        }
+
 
         const xrOptions = {
             floorMeshes: [floor],
