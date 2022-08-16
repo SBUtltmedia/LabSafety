@@ -7,8 +7,9 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 
-import { POURING_RATE } from './constants';
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask } from './globals';
+import { getChildMeshByName } from './utils';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -67,7 +68,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         //     return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         // }
 
-        const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
+        const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const origin = this.source.absolutePosition;
         const target = new Vector3(this.target.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, this.target.absolutePosition.z);
         // const theta = target.subtract(origin).normalize();
@@ -89,10 +90,10 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')?.getBoundingInfo().boundingBox!;
         // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
         if (this.xr?.state === WebXRState.IN_XR) {
-            const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === 'liquid')!.getBoundingInfo()?.boundingBox;
+            const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === CYLINDER_LIQUID_MESH_NAME)!.getBoundingInfo()?.boundingBox;
             const sourceLocalMinimum = sourceBoundingBox.minimum;
             const sourceLocalMaximum = sourceBoundingBox.maximum;
-            const matrix = this.source.computeWorldMatrix(true);
+            const matrix = this.source.computeWorldMatrix();
             const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
             if (distance <= 0.5 && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
                 this.#pour(POURING_RATE);
@@ -113,8 +114,8 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     }
 
     #pour = (rate: number): void => {
-        const sourceLiquidMaterial = this.source.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material! as StandardMaterial;
-        const targetLiquidMaterial = this.target.getChildMeshes().find(mesh => mesh.name === 'liquid')!.material! as StandardMaterial;
+        const sourceLiquidMaterial = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
+        const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
         const sourceAlpha = sourceLiquidMaterial.alpha;
         const targetAlpha = targetLiquidMaterial.alpha;
         const sourceColor = sourceLiquidMaterial.diffuseColor;

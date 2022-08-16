@@ -21,7 +21,7 @@ import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { sop } from './globals';
-import { FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 
@@ -79,15 +79,15 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         // Enable collisions between meshes
         const collisionObserver = scene.onBeforeRenderObservable.add((_, eventState) => {
             const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
-            const leftCylinderMesh = getChildMeshByName(leftCylinder, 'cylinder')!;
-            const rightCylinderMesh = getChildMeshByName(rightCylinder, 'cylinder')!;
-            const staticCylinderMesh = getChildMeshByName(staticCylinder, 'cylinder')!;
+            const leftCylinderMesh = getChildMeshByName(leftCylinder, CYLINDER_MESH_NAME)!;
+            const rightCylinderMesh = getChildMeshByName(rightCylinder, CYLINDER_MESH_NAME)!;
+            const staticCylinderMesh = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
             const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh];
 
             Object.values(cylinders).forEach(cylinder => {
-                const cylinderMesh = getChildMeshByName(cylinder, 'cylinder')!;
+                const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!;
                 collidableMeshes.forEach(collidedMesh => {
                     if (cylinderMesh !== collidedMesh && cylinderMesh.intersectsMesh(collidedMesh, true)) {
                         const cylinderMeshBoundingBox = cylinderMesh.getBoundingInfo().boundingBox;
@@ -112,7 +112,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const featureManager = xr.baseExperience.featuresManager;
         
         const { leftCylinder, rightCylinder, staticCylinder } = cylinders;
-        const staticCylinderBoundingBox = getChildMeshByName(staticCylinder, 'cylinder')!.getBoundingInfo().boundingBox;
+        const staticCylinderBoundingBox = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
         leftCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
         rightCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
@@ -143,7 +143,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         // const rightCylinderX = (staticCylinderX + tableMaximum.x) / 2;
         const leftCylinderX = staticCylinderX - 0.5;
         const rightCylinderX = staticCylinderX + 0.5;
-        const cylinderOpacity = getChildMeshByName(staticCylinder, 'cylinder')!;
+        const cylinderOpacity = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
         const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacity.getBoundingInfo().boundingBox.minimum.y;
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
