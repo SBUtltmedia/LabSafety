@@ -1,5 +1,6 @@
 import { Behavior } from '@babylonjs/core/Behaviors/behavior';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { KeyboardEventTypes, KeyboardInfo } from '@babylonjs/core/Events/keyboardEvents';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
@@ -10,6 +11,7 @@ import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask } from './globals';
 import { getChildMeshByName } from './utils';
+import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -19,6 +21,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     pouring!: boolean;
     pourKey = 'e';
     xr?: WebXRExperienceHelper;
+    highlightLayer!: HighlightLayer;
 
     constructor(target: AbstractMesh, sourceRadius: number, xr?: WebXRExperienceHelper) {
         this.target = target;
@@ -37,15 +40,19 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     attach = (source: AbstractMesh) => {
         this.source = source;
         const scene = this.source.getScene();
-        scene.registerBeforeRender(this.#renderFn);
+        scene.onBeforeRenderObservable.add(this.#renderFn);
         scene.onKeyboardObservable.add(this.#pourKeyFn);
+        this.highlightLayer = new HighlightLayer('highlight-layer');
+        this.highlightLayer.innerGlow = true;
+        this.highlightLayer.outerGlow = false;
+        this.highlightLayer.addMesh(getChildMeshByName(source, 'cylinder')! as Mesh, Color3.Green());
     }
 
     detach = () => {
         const scene = this.source.getScene();
         scene.unregisterBeforeRender(this.#renderFn);
         scene.onKeyboardObservable.removeCallback(this.#pourKeyFn);
-        
+        this.highlightLayer.removeMesh(getChildMeshByName(this.source, 'cylinder')! as Mesh);        
     }
 
     calculatePouringRotation = (): Vector3 => {
@@ -84,18 +91,48 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         return new Vector3(0, Math.PI, -theta - Math.PI / 2);
     }
 
+    #pourable = (): boolean => {
+        return this.source.absolutePosition.y >= getChildMeshByName(this.target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition) >= this.sourceRadius;
+    }
+
+    static highlightPourableMesh = (mesh: AbstractMesh): boolean => {
+        const meshPouringBehavior = mesh.behaviors.find(behavior => behavior.name === 'Pouring') as PouringBehavior | undefined;
+        if (meshPouringBehavior) {
+            meshPouringBehavior.highlightLayer.isEnabled = true;
+            return true;
+        }
+        return false;
+    }
+
+    static unhighlightPourableMesh = (mesh: AbstractMesh): boolean => {
+        const meshPouringBehavior = mesh.behaviors.find(behavior => behavior.name === 'Pouring') as PouringBehavior | undefined;
+        if (meshPouringBehavior) {
+            meshPouringBehavior.highlightLayer.isEnabled = false;
+            return true;
+        }
+        return false;
+    }
+
     #renderFn = (): void => {
         // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
         // this.source.rotationQuaternion = null;
         // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')?.getBoundingInfo().boundingBox!;
         // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
+        // TODO: I can think of scenarios where the target may be unhighlighted when it should be highlighted - a race condition with other cylinders that have that target. The solution might be complicated, e.g. numReferences, possibly extractable into a new behavior.
+        if (this.#pourable()) {
+            this.highlightLayer.isEnabled = true;
+            // console.log(PouringBehavior.highlightPourableMesh(this.target));
+        } else {
+            this.highlightLayer.isEnabled = false;
+            // PouringBehavior.unhighlightPourableMesh(this.target);
+        }
         if (this.xr?.state === WebXRState.IN_XR) {
             const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === CYLINDER_LIQUID_MESH_NAME)!.getBoundingInfo()?.boundingBox;
             const sourceLocalMinimum = sourceBoundingBox.minimum;
             const sourceLocalMaximum = sourceBoundingBox.maximum;
             const matrix = this.source.computeWorldMatrix();
             const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
-            if (distance <= 0.5 && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
+            if (distance <= this.sourceRadius && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
                 this.#pour(POURING_RATE);
             }
         } else {
