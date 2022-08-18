@@ -106,7 +106,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                             offsetPosition: cylinder.position.add(offset),
                             direction: offset.x ? 'x' : offset.y ? 'y' : 'z'
                         };
-                        // eventState.skipNextObservers = true;
                     }
                 });
             });
@@ -114,6 +113,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         
         const collisionOverrideObserver = scene.onBeforeRenderObservable.add(() => {
             Object.values(cylinders).forEach(cylinder => {
+                // TODO: fix the issue with colliding with multiple meshes simultaneously
                 if (cylinderPositionIndex[cylinder.name]) {
                     const { initialPosition, offsetPosition, direction } = cylinderPositionIndex[cylinder.name];
                     switch (direction) {
@@ -154,7 +154,8 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                             break;
                     }
                 }
-            })
+            });
+            cylinderPositionIndex = {};
         });
 
         if (collisionOffsetObserver) {
