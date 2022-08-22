@@ -24,7 +24,7 @@ import { sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
-
+const queryString = require('query-string');
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
 //     // Note: this function only changes the vertical position of the meshes, so a mesh may not be within the bounds of the surface.
@@ -55,7 +55,10 @@ import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDra
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
-    
+    console.log(queryString.parse(location.search))
+    if(queryString.parse(location.search).debug){
+     scene.debugLayer.show();
+    }
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;
 
