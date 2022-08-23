@@ -34,6 +34,7 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
          [staticCylinder, Color3.Black()]].forEach(([cylinder, color]) => {
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
+            pointerDragBehavior.useObjectOrientationForDragging = false;
             (cylinder as AbstractMesh).addBehavior(pointerDragBehavior);
             const cylinderLiquid = getChildMeshByName(cylinder as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
             const cylinderLiquidMaterial = new StandardMaterial('liquid-material');
