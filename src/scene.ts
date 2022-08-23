@@ -17,6 +17,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { loadCylinders } from './loadCylinders';
 import { loadClipboard} from './loadClipboard';
+import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
@@ -27,6 +28,8 @@ import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDra
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { Color3 } from '@babylonjs/core';
+
+const queryString = require('query-string');
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -58,7 +61,10 @@ import { Color3 } from '@babylonjs/core';
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
-    
+    console.log(queryString.parse(location.search))
+    if(queryString.parse(location.search).debug){
+     scene.debugLayer.show();
+    }
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;
 
@@ -74,7 +80,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.checkCollisions = true;
 
 
-    Promise.all([loadCylinders(), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, /*clipboard,*/ { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, clipboard, { root, table, walls, cabinet, floor }]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;

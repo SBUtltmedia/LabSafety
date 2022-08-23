@@ -1,7 +1,8 @@
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { createScene } from "./scene";
-
-
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
+ 
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true, { stencil: true });
 
