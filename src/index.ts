@@ -3,7 +3,7 @@ import { createScene } from "./scene";
 
 
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-const engine = new Engine(canvas, true);
+const engine = new Engine(canvas, true, { stencil: true });
 
 createScene(engine, canvas).then(scene => engine.runRenderLoop(function() { scene.render(); }));
 

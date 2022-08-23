@@ -24,6 +24,9 @@ import { sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
+import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
+import HighlightBehavior from './HighlightBehavior';
+import { Color3 } from '@babylonjs/core';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -59,7 +62,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;
 
-    const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, 0), scene)];
+    const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, -1.1), scene)];
     
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
     camera.minZ = 0;  // To prevent clipping through near meshes
@@ -158,12 +161,8 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             cylinderPositionIndex = {};
         });
 
-        if (collisionOffsetObserver) {
-            scene.onBeforeRenderObservable.makeObserverTopPriority(collisionOffsetObserver);
-        }
-        if (collisionOverrideObserver) {
-            scene.onBeforeRenderObservable.makeObserverBottomPriority(collisionOverrideObserver);
-        }
+        scene.onBeforeRenderObservable.makeObserverTopPriority(collisionOffsetObserver!);
+        scene.onBeforeRenderObservable.makeObserverBottomPriority(collisionOverrideObserver!);
 
 
         const xrOptions = {
@@ -179,6 +178,16 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
         leftCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
         rightCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
+        staticCylinder.addBehavior(new PouringBehavior(rightCylinder, r, xr.baseExperience));  // TODO: this is temporary; the initial target should be null.
+
+        Object.values(cylinders).forEach(cylinder => {
+            const highlightLayer = new HighlightLayer('highlight-layer');
+            highlightLayer.innerGlow = true;
+            highlightLayer.outerGlow = false;
+            highlightLayer.isEnabled = false;
+            getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
+        });
+
         // featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, 'latest', {
         //     xrInput: xr.input,
         // });

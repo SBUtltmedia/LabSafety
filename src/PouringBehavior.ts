@@ -7,11 +7,13 @@ import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDra
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
+import { Nullable } from '@babylonjs/core/types';
 
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask } from './globals';
 import { getChildMeshByName } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
+import HighlightBehavior from './HighlightBehavior';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
@@ -21,7 +23,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     pouring!: boolean;
     pourKey = 'e';
     xr?: WebXRExperienceHelper;
-    highlightLayer!: HighlightLayer;
 
     constructor(target: AbstractMesh, sourceRadius: number, xr?: WebXRExperienceHelper) {
         this.target = target;
@@ -42,17 +43,12 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const scene = this.source.getScene();
         scene.onBeforeRenderObservable.add(this.#renderFn);
         scene.onKeyboardObservable.add(this.#pourKeyFn);
-        this.highlightLayer = new HighlightLayer('highlight-layer');
-        this.highlightLayer.innerGlow = true;
-        this.highlightLayer.outerGlow = false;
-        this.highlightLayer.addMesh(getChildMeshByName(source, 'cylinder')! as Mesh, Color3.Green());
     }
 
     detach = () => {
         const scene = this.source.getScene();
-        scene.unregisterBeforeRender(this.#renderFn);
+        scene.onBeforeRenderObservable.removeCallback(this.#renderFn);
         scene.onKeyboardObservable.removeCallback(this.#pourKeyFn);
-        this.highlightLayer.removeMesh(getChildMeshByName(this.source, 'cylinder')! as Mesh);        
     }
 
     calculatePouringRotation = (): Vector3 => {
@@ -95,24 +91,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         return this.source.absolutePosition.y >= getChildMeshByName(this.target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition) >= this.sourceRadius;
     }
 
-    static highlightPourableMesh = (mesh: AbstractMesh): boolean => {
-        const meshPouringBehavior = mesh.behaviors.find(behavior => behavior.name === 'Pouring') as PouringBehavior | undefined;
-        if (meshPouringBehavior) {
-            meshPouringBehavior.highlightLayer.isEnabled = true;
-            return true;
-        }
-        return false;
-    }
-
-    static unhighlightPourableMesh = (mesh: AbstractMesh): boolean => {
-        const meshPouringBehavior = mesh.behaviors.find(behavior => behavior.name === 'Pouring') as PouringBehavior | undefined;
-        if (meshPouringBehavior) {
-            meshPouringBehavior.highlightLayer.isEnabled = false;
-            return true;
-        }
-        return false;
-    }
-
     #renderFn = (): void => {
         // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
         // this.source.rotationQuaternion = null;
@@ -120,11 +98,17 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
         // TODO: I can think of scenarios where the target may be unhighlighted when it should be highlighted - a race condition with other cylinders that have that target. The solution might be complicated, e.g. numReferences, possibly extractable into a new behavior.
         if (this.#pourable()) {
-            this.highlightLayer.isEnabled = true;
-            // console.log(PouringBehavior.highlightPourableMesh(this.target));
+            const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+            if (sourceHighlightBehavior) {
+                sourceHighlightBehavior.highlightSelf();
+                sourceHighlightBehavior.highlightMesh(getChildMeshByName(this.target, CYLINDER_MESH_NAME) as Mesh);
+            }
         } else {
-            this.highlightLayer.isEnabled = false;
-            // PouringBehavior.unhighlightPourableMesh(this.target);
+            const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+            if (sourceHighlightBehavior) {
+                sourceHighlightBehavior.unhighlightSelf();
+                sourceHighlightBehavior.unhighlightMesh(getChildMeshByName(this.target, CYLINDER_MESH_NAME) as Mesh);
+            }
         }
         if (this.xr?.state === WebXRState.IN_XR) {
             const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === CYLINDER_LIQUID_MESH_NAME)!.getBoundingInfo()?.boundingBox;
