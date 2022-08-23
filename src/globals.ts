@@ -1,5 +1,8 @@
 import SOP from './SOP';
 import { Task } from './constants';
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+
+export const pourableTargets: AbstractMesh[] = [];
 
 export const pourRedCylinderTask: Task = {
     complete: false,

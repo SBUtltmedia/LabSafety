@@ -20,7 +20,7 @@ import { loadClipboard} from './loadClipboard';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { sop } from './globals';
+import { pourableTargets, sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
@@ -79,6 +79,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
         // clipboard.position=new Vector3(0, -.5, 0);
+
+        pourableTargets.push(...Object.values(cylinders));
+
         // Enable collisions between meshes
         interface CylinderPositionIndex {
             [index: string]: {
@@ -176,9 +179,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const { leftCylinder, rightCylinder, staticCylinder } = cylinders;
         const staticCylinderBoundingBox = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
-        leftCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
-        rightCylinder.addBehavior(new PouringBehavior(staticCylinder, r, xr.baseExperience));
-        staticCylinder.addBehavior(new PouringBehavior(rightCylinder, r, xr.baseExperience));  // TODO: this is temporary; the initial target should be null.
+        leftCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
+        rightCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
+        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));  // TODO: this is temporary; the initial target should be null.
 
         Object.values(cylinders).forEach(cylinder => {
             const highlightLayer = new HighlightLayer('highlight-layer');

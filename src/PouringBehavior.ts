@@ -10,22 +10,22 @@ import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE } from './constants';
-import { sop, pourRedCylinderTask, pourBlueCylinderTask } from './globals';
+import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
 import { getChildMeshByName } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
-    target: AbstractMesh;
+    target: Nullable<AbstractMesh>;
     sourceRadius: number;
     source!: AbstractMesh;
     pouring!: boolean;
     pourKey = 'e';
     xr?: WebXRExperienceHelper;
 
-    constructor(target: AbstractMesh, sourceRadius: number, xr?: WebXRExperienceHelper) {
-        this.target = target;
+    constructor(sourceRadius: number, xr?: WebXRExperienceHelper) {
+        this.target = null;
         this.sourceRadius = sourceRadius;
         this.xr = xr;
     }
@@ -51,7 +51,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         scene.onKeyboardObservable.removeCallback(this.#pourKeyFn);
     }
 
-    calculatePouringRotation = (): Vector3 => {
+    calculatePouringRotation = (targetMesh: AbstractMesh): Vector3 => {
         // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
         // const origin = this.source.absolutePosition;  // this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox.centerWorld;  // this.source.getAbsolutePivotPoint();
         // const xTgt = targetCylinderBoundingBox.centerWorld.x - origin.x;
@@ -71,9 +71,9 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         //     return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         // }
 
-        const targetCylinderBoundingBox = getChildMeshByName(this.target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
+        const targetCylinderBoundingBox = getChildMeshByName(targetMesh, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const origin = this.source.absolutePosition;
-        const target = new Vector3(this.target.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, this.target.absolutePosition.z);
+        const target = new Vector3(targetMesh.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, targetMesh.absolutePosition.z);
         // const theta = target.subtract(origin).normalize();
         // const r = Math.hypot(...origin.subtract(target).asArray());
         // const theta = Math.acos((origin.x - target.x) / r) + Math.PI / 2;
@@ -83,12 +83,32 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             this.pouring = false;
             return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
         }
-        if (origin.x < this.target.position.x) return new Vector3(0, 0, theta - Math.PI / 2);
+        if (origin.x < targetMesh.position.x) return new Vector3(0, 0, theta - Math.PI / 2);
         return new Vector3(0, Math.PI, -theta - Math.PI / 2);
     }
 
-    #pourable = (): boolean => {
-        return this.source.absolutePosition.y >= getChildMeshByName(this.target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition) >= this.sourceRadius;
+    #pourable = (target: AbstractMesh): boolean => {
+        return this.source.absolutePosition.y >= getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && Vector3.Distance(this.source.absolutePosition, target.absolutePosition) >= this.sourceRadius;
+    }
+
+    acquireTarget = (): Nullable<AbstractMesh> => {
+        // Find the closest pourable mesh
+        let targetInfo = {
+            mesh: null as Nullable<AbstractMesh>,
+            dist: Number.MAX_VALUE
+        };
+        const sourceCenter = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.centerWorld;
+        pourableTargets.forEach(mesh => {
+            const meshCenter = getChildMeshByName(mesh, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.centerWorld;
+            if (this.#pourable(mesh)) {
+                const dist = Vector3.Distance(sourceCenter, meshCenter);
+                if (dist < targetInfo.dist) {
+                    targetInfo = { mesh, dist };
+                }
+            }
+        });
+
+        return targetInfo.mesh!;
     }
 
     #renderFn = (): void => {
@@ -97,7 +117,24 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')?.getBoundingInfo().boundingBox!;
         // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
         // TODO: I can think of scenarios where the target may be unhighlighted when it should be highlighted - a race condition with other cylinders that have that target. The solution might be complicated, e.g. numReferences, possibly extractable into a new behavior.
-        if (this.#pourable()) {
+
+        const target = this.acquireTarget();
+        if (target !== this.target) {
+            if (this.target) {
+                const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>; 
+                if (sourceHighlightBehavior) {
+                    sourceHighlightBehavior.unhighlightSelf();
+                    sourceHighlightBehavior.unhighlightMesh(getChildMeshByName(this.target, CYLINDER_MESH_NAME) as Mesh);
+                }    
+            }
+            this.target = target;
+        }
+
+        if (!this.target) {
+            return;
+        }
+
+        if (this.#pourable(this.target) && (this.source.getBehaviorByName('PointerDrag') as Nullable<PointerDragBehavior>)?.dragging) {
             const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             if (sourceHighlightBehavior) {
                 sourceHighlightBehavior.highlightSelf();
@@ -122,7 +159,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         } else {
             let rotation: Vector3;
             if (this.pouring) {
-                rotation = this.calculatePouringRotation();  // This can set this.pouring
+                rotation = this.calculatePouringRotation(this.target);  // This can set this.pouring
             } else {
                 rotation = new Vector3(0, this.source.position.x < this.target.position.x ? 0 : Math.PI, 0);
             }
@@ -135,6 +172,9 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     }
 
     #pour = (rate: number): void => {
+        if (!this.target) {
+            return;
+        }
         const sourceLiquidMaterial = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
         const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
         const sourceAlpha = sourceLiquidMaterial.alpha;
