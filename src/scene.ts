@@ -80,7 +80,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.checkCollisions = true;
 
 
-    Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, clipboard, { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, models, { root, table, walls, cabinet, floor }]) => {
+        
+        console.log(models)
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
