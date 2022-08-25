@@ -9,7 +9,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE } from './constants';
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE, ROTATION_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
 import { getChildMeshByName } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
@@ -111,6 +111,12 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         return targetInfo.mesh!;
     }
 
+    calculateRestingRotation = (): Vector3 => new Vector3(0, this.source.position.x < (this.target ? this.target.position.x : 0) ? 0 : Math.PI, 0);
+
+    smoothRotateSource = (rotation: Vector3, rate = ROTATION_RATE) => {
+        this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(rate));  // rate is the velocity factor.
+    }
+
     #renderFn = (): void => {
         // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
         // this.source.rotationQuaternion = null;
@@ -131,6 +137,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         }
 
         if (!this.target) {
+            this.smoothRotateSource(this.calculateRestingRotation());
             return;
         }
 
@@ -161,10 +168,10 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             if (this.pouring) {
                 rotation = this.calculatePouringRotation(this.target);  // This can set this.pouring
             } else {
-                rotation = new Vector3(0, this.source.position.x < this.target.position.x ? 0 : Math.PI, 0);
+                rotation = this.calculateRestingRotation();
             }
             // this.source.rotation = rotation;
-            this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(0.1));  // 0.1 is the velocity factor. TODO: extract this into a parameter.
+            this.smoothRotateSource(rotation);
             if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
                 this.#pour(POURING_RATE);
             }
