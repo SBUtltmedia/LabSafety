@@ -9,7 +9,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, POURING_RATE, ROTATION_RATE } from './constants';
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, POURING_RATE, ROTATION_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
 import { getChildMeshByName } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
@@ -52,43 +52,22 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     }
 
     calculatePouringRotation = (targetMesh: AbstractMesh): Vector3 => {
-        // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox;
-        // const origin = this.source.absolutePosition;  // this.source.getChildMeshes().find(mesh => mesh.name === 'cylinder')!.getBoundingInfo().boundingBox.centerWorld;  // this.source.getAbsolutePivotPoint();
-        // const xTgt = targetCylinderBoundingBox.centerWorld.x - origin.x;
-        // const yTgt = targetCylinderBoundingBox.maximumWorld.y - origin.y;
-        // const tgt = new Vector3(xTgt, yTgt, targetCylinderBoundingBox.centerWorld.z);
-        // const yTgtNorm = yTgt/Math.hypot(xTgt, yTgt);
+        const sourceBoundingBox = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
+        const liquidMesh = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!;
+        const liquidMeshMaterial = liquidMesh.material as StandardMaterial;
+        const liquidBoundingBox = liquidMesh.getBoundingInfo().boundingBox;
+        const cylinderWidth = sourceBoundingBox.maximum.x - sourceBoundingBox.minimum.x;
+        const cylinderHeight = sourceBoundingBox.maximum.y - sourceBoundingBox.minimum.y;
+        const liquidHeight = liquidMeshMaterial.alpha * (liquidBoundingBox.maximum.y - liquidBoundingBox.minimum.y);
 
-        // const numerator = xTgt ** 2;
-        // const denominator = 2 * this.sourceRadius * (Math.asin(yTgtNorm) - this.sourceRadius/2);
-        // const quotient = numerator/denominator;
-        // const root = Math.sqrt(Math.abs(quotient));
-        // const theta = Math.acos(root) + Math.PI/2;  // Note the Math.PI/2 offset.
-        // console.log(`xTgt: ${xTgt}`);
-        // console.log(`yTgt: ${yTgt}`);
-        // if (yTgt > 0 || !Number.isFinite(theta) || Vector3.Distance(origin, tgt) < this.sourceRadius) {  // TODO: why is the yTgt > 0 condition necessary?
-        //     if (this.pouring) this.pouring = false;
-        //     return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
-        // }
-
-        const targetCylinderBoundingBox = getChildMeshByName(targetMesh, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
-        const origin = this.source.absolutePosition;
-        const target = new Vector3(targetMesh.absolutePosition.x, targetCylinderBoundingBox.maximumWorld.y, targetMesh.absolutePosition.z);
-        // const theta = target.subtract(origin).normalize();
-        // const r = Math.hypot(...origin.subtract(target).asArray());
-        // const theta = Math.acos((origin.x - target.x) / r) + Math.PI / 2;
-        // const theta = Math.acos((target.x - origin.x) / Math.hypot(target.x - origin.x, target.y - origin.y, target.z - origin.z));
-        const theta = Math.atan((origin.y - target.y) / (origin.x - target.x));
-        if (origin.y < target.y || Vector3.Distance(origin, target) < this.sourceRadius) {
-            this.pouring = false;
-            return new Vector3(this.source.rotation.x, this.source.rotation.y, 0);
-        }
-        if (origin.x < targetMesh.position.x) return new Vector3(0, 0, theta - Math.PI / 2);
-        return new Vector3(0, Math.PI, -theta - Math.PI / 2);
+        const theta = -Math.atan((2 * (cylinderHeight - liquidHeight)) / cylinderWidth);
+        const rotation = new Vector3(0, this.source.absolutePosition.x < targetMesh.absolutePosition.x ? 0 : Math.PI, theta);
+        return rotation;
     }
 
     #pourable = (target: AbstractMesh): boolean => {
-        return this.source.absolutePosition.y >= getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && Vector3.Distance(this.source.absolutePosition, target.absolutePosition) >= this.sourceRadius;
+        const distance = Vector3.Distance(this.source.absolutePosition, target.absolutePosition);
+        return this.source.absolutePosition.y >= getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && distance >= this.sourceRadius && distance <= MAX_POURING_DISTANCE;
     }
 
     acquireTarget = (): Nullable<AbstractMesh> => {
