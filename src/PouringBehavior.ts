@@ -150,7 +150,9 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                 rotation = this.calculateRestingRotation();
             }
             // this.source.rotation = rotation;
-            this.smoothRotateSource(rotation);
+            const sourceAlpha = (getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material as StandardMaterial).alpha
+            const rate = (2 - sourceAlpha) * ROTATION_RATE;
+            this.smoothRotateSource(rotation, rate);
             if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
                 this.#pour(POURING_RATE);
             }
