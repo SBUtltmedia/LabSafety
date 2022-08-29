@@ -1,6 +1,10 @@
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { PerformanceMonitor } from '@babylonjs/core/Misc/performanceMonitor';
+
 import SOP from './SOP';
 import { Task } from './constants';
-import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+
+export const performanceMonitor = new PerformanceMonitor();
 
 export const pourableTargets: AbstractMesh[] = [];
 
@@ -11,7 +15,6 @@ export const pourRedCylinderTask: Task = {
     shortDescription: 'Pour the red cylinder into the empty cylinder.',
     description: 'Pour the red cylinder into the empty cylinder, taking care not to spill. Just kidding, you can\'t spill. It\'s literally impossible.'
 };
-
 
 export const pourBlueCylinderTask: Task = {
     complete: false,

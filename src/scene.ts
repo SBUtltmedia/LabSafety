@@ -4,8 +4,9 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { Nullable } from '@babylonjs/core/types';
 import { Engine } from '@babylonjs/core/Engines/engine';
-import { WebXRState } from '@babylonjs/core/XR';
+import { WebXRState, WebXRExperienceHelper } from '@babylonjs/core/XR';
 import { WebXRFeatureName } from '@babylonjs/core/XR';
 import { Sound } from '@babylonjs/core/Audio/sound';
 
@@ -21,7 +22,7 @@ import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { pourableTargets, sop } from './globals';
+import { performanceMonitor, pourableTargets, sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
@@ -79,6 +80,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.keysRight.push(68);  // D
     camera.checkCollisions = true;
 
+    scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
 
     Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, models, { root, table, walls, cabinet, floor }]) => {
         
@@ -189,7 +191,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
         leftCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
         rightCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
-        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));  // TODO: this is temporary; the initial target should be null.
+        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
 
         Object.values(cylinders).forEach(cylinder => {
             const highlightLayer = new HighlightLayer('highlight-layer');
