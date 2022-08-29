@@ -22,15 +22,13 @@ import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { performanceMonitor, pourableTargets, sop } from './globals';
+import { debug, performanceMonitor, pourableTargets, sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { Color3 } from '@babylonjs/core';
-
-const queryString = require('query-string');
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -62,9 +60,8 @@ const queryString = require('query-string');
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
-    console.log(queryString.parse(location.search))
-    if(queryString.parse(location.search).debug){
-     scene.debugLayer.show();
+    if (debug) {
+        scene.debugLayer.show();
     }
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;

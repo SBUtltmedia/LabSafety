@@ -4,6 +4,9 @@ import { PerformanceMonitor } from '@babylonjs/core/Misc/performanceMonitor';
 import SOP from './SOP';
 import { Task } from './constants';
 
+const searchParams = new URLSearchParams(document.location.search);
+export const debug = searchParams.get('debug') === '' || searchParams.get('debug')?.toLowerCase() === 'true';
+
 export const performanceMonitor = new PerformanceMonitor();
 
 export const pourableTargets: AbstractMesh[] = [];
