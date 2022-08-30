@@ -36,3 +36,17 @@ const addTasks = () => {
 };
 
 addTasks();
+
+export function resetGlobals() {
+    performanceMonitor.reset();
+    pourableTargets.splice(0, pourableTargets.length);
+
+    pourRedCylinderTask.complete = false;
+    pourRedCylinderTask.current = true;
+    
+    pourBlueCylinderTask.complete = false;
+    pourBlueCylinderTask.current = false;
+    
+    sop.reset();
+    addTasks();
+}

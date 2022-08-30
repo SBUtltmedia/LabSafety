@@ -22,8 +22,8 @@ import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { debug, performanceMonitor, pourableTargets, sop } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
+import { debug, performanceMonitor, resetGlobals, sop } from './globals';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
@@ -79,15 +79,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
 
     scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
 
-    Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, models, { root, table, walls, cabinet, floor }]) => {
-        
-        console.log(models)
+    Promise.all([loadCylinders(), loadRoom()]).then(async ([cylinders, { root, table, walls, cabinet, floor }]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
         // clipboard.position=new Vector3(0, -.5, 0);
-
-        pourableTargets.push(...Object.values(cylinders));
 
         // Enable collisions between meshes
         interface CylinderPositionIndex {
@@ -236,6 +232,13 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
             lights.forEach(light => light.setEnabled(false));
+            // TODO: I don't like this solution to prevent the cylinders from remaining highlighted. Ideally, we would have a permanent, catch-all solution
+            Object.values(cylinders).forEach(cylinder => {
+                const highlightBehavior = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                if (highlightBehavior) {
+                    highlightBehavior.detach();
+                }
+            });
         }
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
@@ -269,3 +272,15 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     // });
     return scene;
 };
+
+export function resetLastCreatedScene() {
+    const scene = Engine.LastCreatedScene;
+    if (scene) {
+        const engine = scene.getEngine();
+        const canvas = document.getElementById(RENDER_CANVAS_ID) as HTMLCanvasElement;
+        engine.stopRenderLoop();  // TODO: stop with the specific render function for the scene
+        scene.dispose();
+        resetGlobals();
+        createScene(engine, canvas).then(scene => engine.runRenderLoop(function() { scene.render(); }));
+    }
+}
