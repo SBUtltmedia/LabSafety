@@ -6,6 +6,9 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { Sound } from '@babylonjs/core/Audio/sound';
 import { Nullable } from '@babylonjs/core/types';
 
+import { BASE_FPS } from './constants';
+import { performanceMonitor } from './globals';
+
 
 export function setBoundingInfoFromChildren(mesh: AbstractMesh): [Vector3, Vector3] {
     const { min, max } = mesh.getHierarchyBoundingVectors(true, mesh => mesh.isVisible);  // Note: this method works strangely with cloned meshes
@@ -44,4 +47,8 @@ export function calculateNearestOffset(collidedMeshBoundingBox: BoundingBox, col
                                minDiff.direction === 'y' ? minDiff.diff : 0,
                                minDiff.direction === 'z' ? minDiff.diff : 0);
     return offset;
+}
+
+export function scaleToBaseFPS(x: number) {
+    return x * BASE_FPS / performanceMonitor.instantaneousFPS;
 }

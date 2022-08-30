@@ -4,6 +4,7 @@ import { Task } from './constants';
 import DAGNode from './DAGNode';
 import DirectedAcyclicGraph from './DirectedAcyclicGraph';
 import { playSound } from './utils';
+import { resetLastCreatedScene } from './scene';
 
 export default class SOP {
     /*
@@ -112,10 +113,20 @@ export default class SOP {
         if (!this.failed) {
             // The user has failed to properly follow the SOP. Explode.
             this.failed = true;
-            this.currentNode = this.tasks.root;
-            this.currentNode.dependents = [];  // Strand all tasks.
             if (this.failSound) playSound(this.failSound);
             if (this.onFail) this.onFail();
+            setTimeout(resetLastCreatedScene, 5000);
         }
+    }
+
+    reset = () => {
+        this.currentNode = this.tasks.root;
+        this.currentNode.dependents.splice(0, this.currentNode.dependents.length);
+        this.complete = false;
+        this.failed = false;
+        delete this.onFail;
+        delete this.onSuccess;
+        delete this.failSound;
+        delete this.successSound;
     }
 }

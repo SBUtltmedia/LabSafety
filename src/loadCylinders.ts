@@ -7,6 +7,7 @@ import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
 import { rootPath, GrabbableAbstractMesh, CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from './constants';
 import { getChildMeshByName } from './utils';
+import { pourableTargets } from './globals';
 
 export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'TLLGraduatedCylinder.glb').then(result => {
     const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
@@ -52,6 +53,8 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinderMesh.checkCollisions = true;
             cylinderMesh.grabbable = true;
         });
+
+        pourableTargets.push(...cylinders);
         
         return {
             leftCylinder,

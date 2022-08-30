@@ -4,8 +4,9 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { Nullable } from '@babylonjs/core/types';
 import { Engine } from '@babylonjs/core/Engines/engine';
-import { WebXRState } from '@babylonjs/core/XR';
+import { WebXRState, WebXRExperienceHelper } from '@babylonjs/core/XR';
 import { WebXRFeatureName } from '@babylonjs/core/XR';
 import { Sound } from '@babylonjs/core/Audio/sound';
 
@@ -21,15 +22,14 @@ import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { pourableTargets, sop } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from './constants';
+import { debug, performanceMonitor, resetGlobals, sop } from './globals';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { Color3 } from '@babylonjs/core';
-
-const queryString = require('query-string');
+import { loadPlacards } from './loadPlacards';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -61,9 +61,8 @@ const queryString = require('query-string');
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
-    console.log(queryString.parse(location.search))
-    if(queryString.parse(location.search).debug){
-     scene.debugLayer.show();
+    if (debug) {
+        scene.debugLayer.show();
     }
     scene.gravity = new Vector3(0, -9.80665, 0);
     scene.collisionsEnabled = true;
@@ -79,14 +78,13 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.keysRight.push(68);  // D
     camera.checkCollisions = true;
 
+    scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
 
-    Promise.all([loadCylinders(),loadModels(['sinkFaucet.glb']), /* loadClipboard(scene),*/ loadRoom()   ]).then(async ([cylinders, clipboard, { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(), loadRoom(), loadPlacards()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC]]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
         // clipboard.position=new Vector3(0, -.5, 0);
-
-        pourableTargets.push(...Object.values(cylinders));
 
         // Enable collisions between meshes
         interface CylinderPositionIndex {
@@ -104,7 +102,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             const staticCylinderMesh = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
-            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh];
+            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh, placardA, placardB, placardC];
 
             Object.values(cylinders).forEach(cylinder => {
                 const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!;
@@ -187,7 +185,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
         leftCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
         rightCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
-        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));  // TODO: this is temporary; the initial target should be null.
+        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
 
         Object.values(cylinders).forEach(cylinder => {
             const highlightLayer = new HighlightLayer('highlight-layer');
@@ -225,17 +223,30 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const leftCylinderX = staticCylinderX - 0.5;
         const rightCylinderX = staticCylinderX + 0.5;
         const cylinderOpacity = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
-        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacity.getBoundingInfo().boundingBox.minimum.y;
+        const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
+        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacityBoundingBox.minimum.y;
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
         leftCylinder.position = new Vector3(leftCylinderX, cylinderY, cylinderZ);
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
+
+        const cylinderWidth = cylinderOpacityBoundingBox.maximumWorld.x - cylinderOpacityBoundingBox.minimumWorld.x;
+        placardA.position = new Vector3(leftCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardB.position = new Vector3(staticCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardC.position = new Vector3(rightCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
         
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
             lights.forEach(light => light.setEnabled(false));
-        }
+            // TODO: I don't like this solution to prevent the cylinders from remaining highlighted. Ideally, we would have a permanent, catch-all solution
+            Object.values(cylinders).forEach(cylinder => {
+                const highlightBehavior = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                if (highlightBehavior) {
+                    highlightBehavior.detach();
+                }
+            });
+        };
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
 
@@ -268,3 +279,15 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     // });
     return scene;
 };
+
+export function resetLastCreatedScene() {
+    const scene = Engine.LastCreatedScene;
+    if (scene) {
+        const engine = scene.getEngine();
+        const canvas = document.getElementById(RENDER_CANVAS_ID) as HTMLCanvasElement;
+        engine.stopRenderLoop();  // TODO: stop with the specific render function for the scene
+        scene.dispose();
+        resetGlobals();
+        createScene(engine, canvas).then(scene => engine.runRenderLoop(function() { scene.render(); }));
+    }
+}

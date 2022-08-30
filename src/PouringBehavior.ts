@@ -11,7 +11,7 @@ import { Nullable } from '@babylonjs/core/types';
 
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, POURING_RATE, ROTATION_RATE } from './constants';
 import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
-import { getChildMeshByName } from './utils';
+import { getChildMeshByName, scaleToBaseFPS } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 
@@ -140,7 +140,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             const matrix = this.source.computeWorldMatrix();
             const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
             if (distance <= this.sourceRadius && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
-                this.#pour(POURING_RATE);
+                this.#pour(scaleToBaseFPS(POURING_RATE));
             }
         } else {
             let rotation: Vector3;
@@ -151,7 +151,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             }
             // this.source.rotation = rotation;
             const sourceAlpha = (getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material as StandardMaterial).alpha
-            const rate = (2 - sourceAlpha) * ROTATION_RATE;
+            const rate = (2 - sourceAlpha) * scaleToBaseFPS(ROTATION_RATE);
             this.smoothRotateSource(rotation, rate);
             if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
                 this.#pour(POURING_RATE);

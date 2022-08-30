@@ -1,6 +1,13 @@
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import { PerformanceMonitor } from '@babylonjs/core/Misc/performanceMonitor';
+
 import SOP from './SOP';
 import { Task } from './constants';
-import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+
+const searchParams = new URLSearchParams(document.location.search);
+export const debug = searchParams.get('debug') === '' || searchParams.get('debug')?.toLowerCase() === 'true';
+
+export const performanceMonitor = new PerformanceMonitor();
 
 export const pourableTargets: AbstractMesh[] = [];
 
@@ -29,3 +36,17 @@ const addTasks = () => {
 };
 
 addTasks();
+
+export function resetGlobals() {
+    performanceMonitor.reset();
+    pourableTargets.splice(0, pourableTargets.length);
+
+    pourRedCylinderTask.complete = false;
+    pourRedCylinderTask.current = true;
+    
+    pourBlueCylinderTask.complete = false;
+    pourBlueCylinderTask.current = false;
+    
+    sop.reset();
+    addTasks();
+}
