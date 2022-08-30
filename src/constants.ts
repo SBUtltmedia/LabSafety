@@ -13,6 +13,8 @@ export const SUCCESS_SOUND_PATH = `${rootPath}sound/ding-idea-40142.mp3`;
 export const CYLINDER_MESH_NAME = 'cylinder';
 export const CYLINDER_LIQUID_MESH_NAME = 'liquid';
 
+export const PLACARD_MESH_NAME = 'placard';
+
 export interface GrabbableAbstractMesh extends AbstractMesh {
     grabbable: boolean;
 }
