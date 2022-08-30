@@ -3,7 +3,7 @@
     "start": "npx webpack serve",
     "build": "npx webpack --mode production"
   },
-  "devDependencies": {
+  "dependencies": {
     "@babylonjs/core": "^5.20.0",
     "@babylonjs/inspector": "^5.20.0",
     "source-map-loader": "^3.0.1",
@@ -12,14 +12,5 @@
     "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.9.1"
-  },
-  "dependencies": {
-    "@babylonjs/gui": "^5.20.0",
-    "@babylonjs/gui-editor": "^5.20.0",
-    "@babylonjs/loaders": "^5.8.2",
-    "@babylonjs/materials": "^5.20.0",
-    "@babylonjs/serializers": "^5.20.0",
-    "babylonjs": "^5.20.0",
-    "babylonjs-inspector": "^5.20.0"
   }
 }
