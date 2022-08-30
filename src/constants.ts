@@ -1,6 +1,7 @@
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
 export const rootPath = document.location.href.includes('github') ? '' : '../';
+export const RENDER_CANVAS_ID = 'renderCanvas';
 export const MAX_XR_GRAB_DISTANCE = 0.25;  // meters
 export const BASE_FPS = 60;
 export const POURING_RATE = 0.01;  // alpha increment per frame at BASE_FPS fps
