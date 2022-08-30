@@ -29,6 +29,7 @@ import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDra
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { Color3 } from '@babylonjs/core';
+import { loadPlacards } from './loadPlacards';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -79,7 +80,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
 
     scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
 
-    Promise.all([loadCylinders(), loadRoom()]).then(async ([cylinders, { root, table, walls, cabinet, floor }]) => {
+    Promise.all([loadCylinders(), loadRoom(), loadPlacards()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC]]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
@@ -101,7 +102,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             const staticCylinderMesh = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
-            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh];
+            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh, placardA, placardB, placardC];
 
             Object.values(cylinders).forEach(cylinder => {
                 const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!;
@@ -222,12 +223,18 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const leftCylinderX = staticCylinderX - 0.5;
         const rightCylinderX = staticCylinderX + 0.5;
         const cylinderOpacity = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
-        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacity.getBoundingInfo().boundingBox.minimum.y;
+        const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
+        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacityBoundingBox.minimum.y;
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
         leftCylinder.position = new Vector3(leftCylinderX, cylinderY, cylinderZ);
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
+
+        const cylinderWidth = cylinderOpacityBoundingBox.maximumWorld.x - cylinderOpacityBoundingBox.minimumWorld.x;
+        placardA.position = new Vector3(leftCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardB.position = new Vector3(staticCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardC.position = new Vector3(rightCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
         
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
@@ -239,7 +246,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                     highlightBehavior.detach();
                 }
             });
-        }
+        };
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);
 
