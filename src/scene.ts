@@ -79,13 +79,17 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.checkCollisions = true;
 
     scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
-
-    Promise.all([loadCylinders(), loadRoom(), loadPlacards()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC]]) => {
+    //loadModels([{fileName:"clipBoardWithPaperCompressedTexture.glb"}])
+    Promise.all([loadCylinders(), loadRoom(), loadPlacards(),loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC],clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
-        // clipboard.position=new Vector3(0, -.5, 0);
-
+       console.log(clipboard)
+       if(clipboard){
+      clipboard.position=new Vector3(0, 1, -1);
+      clipboard.rotationQuaternion = null;
+      clipboard.rotation=new Vector3(0, -Math.PI, 0);
+       }
         // Enable collisions between meshes
         interface CylinderPositionIndex {
             [index: string]: {
