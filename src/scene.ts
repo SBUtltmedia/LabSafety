@@ -86,9 +86,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         camera.applyGravity = true;
        console.log(clipboard)
        if(clipboard){
-      clipboard.position=new Vector3(0, 1, -1);
       clipboard.rotationQuaternion = null;
-      clipboard.rotation=new Vector3(0, -Math.PI, 0);
+      clipboard.rotation = new Vector3(0, Math.PI / 2, -Math.PI / 2);
+      scene.onBeforeRenderObservable.add(() => {
+          clipboard.position = camera.position.add(new Vector3(0, 0, 0.5));
+      });
        }
         // Enable collisions between meshes
         interface CylinderPositionIndex {
@@ -281,6 +283,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     //             break;
     //     }
     // });
+    // TEMP
     return scene;
 };
 
