@@ -115,7 +115,6 @@ export default class SOP {
             this.failed = true;
             if (this.failSound) playSound(this.failSound);
             if (this.onFail) this.onFail();
-            setTimeout(resetLastCreatedScene, 5000);
         }
     }
 

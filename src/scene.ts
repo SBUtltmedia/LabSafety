@@ -10,6 +10,8 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { WebXRState, WebXRExperienceHelper } from '@babylonjs/core/XR';
 import { WebXRFeatureName } from '@babylonjs/core/XR';
 import { Sound } from '@babylonjs/core/Audio/sound';
+import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
+import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
@@ -23,14 +25,14 @@ import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { debug, performanceMonitor, resetGlobals, sop } from './globals';
+import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop } from './globals';
 import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
-import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { loadPlacards } from './loadPlacards';
 import FlyToCameraBehavior from './FlyToCameraBehavior';
+import { displayFailScreen } from './failScreen';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -62,6 +64,7 @@ import FlyToCameraBehavior from './FlyToCameraBehavior';
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
+    setAdvancedTexture(AdvancedDynamicTexture.CreateFullscreenUI('ui'));
     if (debug) {
         scene.debugLayer.show();
     }
@@ -263,6 +266,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                     highlightBehavior.detach();
                 }
             });
+            displayFailScreen(scene);
         };
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);

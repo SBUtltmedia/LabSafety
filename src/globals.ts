@@ -1,3 +1,4 @@
+import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { PerformanceMonitor } from '@babylonjs/core/Misc/performanceMonitor';
 
@@ -8,6 +9,12 @@ const searchParams = new URLSearchParams(document.location.search);
 export const debug = searchParams.get('debug') === '' || searchParams.get('debug')?.toLowerCase() === 'true';
 
 export const performanceMonitor = new PerformanceMonitor();
+
+export let advancedTexture: AdvancedDynamicTexture;
+
+export function setAdvancedTexture(value: AdvancedDynamicTexture) {
+    advancedTexture = value;
+}
 
 export const pourableTargets: AbstractMesh[] = [];
 
