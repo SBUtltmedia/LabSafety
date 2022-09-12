@@ -1,6 +1,7 @@
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
@@ -28,8 +29,8 @@ import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
-import { Color3 } from '@babylonjs/core';
 import { loadPlacards } from './loadPlacards';
+import FlyToCameraBehavior from './FlyToCameraBehavior';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -78,18 +79,17 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.keysRight.push(68);  // D
     camera.checkCollisions = true;
 
-    scene.onBeforeRenderObservable.add(() => performanceMonitor.sampleFrame());
+    scene.onBeforeRenderObservable.add(() => {
+        performanceMonitor.sampleFrame();
+        // scene.createPickingRay(scene.pointerX, scene.pointerY, null, camera);
+    });
+
     //loadModels([{fileName:"clipBoardWithPaperCompressedTexture.glb"}])
-    Promise.all([loadCylinders(), loadRoom(), loadPlacards(),loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC],clipboard]) => {
+    Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
-       console.log(clipboard)
-       if(clipboard){
-      clipboard.position=new Vector3(0, 1, -1);
-      clipboard.rotationQuaternion = null;
-      clipboard.rotation=new Vector3(0, -Math.PI, 0);
-       }
+
         // Enable collisions between meshes
         interface CylinderPositionIndex {
             [index: string]: {
@@ -239,6 +239,19 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         placardA.position = new Vector3(leftCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
         placardB.position = new Vector3(staticCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
         placardC.position = new Vector3(rightCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+
+        clipboard.position = new Vector3(leftCylinderX - 0.5, tableMaximum.y, cylinderZ);
+        clipboard.rotationQuaternion = null;
+        clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
+        clipboard.addBehavior(new FlyToCameraBehavior());
+        // TEMP
+        // clipboard.rotationQuaternion = null;
+        // clipboard.rotation = new Vector3(0, Math.PI / 2, -Math.PI / 2);
+        // scene.onBeforeRenderObservable.add(() => {
+        //     // clipboard.position = camera.position.add(new Vector3(0, 0, 0.5));
+        //     console.log(camera.getDirection(new Vector3(0, 1, 0)));
+        //     clipboard.position = camera.position.add(camera.getDirection(new Vector3(0, 1, 0)));
+        // });
         
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
