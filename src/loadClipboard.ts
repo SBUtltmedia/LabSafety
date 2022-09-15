@@ -9,22 +9,22 @@ import { rootPath, GrabbableAbstractMesh } from './constants';
 export const loadClipboard = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'clipBoardWithPaperCompressedTexture.glb').then(result => {
     const clipboard = result.meshes.find(mesh => mesh.name === 'Plane')!;
     let sopObject = {procedure: [[]]}
-    fetch(`${rootPath}images/sop42.svg`)
-    .then(r => r.text())
-    .then(text => { 
-        let svgFrag = fragmentFromString(text); // returns DOM object
-        let procedureEL = svgFrag.getElementById("procedure-list")!;
-        let newOL = document.createElement("ol");
-        let newLI = document.createElement("li");
-        newLI.innerHTML = "Heyyo";
-        newOL.append(newLI);
-        procedureEL.innerHTML = "";
-        procedureEL.append(newOL);
-        const serializer = new XMLSerializer();
-        const document_fragment_string = serializer.serializeToString(svgFrag);
-        domToMaterial(document_fragment_string);
-    })
-    .catch(console.error.bind(console));
+    // fetch(`${rootPath}images/sop42.svg`)
+    // .then(r => r.text())
+    // .then(text => { 
+    //     let svgFrag = fragmentFromString(text); // returns DOM object
+    //     let procedureEL = svgFrag.getElementById("procedure-list")!;
+    //     let newOL = document.createElement("ol");
+    //     let newLI = document.createElement("li");
+    //     newLI.innerHTML = "Heyyo";
+    //     newOL.append(newLI);
+    //     procedureEL.innerHTML = "";
+    //     procedureEL.append(newOL);
+    //     const serializer = new XMLSerializer();
+    //     const document_fragment_string = serializer.serializeToString(svgFrag);
+    //     domToMaterial(document_fragment_string);
+    // })
+    // .catch(console.error.bind(console));
     const scene = clipboard.getScene();
 
     function fragmentFromString (stringHTML: string) {
