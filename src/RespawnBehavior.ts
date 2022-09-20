@@ -6,6 +6,8 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Observer } from '@babylonjs/core/Misc/observable';
 import { Scene } from '@babylonjs/core/scene';
 
+import { FADE_IN_OUT_TIME, MS_PER_FRAME } from './constants';
+
 
 export default class RespawnBehavior implements Behavior<AbstractMesh> {
     // TODO: This won't work in VR. Enable XR grab as an option for interaction.
@@ -28,7 +30,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
         this.respawning = false;
         this.fading = false;
         this.timeLastInteracted = null;
-        this.fadeInOutTime = fadeInOutTime || 300;
+        this.fadeInOutTime = fadeInOutTime || FADE_IN_OUT_TIME;
         this.observer = null;
         this.activeTimerIDs = [];
         if (interactableChildMesh) {
@@ -109,9 +111,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
     fade = (fadeIn: boolean) => {
         if (!this.fading){
             this.fading = true;
-            const alphaPerMs = 1 / this.fadeInOutTime;
-            const msPerFrame = 1000 / 60;
-            const alphaPerFrame = alphaPerMs * msPerFrame;
+            const alphaPerFrame = MS_PER_FRAME / this.fadeInOutTime;
             this.intervalID = setInterval(() => {
                 this.#setAllVisibility(this.mesh, this.mesh.visibility + (fadeIn ? alphaPerFrame : -alphaPerFrame));
                 if (fadeIn) {
@@ -127,7 +127,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
                         clearInterval(this.intervalID);
                     }
                 }
-            }, msPerFrame);
+            }, MS_PER_FRAME);
         }
     }
 
