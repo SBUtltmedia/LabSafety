@@ -32,7 +32,7 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         });
         [[leftCylinder, new Color3(1, 0, 0)],
          [rightCylinder, new Color3(0, 0, 1)],
-         [staticCylinder, Color3.Black()]].forEach(([cylinder, color]) => {
+         [staticCylinder, new Color3(0, 1, 0)]].forEach(([cylinder, color]) => {
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
             pointerDragBehavior.useObjectOrientationForDragging = false;
@@ -42,7 +42,6 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinderLiquidMaterial.diffuseColor = color as Color3;
             cylinderLiquid.material = cylinderLiquidMaterial;
         });
-        getChildMeshByName(staticCylinder, CYLINDER_LIQUID_MESH_NAME)!.material!.alpha = 0;
 
         leftCylinder.rotationQuaternion = null;
         rightCylinder.rotationQuaternion = null;

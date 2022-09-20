@@ -26,13 +26,14 @@ import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID } from './constants';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { loadPlacards } from './loadPlacards';
 import FlyToCameraBehavior from './FlyToCameraBehavior';
 import { displayFailScreen } from './failScreen';
+import RespawnBehavior from './RespawnBehavior';
 
 
 // function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
@@ -238,6 +239,12 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
         rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
 
+        // Add fade-in/fade-out respawn behavior using calculated positions as respawn points
+        Object.values(cylinders).forEach(cylinder => {
+            const respawnBehavior = new RespawnBehavior(cylinder.position.clone(), TIME_UNTIL_FADE);
+            cylinder.addBehavior(respawnBehavior);
+        });
+
         const cylinderWidth = cylinderOpacityBoundingBox.maximumWorld.x - cylinderOpacityBoundingBox.minimumWorld.x;
         placardA.position = new Vector3(leftCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
         placardB.position = new Vector3(staticCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
@@ -247,14 +254,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         clipboard.rotationQuaternion = null;
         clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
         clipboard.addBehavior(new FlyToCameraBehavior());
-        // TEMP
-        // clipboard.rotationQuaternion = null;
-        // clipboard.rotation = new Vector3(0, Math.PI / 2, -Math.PI / 2);
-        // scene.onBeforeRenderObservable.add(() => {
-        //     // clipboard.position = camera.position.add(new Vector3(0, 0, 0.5));
-        //     console.log(camera.getDirection(new Vector3(0, 1, 0)));
-        //     clipboard.position = camera.position.add(camera.getDirection(new Vector3(0, 1, 0)));
-        // });
         
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
