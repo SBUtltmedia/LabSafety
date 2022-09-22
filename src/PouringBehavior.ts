@@ -10,7 +10,7 @@ import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, MS_PER_FRAME, POUR_TIME, ROTATION_RATE } from './constants';
-import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets, bToCTask, cToATask } from './globals';
+import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
 import { getChildMeshByName, scaleToBaseFPS } from './utils';
 import HighlightBehavior from './HighlightBehavior';
 
