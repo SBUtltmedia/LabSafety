@@ -9,19 +9,25 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, POURING_RATE, ROTATION_RATE } from './constants';
-import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, MS_PER_FRAME, POUR_TIME, ROTATION_RATE } from './constants';
+import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets, bToCTask, cToATask } from './globals';
 import { getChildMeshByName, scaleToBaseFPS } from './utils';
-import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
+// TODO: It is hardcoded that the source and target meshes must be cylinders. Fix that.
 export default class PouringBehavior implements Behavior<AbstractMesh> {
     target: Nullable<AbstractMesh>;
     sourceRadius: number;
     source!: AbstractMesh;
+    targetRotation?: Vector3
+    shouldPour!: boolean;
     pouring!: boolean;
+    shouldRotate!: boolean;
+    rotating!: boolean;
     pourKey = 'e';
+    pourIntervalID?: NodeJS.Timer;
+    rotationIntervalID?: NodeJS.Timer;
     xr?: WebXRExperienceHelper;
 
     constructor(sourceRadius: number, xr?: WebXRExperienceHelper) {
@@ -34,21 +40,28 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         return 'Pouring';
     }
 
-    init() {
+    init = () => {
+        this.shouldPour = false;
         this.pouring = false;
+        this.shouldRotate = false;
+        this.rotating = false;
     }
     
     attach = (source: AbstractMesh) => {
         this.source = source;
+        this.targetRotation = this.calculateRestingRotation();
         const scene = this.source.getScene();
         scene.onBeforeRenderObservable.add(this.#renderFn);
         scene.onKeyboardObservable.add(this.#pourKeyFn);
+        this.#startRotation();
     }
 
     detach = () => {
         const scene = this.source.getScene();
         scene.onBeforeRenderObservable.removeCallback(this.#renderFn);
         scene.onKeyboardObservable.removeCallback(this.#pourKeyFn);
+        this.#cancelPour();
+        this.#cancelRotation();
     }
 
     calculatePouringRotation = (targetMesh: AbstractMesh): Vector3 => {
@@ -92,17 +105,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
 
     calculateRestingRotation = (): Vector3 => new Vector3(0, this.source.position.x < (this.target ? this.target.position.x : 0) ? 0 : Math.PI, 0);
 
-    smoothRotateSource = (rotation: Vector3, rate = ROTATION_RATE) => {
-        this.source.rotation.addInPlace(rotation.subtract(this.source.rotation).scaleInPlace(rate));  // rate is the velocity factor.
-    }
-
     #renderFn = (): void => {
-        // TODO: treat this.pouring better. For example, this.pouring can be true in the beginning of this call but then become false later. Really pouring should only change when it is actually supposed to change.
-        // this.source.rotationQuaternion = null;
-        // const targetCylinderBoundingBox = this.target.getChildMeshes().find(mesh => mesh.name === 'cylinder')?.getBoundingInfo().boundingBox!;
-        // this.source.position = new Vector3(targetCylinderBoundingBox.centerWorld.x + 0.5, targetCylinderBoundingBox.maximumWorld.y + 1, targetCylinderBoundingBox.centerWorld.z);
-        // TODO: I can think of scenarios where the target may be unhighlighted when it should be highlighted - a race condition with other cylinders that have that target. The solution might be complicated, e.g. numReferences, possibly extractable into a new behavior.
-
         const target = this.acquireTarget();
         if (target !== this.target) {
             if (this.target) {
@@ -116,7 +119,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         }
 
         if (!this.target) {
-            this.smoothRotateSource(this.calculateRestingRotation());
             return;
         }
 
@@ -137,26 +139,93 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === CYLINDER_LIQUID_MESH_NAME)!.getBoundingInfo()?.boundingBox;
             const sourceLocalMinimum = sourceBoundingBox.minimum;
             const sourceLocalMaximum = sourceBoundingBox.maximum;
-            const matrix = this.source.computeWorldMatrix();
+            const matrix = this.source.computeWorldMatrix();  // TODO: is transforming the coordinates really necessary?
             const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
+            // TODO: it looks like this doesn't take rotation into account
             if (distance <= this.sourceRadius && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
-                this.#pour(scaleToBaseFPS(POURING_RATE));
+                if (!this.pouring) {
+                    this.#startPour();
+                }
+            } else if (this.pouring) {
+                this.#cancelPour();
             }
         } else {
-            let rotation: Vector3;
-            if (this.pouring) {
-                rotation = this.calculatePouringRotation(this.target);  // This can set this.pouring
-            } else {
-                rotation = this.calculateRestingRotation();
-            }
-            // this.source.rotation = rotation;
-            const sourceAlpha = (getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material as StandardMaterial).alpha
-            const rate = (2 - sourceAlpha) * scaleToBaseFPS(ROTATION_RATE);
-            this.smoothRotateSource(rotation, rate);
-            if (this.pouring && Math.abs(rotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation
-                this.#pour(POURING_RATE);
+            if (this.shouldPour) {
+                if (!this.pouring && this.target && this.targetRotation && Math.abs(this.targetRotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
+                    this.#startPour();
+                }
+            } else if (this.pouring) {
+                this.#cancelPour();
             }
         }
+    }
+
+    calculateTargetRotation = (): Vector3 => {
+        return !this.target || !this.shouldPour ? this.calculateRestingRotation() : this.calculatePouringRotation(this.target);
+    }
+
+    #startRotation = () => {
+        // Note: the rotation approaches the target rotation asymptotically. Don't rely on equality.
+        // TODO: rotate toward target when acquired but not pouring
+        this.rotating = true;
+        this.rotationIntervalID = setInterval(() => {
+            this.targetRotation = this.calculateTargetRotation();
+            const rotationIncrement = this.targetRotation.subtract(this.source.rotation).scaleInPlace(ROTATION_RATE);
+            this.source.rotation.addInPlace(rotationIncrement);
+        }, MS_PER_FRAME);
+    }
+
+    #cancelRotation = () => {
+        this.rotating = false;
+        clearInterval(this.rotationIntervalID);
+    }
+
+    #startPour = () => {
+        if (!this.target) {
+            return;
+        }
+        this.pouring = true;
+        const sourceLiquidMaterial = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
+        const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
+        const sourceColor = sourceLiquidMaterial.diffuseColor;
+        const targetColor = targetLiquidMaterial.diffuseColor;
+        
+        const alphaPerFrame = MS_PER_FRAME / POUR_TIME;
+        const colorIncPerFrame = sourceColor.scale(alphaPerFrame);
+
+        this.pourIntervalID = setInterval(() => {
+            if (sourceLiquidMaterial.alpha > 0) {
+                sourceLiquidMaterial.alpha -= alphaPerFrame;
+                targetLiquidMaterial.alpha += alphaPerFrame;
+                const newSourceColor = this.#correctColorBounds(sourceColor.subtract(colorIncPerFrame));
+                const newTargetColor = this.#correctColorBounds(targetColor.add(colorIncPerFrame));
+                sourceLiquidMaterial.diffuseColor.addToRef(newSourceColor.subtract(sourceLiquidMaterial.diffuseColor), sourceLiquidMaterial.diffuseColor);
+                targetLiquidMaterial.diffuseColor.addToRef(newTargetColor.subtract(targetLiquidMaterial.diffuseColor), targetLiquidMaterial.diffuseColor);
+
+                if (sourceLiquidMaterial.alpha < 0) {
+                    sourceLiquidMaterial.alpha = 0;
+                }
+                if (targetLiquidMaterial.alpha > 1) {
+                    targetLiquidMaterial.alpha = 1;
+                }
+            } else {
+                // Pouring is finished
+                sourceLiquidMaterial.diffuseColor = Color3.Black();
+                this.#cancelPour();
+            }
+        }, MS_PER_FRAME);
+    }
+
+    #cancelPour = () => {
+        clearInterval(this.pourIntervalID);
+        this.pouring = false;
+    }
+
+    #correctColorBounds = (color: Color3): Color3 => {
+        // Works out-of-place
+        return new Color3(color.r < 0 ? 0 : color.r > 1 ? 1 : color.r,
+                          color.g < 0 ? 0 : color.g > 1 ? 1 : color.g,
+                          color.b < 0 ? 0 : color.b > 1 ? 1 : color.b);
     }
 
     #pour = (rate: number): void => {
@@ -197,11 +266,14 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                 case KeyboardEventTypes.KEYDOWN:
                     const pointerDragBehavior = this.source.behaviors.find(({ name }) => name === 'PointerDrag') as PointerDragBehavior | undefined;
                     if (pointerDragBehavior?.dragging) {
-                        this.pouring = true;
+                        this.shouldPour = true;
+                        this.shouldRotate = true;
                     }
                     break;
                 case KeyboardEventTypes.KEYUP:
-                    this.pouring = false;
+                    if (this.shouldPour) {
+                        this.shouldPour = false;
+                    }
                     break;
             }
         }
