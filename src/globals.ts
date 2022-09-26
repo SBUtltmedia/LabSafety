@@ -34,12 +34,28 @@ export const pourBlueCylinderTask: Task = {
     description: 'Pour the blue cylinder into the same cylinder you poured the red, taking care not to spill. Just kidding, you can\'t spill. It\'s literally impossible.'
 };
 
+export const bToCTask: Task = {
+    complete: false,
+    current: true,
+    title: 'B into C',
+    shortDescription: 'Pour chemical B into chemical C.',
+    description: 'Pour chemical B into chemical C.'
+};
+
+export const cToATask: Task = {
+    complete: false,
+    current: false,
+    title: 'B+C into A',
+    shortDescription: 'Pour the chemical mixture B+C into chemical A.',
+    description: 'Pour the chemical mixture B+C into chemical A.'
+};
+
 
 export const sop = new SOP('Pouring Things Into Things', 'Pour a thing into another thing.');
 
 const addTasks = () => {
-    sop.addDependentTask(pourRedCylinderTask, true);
-    sop.addDependentTask(pourBlueCylinderTask);
+    sop.addDependentTask(bToCTask, true);
+    sop.addDependentTask(cToATask);
 };
 
 addTasks();
@@ -48,11 +64,11 @@ export function resetGlobals() {
     performanceMonitor.reset();
     pourableTargets.splice(0, pourableTargets.length);
 
-    pourRedCylinderTask.complete = false;
-    pourRedCylinderTask.current = true;
+    bToCTask.complete = false;
+    bToCTask.current = true;
     
-    pourBlueCylinderTask.complete = false;
-    pourBlueCylinderTask.current = false;
+    cToATask.complete = false;
+    cToATask.current = false;
     
     sop.reset();
     addTasks();

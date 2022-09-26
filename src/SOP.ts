@@ -1,10 +1,10 @@
 import { Sound } from '@babylonjs/core/Audio/sound';
 import { Nullable } from '@babylonjs/core/types';
+
 import { Task } from './constants';
 import DAGNode from './DAGNode';
 import DirectedAcyclicGraph from './DirectedAcyclicGraph';
 import { playSound } from './utils';
-import { resetLastCreatedScene } from './scene';
 
 export default class SOP {
     /*
@@ -14,60 +14,36 @@ export default class SOP {
     title: string;
     description: string;
     tasks: DirectedAcyclicGraph<Task>;
-    currentNode: DAGNode<Task>;
     failed: boolean = false;
     onFail?: () => void;
     onSuccess?: () => void;
+    onCompletion?: () => void;
     failSound?: Sound;
     successSound?: Sound;
+    completionSound?: Sound;
 
     constructor(title: string, description: string) {
         this.title = title;
         this.description = description;
         this.tasks = new DirectedAcyclicGraph<Task>();
-        this.currentNode = this.tasks.root;
     }
 
     addDependentTask = (task: Task, setToCurrent = false) => {
         // Add task to the SOP that must not be completed until the current task is completed.
-        const node = this.currentNode.addDependent(task);
-        if (setToCurrent) this.currentNode = node;
-    }
-
-    addConcurrentTask = (task: Task) => {
-        // Add a task to the SOP that has the same dependencies as the current task.
-        const node = new DAGNode<Task>(task, [...this.currentNode.dependencies], []);
-        node.dependencies.forEach(dependency => {
-            dependency.dependents.push(node);
-        });
-    }
-
-    addTaskDependentOnConcurrentTasks = (task: Task) => {
-        throw new Error('Not implemented');
+        const node = this.tasks.currentNode.addChild(task);
+        if (setToCurrent) this.tasks.currentNode = node;
     }
 
     checkNodeDependenciesCompleted = (node: DAGNode<Task>): boolean => {
-        // TODO: should this method belong in DAGNode? Probably. (However, maybe it should be static to allow easy recursion (no this rebinding required).)
         // Verify that ALL the tasks of the node's dependencies have been completed.
         // TODO: should this only check DIRECT dependencies, relying on previous checks to maintain the dependencies?
-        if (!node.dependencies.length) {
+        if (!node.parents.length) {
             return true;
         }
-        return node.dependencies.every(dependency => {
+        return node.parents.every(parent => {
             // TODO: what if value is null? This is currently possible. Probably the value shouldn't be nullable. Or it should ONLY be nullable as the root.
-            return dependency.value ? dependency.value.complete && this.checkNodeDependenciesCompleted(dependency) : true;  // if !dependency.value, then dependency is the dummy root node.
+            return parent.value ? parent.value.complete && this.checkNodeDependenciesCompleted(parent) : true;  // if !dependency.value, then dependency is the dummy root node.
         });
-    }
-
-    getNodeByTask = (task: Task): Nullable<DAGNode<Task>> => {
-        // Perform a breadth-first search to select a node matching the given task.
-        // TODO: test this function. It's a little tricky.
-        const getNodeByTaskRec = (cursor: DAGNode<Task>): Nullable<DAGNode<Task>> => {
-            if (cursor.value === task) return cursor;
-
-            return cursor.dependents.map((node: DAGNode<Task>) => getNodeByTaskRec(node)).find((node: Nullable<DAGNode<Task>>) => node) || null;
-        };
-        return getNodeByTaskRec(this.tasks.root);
     }
 
     completeTaskFromNode = (node: DAGNode<Task>): boolean => {
@@ -79,24 +55,36 @@ export default class SOP {
         return false;
     }
 
-    completeTask = (task: Task): boolean => {
-        if (task.complete) return true;
-
-        let node;
-        if (this.currentNode.value === task)
-            node = this.currentNode;
-        else 
-            node = this.getNodeByTask(task);
-        if (!node) return false;
-        
-        const completed = this.completeTaskFromNode(node);
+    completeCurrentTask = (): boolean => {
+        const currentNode = this.tasks.currentNode;
+        const completed = this.completeTaskFromNode(currentNode);
         if (completed) {
-            if (this.successSound) playSound(this.successSound);
             if (this.onSuccess) this.onSuccess();
+
+            const nextNode = currentNode.next();
+            if (nextNode) {
+                if (this.successSound) playSound(this.successSound);
+                this.tasks.currentNode = nextNode;
+            } else {
+                if (this.completionSound) playSound(this.completionSound);
+                if (this.onCompletion) this.onCompletion();
+            }
         } else {
             this.fail();
         }
         return completed;
+    }
+
+    onCompleteSOP = () => {
+
+    }
+
+    failCurrentTask = (): boolean => {
+        // Note that this method does not set this.tasks.currentNode, unlike completeCurrentTask
+        const currentNode = this.tasks.currentNode;
+        if (!currentNode.value || currentNode.value.complete) return false;
+        this.fail();
+        return true;
     }
 
     addFailEffects = (failSound: Sound, failCallback: () => void) => {
@@ -109,6 +97,15 @@ export default class SOP {
         this.onSuccess = successCallback;
     }
 
+    addCompletionEffects = (completionSound: Sound, completionCallback: () => void) => {
+        this.completionSound = completionSound;
+        this.onCompletion = completionCallback;
+    }
+
+    getCurrentTask = (): Nullable<Task> => {
+        return this.tasks.currentNode.value;
+    }
+
     fail = () => {
         if (!this.failed) {
             // The user has failed to properly follow the SOP. Explode.
@@ -119,8 +116,8 @@ export default class SOP {
     }
 
     reset = () => {
-        this.currentNode = this.tasks.root;
-        this.currentNode.dependents.splice(0, this.currentNode.dependents.length);
+        this.tasks.currentNode = this.tasks.root;
+        this.tasks.currentNode.children.splice(0, this.tasks.currentNode.children.length);
         this.complete = false;
         this.failed = false;
         delete this.onFail;

@@ -29,11 +29,15 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     pourIntervalID?: NodeJS.Timer;
     rotationIntervalID?: NodeJS.Timer;
     xr?: WebXRExperienceHelper;
+    onStartPour?: (target: AbstractMesh) => void;  // Called immediately before starting pour
+    onFinishPour?: (target: AbstractMesh) => void;  // Called immediately before finishing pour (not canceling)
 
-    constructor(sourceRadius: number, xr?: WebXRExperienceHelper) {
+    constructor(sourceRadius: number, xr?: WebXRExperienceHelper, onStartPour?: (target: AbstractMesh) => void, onFinishPour?: (target: AbstractMesh) => void) {
         this.target = null;
         this.sourceRadius = sourceRadius;
         this.xr = xr;
+        this.onStartPour = onStartPour;
+        this.onFinishPour = onFinishPour;
     }
 
     get name() {
@@ -184,8 +188,15 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         if (!this.target) {
             return;
         }
-        this.pouring = true;
+
         const sourceLiquidMaterial = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
+        if (sourceLiquidMaterial.alpha <= 0) {
+            return;
+        }
+        
+        if (this.onStartPour) this.onStartPour(this.target);
+
+        this.pouring = true;
         const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
         const sourceColor = sourceLiquidMaterial.diffuseColor;
         const targetColor = targetLiquidMaterial.diffuseColor;
@@ -211,9 +222,15 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             } else {
                 // Pouring is finished
                 sourceLiquidMaterial.diffuseColor = Color3.Black();
-                this.#cancelPour();
+                this.#finishPour();
             }
         }, MS_PER_FRAME);
+    }
+
+    #finishPour = () => {
+        // TODO: are there concurrency issues with this.target? Is it possible that this.target might be different than it was in #startPour?
+        if (this.onFinishPour && this.target) this.onFinishPour(this.target);
+        this.#cancelPour();
     }
 
     #cancelPour = () => {
@@ -249,14 +266,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             targetLiquidMaterial.diffuseColor = targetColor.add(colorInc);
         } else {
             sourceLiquidMaterial.diffuseColor = Color3.Black();
-            
-            // Complete the relevant task.
-            if (this.source.name === 'left-cylinder') {
-                sop.completeTask(pourRedCylinderTask);  // This succeeds or fails accordingly and applies the corresponding effects
-            }
-            else if (this.source.name === 'right-cylinder') {
-                sop.completeTask(pourBlueCylinderTask);
-            }
         }
     }
 

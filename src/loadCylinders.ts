@@ -5,19 +5,19 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 
-import { rootPath, GrabbableAbstractMesh, CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from './constants';
+import { rootPath, GrabbableAbstractMesh, CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, CYLINDER_A_NAME, CYLINDER_C_NAME, CYLINDER_B_NAME } from './constants';
 import { getChildMeshByName } from './utils';
 import { pourableTargets } from './globals';
 
 export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'TLLGraduatedCylinder.glb').then(result => {
-    const leftCylinder = result.meshes.find(mesh => mesh.name === '__root__')!;
-    leftCylinder.name = 'left-cylinder';
+    const cylinderA = result.meshes.find(mesh => mesh.name === '__root__')!;
+    cylinderA.name = CYLINDER_A_NAME;
         
         // Clone mesh, sharing geometries
         // Note: cloning prefixes the clone's child meshes with `${childMesh.parent.name}.`
-        const rightCylinder = leftCylinder.clone('right-cylinder', null)!;
-        const staticCylinder = leftCylinder.clone('static-cylinder', null)!;
-        const cylinders = [leftCylinder, rightCylinder, staticCylinder];
+        const cylinderC = cylinderA.clone(CYLINDER_C_NAME, null)!;
+        const cylinderB = cylinderA.clone(CYLINDER_B_NAME, null)!;
+        const cylinders = [cylinderA, cylinderC, cylinderB];
         cylinders.forEach(cylinder => {
             cylinder.getChildMeshes().forEach(childMesh => {
                 switch (childMesh.name.split('.').at(-1)!) {
@@ -30,9 +30,9 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
                 }
             });
         });
-        [[leftCylinder, new Color3(1, 0, 0)],
-         [rightCylinder, new Color3(0, 0, 1)],
-         [staticCylinder, new Color3(0, 1, 0)]].forEach(([cylinder, color]) => {
+        [[cylinderA, new Color3(1, 0, 0)],
+         [cylinderC, new Color3(0, 0, 1)],
+         [cylinderB, new Color3(0, 1, 0)]].forEach(([cylinder, color]) => {
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
             pointerDragBehavior.useObjectOrientationForDragging = false;
@@ -43,9 +43,9 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
             cylinderLiquid.material = cylinderLiquidMaterial;
         });
 
-        leftCylinder.rotationQuaternion = null;
-        rightCylinder.rotationQuaternion = null;
-        staticCylinder.rotationQuaternion = null;
+        cylinderA.rotationQuaternion = null;
+        cylinderC.rotationQuaternion = null;
+        cylinderB.rotationQuaternion = null;
         
         cylinders.forEach(cylinder => {
             const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)! as GrabbableAbstractMesh;
@@ -56,8 +56,8 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         pourableTargets.push(...cylinders);
         
         return {
-            leftCylinder,
-            rightCylinder,
-            staticCylinder
+            cylinderA,
+            cylinderC,
+            cylinderB
         };
 });

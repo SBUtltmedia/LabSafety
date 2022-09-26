@@ -4,14 +4,11 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
-import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { Nullable } from '@babylonjs/core/types';
 import { Engine } from '@babylonjs/core/Engines/engine';
-import { WebXRState, WebXRExperienceHelper } from '@babylonjs/core/XR';
-import { WebXRFeatureName } from '@babylonjs/core/XR';
 import { Sound } from '@babylonjs/core/Audio/sound';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
-import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
+import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
@@ -21,47 +18,18 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { loadCylinders } from './loadCylinders';
 import { loadClipboard} from './loadClipboard';
-import { loadModels} from './loadModels';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE } from './constants';
+import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop, bToCTask, cToATask } from './globals';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE, CYLINDER_C_NAME, CYLINDER_A_NAME, COMPLETION_SOUND_PATH } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
-import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
 import HighlightBehavior from './HighlightBehavior';
 import { loadPlacards } from './loadPlacards';
 import FlyToCameraBehavior from './FlyToCameraBehavior';
 import { displayFailScreen } from './failScreen';
 import RespawnBehavior from './RespawnBehavior';
 
-
-// function placeOnSurface(surface: AbstractMesh, ...meshes: AbstractMesh[]) {
-//     // Note: this function only changes the vertical position of the meshes, so a mesh may not be within the bounds of the surface.
-//     const surfaceLevel = surface.getBoundingInfo().boundingBox.maximumWorld.y;
-//     meshes.forEach(mesh => {
-//         const offset = mesh.position.y - mesh.getBoundingInfo().boundingBox.minimumWorld.y + 0.01;  // The 0.01 is to prevent z-fighting; TODO: find a more elegant solution for this.
-//         mesh.position.y = surfaceLevel + offset;
-//         console.log(`placed ${mesh.name} on ${surface.name}`);
-//         console.log(surfaceLevel + offset);
-//     });
-// }
-
-// function placeCylinders(table: AbstractMesh, cylinders: AbstractMesh[]) {
-//     const tableBoundingBox = table.getBoundingInfo().boundingBox;
-//     const z = (tableBoundingBox.minimumWorld.z + tableBoundingBox.maximumWorld.z) / 2;
-//     const y = tableBoundingBox.maximumWorld.y;
-//     const xStatic = (tableBoundingBox.minimumWorld.x + tableBoundingBox.maximumWorld.x) / 2;
-//     const xLeft = (tableBoundingBox.minimumWorld.x + xStatic) / 2;
-//     const xRight = (xStatic + tableBoundingBox.maximumWorld.x) / 2;
-// }
-
-// function printOnHand(handMenu: NearMenu, s: string) {
-//     const button = new TouchHolographicButton();
-//     button.text = s;
-//     button.isVisible = true;
-//     handMenu.addButton(button);
-// }
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
@@ -104,13 +72,13 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         }
         let cylinderPositionIndex: CylinderPositionIndex = {};
         const collisionOffsetObserver = scene.onBeforeRenderObservable.add((_, eventState) => {
-            const { leftCylinder, staticCylinder, rightCylinder } = cylinders;
-            const leftCylinderMesh = getChildMeshByName(leftCylinder, CYLINDER_MESH_NAME)!;
-            const rightCylinderMesh = getChildMeshByName(rightCylinder, CYLINDER_MESH_NAME)!;
-            const staticCylinderMesh = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
+            const { cylinderA, cylinderB, cylinderC } = cylinders;
+            const cylinderAMesh = getChildMeshByName(cylinderA, CYLINDER_MESH_NAME)!;
+            const cylinderCMesh = getChildMeshByName(cylinderC, CYLINDER_MESH_NAME)!;
+            const cylinderBMesh = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
-            const collidableMeshes = [table, cabinet, floor, leftCylinderMesh, rightCylinderMesh, staticCylinderMesh, placardA, placardB, placardC];
+            const collidableMeshes = [table, cabinet, floor, cylinderAMesh, cylinderCMesh, cylinderBMesh, placardA, placardB, placardC];
 
             Object.values(cylinders).forEach(cylinder => {
                 const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!;
@@ -188,12 +156,67 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         enableXRGrab(xr.input);
         const featureManager = xr.baseExperience.featuresManager;
         
-        const { leftCylinder, rightCylinder, staticCylinder } = cylinders;
-        const staticCylinderBoundingBox = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
-        const r = (staticCylinderBoundingBox.maximum.y + staticCylinderBoundingBox.minimum.y) / 2;
-        leftCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
-        rightCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
-        staticCylinder.addBehavior(new PouringBehavior(r, xr.baseExperience));
+        const { cylinderA, cylinderC, cylinderB } = cylinders;
+        const cylinderBBoundingBox = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
+        const r = (cylinderBBoundingBox.maximum.y + cylinderBBoundingBox.minimum.y) / 2;
+        cylinderA.addBehavior(new PouringBehavior(r, xr.baseExperience, (target) => {
+            const currentTask = sop.getCurrentTask();
+            if (currentTask && !currentTask.complete) {
+                sop.failCurrentTask();
+            }
+        }, (target) => {
+            
+        }));
+        cylinderC.addBehavior(new PouringBehavior(r, xr.baseExperience, (target) => {
+            const currentTask = sop.getCurrentTask();
+            if (currentTask && !currentTask.complete) {
+                if (currentTask === cToATask) {
+                    if (target.name !== CYLINDER_A_NAME) {
+                        sop.failCurrentTask();
+                    }
+                } else {
+                    sop.failCurrentTask();
+                }
+            }
+        }, (target) => {
+            const currentTask = sop.getCurrentTask();
+            if (currentTask) {
+                if (currentTask === cToATask) {
+                    if (target.name === CYLINDER_A_NAME) {
+                        sop.completeCurrentTask();
+                    } else {
+                        sop.failCurrentTask();
+                    }
+                } else {
+                    sop.failCurrentTask();
+                }
+            }
+        }));
+        cylinderB.addBehavior(new PouringBehavior(r, xr.baseExperience, (target) => {
+            const currentTask = sop.getCurrentTask();
+            if (currentTask && !currentTask.complete) {
+                if (currentTask === bToCTask) {
+                    if (target.name !== CYLINDER_C_NAME) {
+                        sop.failCurrentTask();
+                    }
+                } else {
+                    sop.failCurrentTask();
+                }
+            }
+        }, (target) => {
+            const currentTask = sop.getCurrentTask();
+            if (currentTask) {
+                if (currentTask === bToCTask) {
+                    if (target.name === CYLINDER_C_NAME) {
+                        sop.completeCurrentTask();
+                    } else {
+                        sop.failCurrentTask();
+                    }
+                } else {
+                    sop.failCurrentTask();
+                }
+            }
+        }));
 
         Object.values(cylinders).forEach(cylinder => {
             const highlightLayer = new HighlightLayer('highlight-layer');
@@ -203,41 +226,21 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
         });
 
-        // featureManager.enableFeature(WebXRFeatureName.HAND_TRACKING, 'latest', {
-        //     xrInput: xr.input,
-        // });
-
-        // TODO: create an option for teleportation/no teleportation
-        // featureManager.disableFeature(WebXRFeatureName.TELEPORTATION);
-        // featureManager.enableFeature(WebXRFeatureName.MOVEMENT, 'latest', {
-        //     xrInput: xr.input,
-        //     movementSpeed: 0.07,  // These configuration options seem to be good
-        //     rotationSpeed: 0.3
-        // });
-
-        // const wallsBoundingBox = walls.getBoundingInfo().boundingBox;  // TODO: does this become out of date after changes to the room's position?
-        // ground = CreateGround('ground', { width: wallsBoundingBox.maximum.x - wallsBoundingBox.minimum.x, height: wallsBoundingBox.maximum.z - wallsBoundingBox.minimum.z });
-        // ground.position.y = wallsBoundingBox.minimumWorld.y - 0.01;
-        // ground.isVisible = false;
-        // ground.checkCollisions = true;
-
         // Place the cylinders on the table
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
         const tableMinimum = tableBoundingBox.minimum;
         const tableMaximum = tableBoundingBox.maximum;
-        const staticCylinderX = tableBoundingBox.center.x;
-        // const leftCylinderX = (tableMinimum.x + staticCylinderX) / 2;
-        // const rightCylinderX = (staticCylinderX + tableMaximum.x) / 2;
-        const leftCylinderX = staticCylinderX - 0.5;
-        const rightCylinderX = staticCylinderX + 0.5;
-        const cylinderOpacity = getChildMeshByName(staticCylinder, CYLINDER_MESH_NAME)!;
+        const cylinderBX = tableBoundingBox.center.x;
+        const cylinderAX = cylinderBX - 0.5;
+        const cylinderCX = cylinderBX + 0.5;
+        const cylinderOpacity = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!;
         const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
         const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacityBoundingBox.minimum.y;
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
-        leftCylinder.position = new Vector3(leftCylinderX, cylinderY, cylinderZ);
-        staticCylinder.position = new Vector3(staticCylinderX, cylinderY, cylinderZ);
-        rightCylinder.position = new Vector3(rightCylinderX, cylinderY, cylinderZ);
+        cylinderA.position = new Vector3(cylinderAX, cylinderY, cylinderZ);
+        cylinderB.position = new Vector3(cylinderBX, cylinderY, cylinderZ);
+        cylinderC.position = new Vector3(cylinderCX, cylinderY, cylinderZ);
 
         // Add fade-in/fade-out respawn behavior using calculated positions as respawn points
         Object.values(cylinders).forEach(cylinder => {
@@ -246,11 +249,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         });
 
         const cylinderWidth = cylinderOpacityBoundingBox.maximumWorld.x - cylinderOpacityBoundingBox.minimumWorld.x;
-        placardA.position = new Vector3(leftCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
-        placardB.position = new Vector3(staticCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
-        placardC.position = new Vector3(rightCylinderX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardA.position = new Vector3(cylinderAX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardB.position = new Vector3(cylinderBX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
+        placardC.position = new Vector3(cylinderCX + cylinderWidth, tableMaximum.y, cylinderZ + 0.15);
 
-        clipboard.position = new Vector3(leftCylinderX - 0.5, tableMaximum.y, cylinderZ);
+        clipboard.position = new Vector3(cylinderAX - 0.5, tableMaximum.y, cylinderZ);
         clipboard.rotationQuaternion = null;
         clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
         clipboard.addBehavior(new FlyToCameraBehavior());
@@ -273,30 +276,12 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const successSound = new Sound('ding', SUCCESS_SOUND_PATH, scene);
         const successCallback = () => {};
         sop.addSuccessEffects(successSound, successCallback);
+
+        const completionSound = new Sound('fanfare', COMPLETION_SOUND_PATH, scene);
+        const completionCallback = () => {};
+        sop.addCompletionEffects(completionSound, completionCallback);
     });
 
-    // const gui3dManager = new GUI3DManager(scene);
-
-    // // const debugMenu = new HandMenu(xr.baseExperience, 'debug-menu');
-    // const debugMenu = new StackPanel3D();
-    // gui3dManager.addControl(debugMenu);
-    // const debugButton = new TouchHolographicButton('debug-button');
-    // debugMenu.addControl(debugButton);
-    // debugMenu.position.y = 1.5;
-    // debugMenu.position.z = camera.position.z + 3;
-    // scene.registerBeforeRender(() => debugButton.text = `height: ${xr.baseExperience.camera.realWorldHeight}`);
-
-    // // debugMenu.isPinned = true;
-    // // debugMenu.isVisible = true;
-    // // debugMenu.scaling = Vector3.One().scaleInPlace(1);
-    // xr.baseExperience.onStateChangedObservable.add(state => {
-    //     switch (state) {
-    //         case WebXRState.IN_XR:
-    //             xr.baseExperience.camera.position = new Vector3(camera.position.x, camera.position.y + 1.3, camera.position.z);
-    //             // printOnHand(debugMenu, `height: ${xr.baseExperience.camera.realWorldHeight}`);  // 1 unit is ~41 inches
-    //             break;
-    //     }
-    // });
     return scene;
 };
 
