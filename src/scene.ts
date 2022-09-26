@@ -235,7 +235,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const cylinderCX = cylinderBX + 0.5;
         const cylinderOpacity = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!;
         const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
-        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacityBoundingBox.minimum.y;
+        const cylinderVerticalOffset = cylinderOpacity.position.y - cylinderOpacityBoundingBox.minimum.y + 0.00001;  // Tiny offset to prevent collision due to rounding error
         const cylinderY = tableMaximum.y + cylinderVerticalOffset;
         const cylinderZ = (tableBoundingBox.center.z + tableMinimum.z) / 2;
         cylinderA.position = new Vector3(cylinderAX, cylinderY, cylinderZ);

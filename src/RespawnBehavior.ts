@@ -17,6 +17,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
     respawning: boolean;
     fading: boolean;
     timeLastInteracted: Nullable<number>;  // Currently, this only checks if PointerDrag is currently dragging
+    lastFramePosition!: Vector3;
     fadeInOutTime: number;
     mesh!: AbstractMesh;
     interactableMesh!: AbstractMesh;  // The mesh to check if the mesh if currently being interacted with. This may be the mesh or a child mesh.
@@ -48,6 +49,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
 
     attach = (mesh: AbstractMesh) => {
         this.mesh = mesh;
+        this.lastFramePosition = this.mesh.position.clone();
         if (this.interactableMesh) {
             if (this.interactableMesh !== this.mesh && !this.interactableMesh.isDescendantOf(this.mesh)) {
                 throw new Error(`${this.name}Behavior error: interactableChildMesh must be a child mesh of mesh.`);
@@ -75,6 +77,8 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
             const now = Date.now();
             if (pointerDragBehavior.dragging) {  // TODO: more generally, if the interactable mesh is currently being interacted with
                 this.timeLastInteracted = now;
+            } else if (!this.lastFramePosition.equals(this.mesh.position) && !this.mesh.position.equals(this.respawnPosition)) {
+                this.timeLastInteracted = now;
             } else {
                 if (this.timeLastInteracted) {
                     if (now - this.timeLastInteracted >= this.respawnTimeout) {
@@ -84,6 +88,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
                 }
             }
         }
+        this.lastFramePosition.copyFrom(this.mesh.position);
     }
 
     respawn = () => {
