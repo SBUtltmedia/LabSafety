@@ -3,7 +3,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { DynamicTexture,StandardMaterial,MeshBuilder } from '@babylonjs/core'
 import { PLACARD_MESH_NAME, rootPath } from './constants';
 
-export const loadPlacards = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'Placard_label.glb').then(result => {
+export const loadPlacards = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'Placard_Label.glb').then(result => {
     const rootA = result.meshes.find(mesh => mesh.name === '__root__')!;
     const scene = rootA.getScene();
     rootA.name = 'a-placard';
