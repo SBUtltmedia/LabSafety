@@ -83,7 +83,9 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
                 if (this.timeLastInteracted) {
                     if (now - this.timeLastInteracted >= this.respawnTimeout) {
                         this.timeLastInteracted = null;
+                        if (!this.mesh.position.equals(this.respawnPosition)) {
                         this.respawn();
+                        }
                     }
                 }
             }
