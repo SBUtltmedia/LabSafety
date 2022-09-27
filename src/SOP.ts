@@ -75,10 +75,6 @@ export default class SOP {
         return completed;
     }
 
-    onCompleteSOP = () => {
-
-    }
-
     failCurrentTask = (): boolean => {
         // Note that this method does not set this.tasks.currentNode, unlike completeCurrentTask
         const currentNode = this.tasks.currentNode;
