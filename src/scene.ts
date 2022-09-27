@@ -22,7 +22,7 @@ import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
 import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop, bToCTask, cToATask } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE, CYLINDER_C_NAME, CYLINDER_A_NAME, COMPLETION_SOUND_PATH } from './constants';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE, CYLINDER_C_NAME, CYLINDER_A_NAME, COMPLETION_SOUND_PATH, COMPLETION_RESET_DELAY } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import HighlightBehavior from './HighlightBehavior';
 import { loadPlacards } from './loadPlacards';
@@ -278,7 +278,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         sop.addSuccessEffects(successSound, successCallback);
 
         const completionSound = new Sound('fanfare', COMPLETION_SOUND_PATH, scene);
-        const completionCallback = () => {};
+        const completionCallback = () => setTimeout(resetLastCreatedScene, COMPLETION_RESET_DELAY);
         sop.addCompletionEffects(completionSound, completionCallback);
     });
 

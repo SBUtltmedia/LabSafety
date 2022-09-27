@@ -12,7 +12,8 @@ export const MAX_POURING_DISTANCE = 0.5;
 export const TIME_UNTIL_FADE = 1500;
 export const FAIL_SOUND_PATH = `${rootPath}sound/mi_explosion_03_hpx.mp3`;
 export const SUCCESS_SOUND_PATH = `${rootPath}sound/ding-idea-40142.mp3`;
-export const COMPLETION_SOUND_PATH = `${rootPath}sound/456966__funwithsound__success-fanfare-trumpets.mp3`
+export const COMPLETION_SOUND_PATH = `${rootPath}sound/456966__funwithsound__success-fanfare-trumpets.mp3`;
+export const COMPLETION_RESET_DELAY = 10000;  // milliseconds
 
 export const CYLINDER_MESH_NAME = 'cylinder';
 export const CYLINDER_LIQUID_MESH_NAME = 'liquid';
