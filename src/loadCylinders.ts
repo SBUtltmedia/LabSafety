@@ -33,6 +33,7 @@ export const loadCylinders = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         [[cylinderA, new Color3(1, 0, 0)],
          [cylinderC, new Color3(0, 0, 1)],
          [cylinderB, new Color3(0, 1, 0)]].forEach(([cylinder, color]) => {
+            (cylinder as AbstractMesh).scaling = new Vector3(1, 1, 1);
             const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
             pointerDragBehavior.updateDragPlane = false;
             pointerDragBehavior.useObjectOrientationForDragging = false;

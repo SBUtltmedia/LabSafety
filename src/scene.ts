@@ -9,6 +9,7 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { Sound } from '@babylonjs/core/Audio/sound';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer';
+import { WebXRState } from '@babylonjs/core/XR';
 
 import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
 import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
@@ -21,8 +22,8 @@ import { loadClipboard} from './loadClipboard';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
-import { setAdvancedTexture, debug, performanceMonitor, resetGlobals, sop, bToCTask, cToATask } from './globals';
-import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE, CYLINDER_C_NAME, CYLINDER_A_NAME, COMPLETION_SOUND_PATH, COMPLETION_RESET_DELAY } from './constants';
+import { setAdvancedTexture, debug, resetGlobals, sop, bToCTask, cToATask, collidableMeshes, collidingMeshes } from './globals';
+import { CYLINDER_MESH_NAME, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH, RENDER_CANVAS_ID, TIME_UNTIL_FADE, CYLINDER_C_NAME, CYLINDER_A_NAME, COMPLETION_SOUND_PATH, COMPLETION_RESET_DELAY, FAILURE_RESET_DELAY } from './constants';
 import { calculateNearestOffset, getChildMeshByName } from './utils';
 import HighlightBehavior from './HighlightBehavior';
 import { loadPlacards } from './loadPlacards';
@@ -51,18 +52,13 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.keysRight.push(68);  // D
     camera.checkCollisions = true;
 
-    scene.onBeforeRenderObservable.add(() => {
-        performanceMonitor.sampleFrame();
-        // scene.createPickingRay(scene.pointerX, scene.pointerY, null, camera);
-    });
-
-    //loadModels([{fileName:"clipBoardWithPaperCompressedTexture.glb"}])
     Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
         camera.applyGravity = true;
 
         // Enable collisions between meshes
+        collidingMeshes.push(...Object.values(cylinders));
         interface CylinderPositionIndex {
             [index: string]: {
                 initialPosition: Vector3
@@ -78,9 +74,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             const cylinderBMesh = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!;
 
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
-            const collidableMeshes = [table, cabinet, floor, cylinderAMesh, cylinderCMesh, cylinderBMesh, placardA, placardB, placardC];
+            collidableMeshes.push(table, cabinet, floor, cylinderAMesh, cylinderCMesh, cylinderBMesh, placardA, placardB, placardC);
 
-            Object.values(cylinders).forEach(cylinder => {
+            collidingMeshes.forEach(cylinder => {
                 const cylinderMesh = getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!;
                 collidableMeshes.forEach(collidedMesh => {
                     if (cylinderMesh !== collidedMesh && cylinderMesh.intersectsMesh(collidedMesh, true)) {
@@ -98,7 +94,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         });
         
         const collisionOverrideObserver = scene.onBeforeRenderObservable.add(() => {
-            Object.values(cylinders).forEach(cylinder => {
+            collidingMeshes.forEach(cylinder => {
                 // TODO: fix the issue with colliding with multiple meshes simultaneously
                 if (cylinderPositionIndex[cylinder.name]) {
                     const { initialPosition, offsetPosition, direction } = cylinderPositionIndex[cylinder.name];
@@ -244,7 +240,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
 
         // Add fade-in/fade-out respawn behavior using calculated positions as respawn points
         Object.values(cylinders).forEach(cylinder => {
-            const respawnBehavior = new RespawnBehavior(cylinder.position.clone(), TIME_UNTIL_FADE);
+            const respawnBehavior = new RespawnBehavior(cylinder.absolutePosition.clone(), TIME_UNTIL_FADE, getChildMeshByName(cylinder, CYLINDER_MESH_NAME)!);
             cylinder.addBehavior(respawnBehavior);
         });
 
@@ -268,7 +264,11 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                     highlightBehavior.detach();
                 }
             });
-            displayFailScreen(scene);
+            if (xr.baseExperience.state === WebXRState.IN_XR) {
+                setTimeout(resetLastCreatedScene, FAILURE_RESET_DELAY);
+            } else {
+                displayFailScreen(scene);
+            }
         };
         sop.failSound = failSound;
         sop.addFailEffects(failSound, failCallback);

@@ -1,6 +1,8 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { DynamicTexture,StandardMaterial,MeshBuilder } from '@babylonjs/core'
+import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+
 import { PLACARD_MESH_NAME, rootPath } from './constants';
 
 export const loadPlacards = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'Placard_Label.glb').then(result => {

@@ -3,7 +3,10 @@ import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDra
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
-import { Texture, StandardMaterial, ISceneLoaderAsyncResult } from '@babylonjs/core';
+import { Texture } from '@babylonjs/core/Materials/Textures/texture';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { ISceneLoaderAsyncResult } from '@babylonjs/core/Loading/sceneLoader';
+
 import { rootPath, GrabbableAbstractMesh } from './constants';
 
 // export const loadModels = (models:[string]) =>

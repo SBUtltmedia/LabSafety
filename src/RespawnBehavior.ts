@@ -6,7 +6,8 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Observer } from '@babylonjs/core/Misc/observable';
 import { Scene } from '@babylonjs/core/scene';
 
-import { FADE_IN_OUT_TIME, MS_PER_FRAME } from './constants';
+import { FADE_IN_OUT_TIME, GrabbableAbstractMesh, MS_PER_FRAME } from './constants';
+import { collidableMeshes, collidingMeshes } from './globals';
 
 
 export default class RespawnBehavior implements Behavior<AbstractMesh> {
@@ -49,7 +50,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
 
     attach = (mesh: AbstractMesh) => {
         this.mesh = mesh;
-        this.lastFramePosition = this.mesh.position.clone();
+        this.lastFramePosition = this.mesh.absolutePosition.clone();
         if (this.interactableMesh) {
             if (this.interactableMesh !== this.mesh && !this.interactableMesh.isDescendantOf(this.mesh)) {
                 throw new Error(`${this.name}Behavior error: interactableChildMesh must be a child mesh of mesh.`);
@@ -59,8 +60,8 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
         }
 
         // TODO: also check if XR grab is enabled.
-        if (!this.interactableMesh.getBehaviorByName('PointerDrag')) {
-            throw new Error(`${this.name}Behavior error: interactableMesh must have an attached instance of PointerDragBehavior.`);
+        if (!this.interactableMesh.getBehaviorByName('PointerDrag') && !(this.interactableMesh as GrabbableAbstractMesh).grabbable) {
+            throw new Error(`${this.name}Behavior error: Outside of WebXR immersive mode, interactableMesh must have an attached instance of PointerDragBehavior.`);
         }
 
         const scene = this.mesh.getScene();
@@ -69,54 +70,104 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
 
     #renderFn = () => {
         if (!this.respawning) {
-            const pointerDragBehavior = this.interactableMesh.getBehaviorByName('PointerDrag') as Nullable<PointerDragBehavior>;
-            if (!pointerDragBehavior) {
-                throw new Error(`${this.name}Behavior error: PointerDragBehavior was detached from the interactable mesh.`);
+            const pointerDragBehavior = this.mesh.getBehaviorByName('PointerDrag') as Nullable<PointerDragBehavior>;
+            if (!pointerDragBehavior && !(this.interactableMesh as GrabbableAbstractMesh).grabbable) {
+                throw new Error(`${this.name}Behavior error: PointerDragBehavior was detached from the interactable mesh or WebXR immersive mode was exited.`);  // TODO: seamlessly shift between modes using event handlers.
             }
 
             const now = Date.now();
-            if (pointerDragBehavior.dragging) {  // TODO: more generally, if the interactable mesh is currently being interacted with
+            if (pointerDragBehavior?.dragging || (this.interactableMesh as GrabbableAbstractMesh).grabbed) {  // TODO: more generally, if the interactable mesh is currently being interacted with
                 this.timeLastInteracted = now;
-            } else if (!this.lastFramePosition.equals(this.mesh.position) && !this.mesh.position.equals(this.respawnPosition)) {
-                this.timeLastInteracted = now;
+            } else if (!this.lastFramePosition.equals(this.mesh.absolutePosition) && !this.mesh.absolutePosition.equals(this.respawnPosition)) {
+                if (!this.timeLastInteracted) {
+                    this.timeLastInteracted = now;
+                }
             } else {
+                // The object isn't being interacted with and hasn't moved or just respawned
                 if (this.timeLastInteracted) {
                     if (now - this.timeLastInteracted >= this.respawnTimeout) {
                         this.timeLastInteracted = null;
-                        if (!this.mesh.position.equals(this.respawnPosition)) {
-                        this.respawn();
+                        if (!this.mesh.absolutePosition.equals(this.respawnPosition)) {
+                            this.respawn();
                         }
                     }
                 }
             }
         }
-        this.lastFramePosition.copyFrom(this.mesh.position);
+        this.lastFramePosition.copyFrom(this.mesh.absolutePosition);
     }
 
     respawn = () => {
         this.respawning = true;
+        const collidingMeshesIndex = collidingMeshes.findIndex(mesh => mesh === this.mesh);
+        const collidableMeshesIndex = collidableMeshes.findIndex(mesh => mesh === this.mesh);
+        if (collidingMeshesIndex !== -1) {
+            collidingMeshes.splice(collidingMeshesIndex, 1);
+        }
+        if (collidableMeshesIndex !== -1) {
+            collidableMeshes.splice(collidableMeshesIndex, 1);
+        }
         this.fadeOut();
         const fadeOutTimerId = setTimeout(() => {
             const fadeOutTimerIdIndex = this.activeTimerIDs.indexOf(fadeOutTimerId);
             if (fadeOutTimerIdIndex !== -1) {
                 this.activeTimerIDs.splice(fadeOutTimerIdIndex, 1);
             }
-            this.mesh.position = this.respawnPosition.clone();
+            this.mesh.position.copyFrom(this.respawnPosition);  // Note that this.mesh.parent should be null here, else the coordinate space could be wrong.
             this.fadeIn();
             const fadeInTimerId = setTimeout(() => {
                 const fadeInTimerIdIndex = this.activeTimerIDs.indexOf(fadeInTimerId);
                 if (fadeInTimerIdIndex !== -1) {
                     this.activeTimerIDs.splice(fadeInTimerIdIndex, 1);
                 }
+                if (collidingMeshesIndex !== -1) {
+                    collidingMeshes.push(this.mesh);
+                }
+                if (collidableMeshesIndex !== -1) {
+                    collidableMeshes.push(this.mesh);
+                }
                 this.respawning = false;
             }, this.fadeInOutTime);
             this.activeTimerIDs.push(fadeInTimerId);
         }, this.fadeInOutTime);
         this.activeTimerIDs.push(fadeOutTimerId);
+        
+        const onFadeOutTimeout = () => {
+            const fadeOutTimerIdIndex = this.activeTimerIDs.indexOf(fadeOutTimerId);
+            if (fadeOutTimerIdIndex !== -1) {
+                this.activeTimerIDs.splice(fadeOutTimerIdIndex, 1);
+            }
+            if (this.fading) {
+                // In case the timing is a little off and the mesh hasn't finished fading out yet
+                const fadeOutTimerId = setTimeout(onFadeOutTimeout, this.fadeInOutTime / 10);
+                this.activeTimerIDs.push(fadeOutTimerId);
+            } else {
+                this.mesh.position.copyFrom(this.respawnPosition);  // Note that this.mesh.parent should be null here.
+                this.fadeIn();
+                const fadeInTimerId = setTimeout(() => {
+                    const fadeInTimerIdIndex = this.activeTimerIDs.indexOf(fadeInTimerId);
+                    if (fadeInTimerIdIndex !== -1) {
+                        this.activeTimerIDs.splice(fadeInTimerIdIndex, 1);
+                    }
+                    if (collidingMeshesIndex !== -1) {
+                        collidingMeshes.push(this.mesh);
+                    }
+                    if (collidableMeshesIndex !== -1) {
+                        collidableMeshes.push(this.mesh);
+                    }
+                    this.respawning = false;
+                    console.log(`${this.mesh.name} respawned, position is`, this.mesh.position);
+                    setTimeout(() => {
+                        console.log(`${this.mesh.name} position one second after respawning: ${this.mesh.position}`);
+                    }, 1000);
+                }, this.fadeInOutTime);
+                this.activeTimerIDs.push(fadeInTimerId);
+            }
+        }
     }
 
     fade = (fadeIn: boolean) => {
-        if (!this.fading){
+        if (!this.fading) {
             this.fading = true;
             const alphaPerFrame = MS_PER_FRAME / this.fadeInOutTime;
             this.intervalID = setInterval(() => {

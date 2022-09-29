@@ -1,9 +1,8 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
-import { PointerDragBehavior } from '@babylonjs/core/Behaviors/Meshes/pointerDragBehavior';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
-import {   Texture, StandardMaterial} from '@babylonjs/core';
+import { Texture } from '@babylonjs/core/Materials/Textures/texture';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+
 import { rootPath, GrabbableAbstractMesh } from './constants';
 
 export const loadClipboard = () => SceneLoader.ImportMeshAsync('', `${rootPath}models/`, 'clipBoardWithPaperCompressedTexture.glb').then(result => {
@@ -50,5 +49,6 @@ export const loadClipboard = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         texture.hasAlpha = true;
         clipboard.material = material;
    }
+   (clipboard as GrabbableAbstractMesh).grabbable = true;
    return result.meshes.find(mesh => mesh.name === '__root__')!;
 });

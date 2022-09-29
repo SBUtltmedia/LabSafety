@@ -9,9 +9,9 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { Nullable } from '@babylonjs/core/types';
 
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, MAX_POURING_DISTANCE, MS_PER_FRAME, POUR_TIME, ROTATION_RATE } from './constants';
-import { sop, pourRedCylinderTask, pourBlueCylinderTask, pourableTargets } from './globals';
-import { getChildMeshByName, scaleToBaseFPS } from './utils';
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, GrabbableAbstractMesh, MAX_POURING_DISTANCE, MS_PER_FRAME, POUR_TIME, ROTATION_RATE } from './constants';
+import { pourableTargets } from './globals';
+import { getChildMeshByName } from './utils';
 import HighlightBehavior from './HighlightBehavior';
 
 // TODO: support setting a custom plane against which to pour. Currently the pouring axis is hardcoded to be the xy-plane.
@@ -20,7 +20,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     target: Nullable<AbstractMesh>;
     sourceRadius: number;
     source!: AbstractMesh;
-    targetRotation?: Vector3
+    targetRotation!: Vector3
     shouldPour!: boolean;
     pouring!: boolean;
     shouldRotate!: boolean;
@@ -77,14 +77,18 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const cylinderHeight = sourceBoundingBox.maximum.y - sourceBoundingBox.minimum.y;
         const liquidHeight = liquidMeshMaterial.alpha * (liquidBoundingBox.maximum.y - liquidBoundingBox.minimum.y);
 
-        const theta = -Math.atan((2 * (cylinderHeight - liquidHeight)) / cylinderWidth);
-        const rotation = new Vector3(0, this.source.absolutePosition.x < targetMesh.absolutePosition.x ? 0 : Math.PI, theta);
+        const { x, z } = this.source.absolutePosition.subtract(targetMesh.absolutePosition);
+        const beta = Math.atan(z / x) + (x > 0 ? Math.PI : 0);
+        const gamma = -Math.atan((2 * (cylinderHeight - liquidHeight)) / cylinderWidth);
+        const rotation = new Vector3(0, beta, gamma);
         return rotation;
     }
 
     #pourable = (target: AbstractMesh): boolean => {
-        const distance = Vector3.Distance(this.source.absolutePosition, target.absolutePosition);
-        return this.source.absolutePosition.y >= getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && distance >= this.sourceRadius && distance <= MAX_POURING_DISTANCE;
+        const sourceCenter = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.centerWorld;
+        const targetCenter = getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.centerWorld;
+        const distance = Vector3.Distance(sourceCenter, targetCenter);
+        return sourceCenter.y >= getChildMeshByName(target, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox.maximumWorld.y && distance >= this.sourceRadius && distance <= MAX_POURING_DISTANCE;
     }
 
     acquireTarget = (): Nullable<AbstractMesh> => {
@@ -104,10 +108,18 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             }
         });
 
-        return targetInfo.mesh!;
+        return targetInfo.mesh;
     }
 
-    calculateRestingRotation = (): Vector3 => new Vector3(0, this.source.position.x < (this.target ? this.target.position.x : 0) ? 0 : Math.PI, 0);
+    calculateRestingRotation = (): Vector3 => {
+        if (this.target) {
+            const { x, z } = this.source.absolutePosition.subtract(this.target.absolutePosition);
+            const beta = Math.atan(z / x) + (x > 0 ? Math.PI : 0);
+            return new Vector3(0, beta, 0);
+        } else {
+            return Vector3.Zero();
+        }
+    }
 
     #renderFn = (): void => {
         const target = this.acquireTarget();
@@ -120,13 +132,14 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                 }    
             }
             this.target = target;
+            this.targetRotation.copyFrom(this.calculateTargetRotation());
         }
 
         if (!this.target) {
             return;
         }
 
-        if (this.#pourable(this.target) && (this.source.getBehaviorByName('PointerDrag') as Nullable<PointerDragBehavior>)?.dragging) {
+        if (this.#pourable(this.target) && ((this.source.getBehaviorByName('PointerDrag') as Nullable<PointerDragBehavior>)?.dragging || (getChildMeshByName(this.source, CYLINDER_MESH_NAME) as GrabbableAbstractMesh).grabbed)) {
             const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             if (sourceHighlightBehavior) {
                 sourceHighlightBehavior.highlightSelf();
@@ -140,13 +153,8 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             }
         }
         if (this.xr?.state === WebXRState.IN_XR) {
-            const sourceBoundingBox = this.source?.getChildMeshes()?.find(mesh => mesh.name === CYLINDER_LIQUID_MESH_NAME)!.getBoundingInfo()?.boundingBox;
-            const sourceLocalMinimum = sourceBoundingBox.minimum;
-            const sourceLocalMaximum = sourceBoundingBox.maximum;
-            const matrix = this.source.computeWorldMatrix();  // TODO: is transforming the coordinates really necessary?
-            const distance = Vector3.Distance(this.source.absolutePosition, this.target.absolutePosition);
-            // TODO: it looks like this doesn't take rotation into account
-            if (distance <= this.sourceRadius && Vector3.TransformCoordinates(sourceLocalMaximum, matrix).y <= Vector3.TransformCoordinates(sourceLocalMinimum, matrix).y) {
+            const rotationTolerance = new Vector3(Math.PI / 4, Math.PI / 4, Math.PI / 4);
+            if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(this.target), rotationTolerance)) {
                 if (!this.pouring) {
                     this.#startPour();
                 }
@@ -155,7 +163,8 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             }
         } else {
             if (this.shouldPour) {
-                if (!this.pouring && this.target && this.targetRotation && Math.abs(this.targetRotation.z - this.source.rotation.z) < 2 * Math.PI / 36) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
+                const rotationTolerance = new Vector3(Math.PI / 36, Math.PI / 36, Math.PI / 36);
+                if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
                     this.#startPour();
                 }
             } else if (this.pouring) {
@@ -164,18 +173,31 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         }
     }
 
+    #rotationWithinTolerance = (r1: Vector3, r2: Vector3, tolerance: Vector3): boolean => {
+        const diff = r1.subtract(r2);
+        return Math.abs(diff.x) <= tolerance.x && Math.abs(diff.y) <= tolerance.y && Math.abs(diff.z) <= tolerance.z;
+    }
+
     calculateTargetRotation = (): Vector3 => {
         return !this.target || !this.shouldPour ? this.calculateRestingRotation() : this.calculatePouringRotation(this.target);
     }
 
     #startRotation = () => {
         // Note: the rotation approaches the target rotation asymptotically. Don't rely on equality.
-        // TODO: rotate toward target when acquired but not pouring
         this.rotating = true;
         this.rotationIntervalID = setInterval(() => {
-            this.targetRotation = this.calculateTargetRotation();
-            const rotationIncrement = this.targetRotation.subtract(this.source.rotation).scaleInPlace(ROTATION_RATE);
-            this.source.rotation.addInPlace(rotationIncrement);
+            if (this.xr?.state === WebXRState.IN_XR) {
+                if (!(getChildMeshByName(this.source, CYLINDER_MESH_NAME) as GrabbableAbstractMesh).grabbed) {  // TODO: remove cylinder-specific references
+                    this.source.rotationQuaternion = null;
+                    this.targetRotation.copyFrom(this.calculateTargetRotation());
+                    const rotationIncrement = this.targetRotation.subtract(this.source.rotation).scaleInPlace(ROTATION_RATE);
+                    this.source.rotation.addInPlace(rotationIncrement);
+                }
+            } else {
+                this.targetRotation.copyFrom(this.calculateTargetRotation());
+                const rotationIncrement = this.targetRotation.subtract(this.source.rotation).scaleInPlace(ROTATION_RATE);
+                this.source.rotation.addInPlace(rotationIncrement);
+            }
         }, MS_PER_FRAME);
     }
 
@@ -243,30 +265,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         return new Color3(color.r < 0 ? 0 : color.r > 1 ? 1 : color.r,
                           color.g < 0 ? 0 : color.g > 1 ? 1 : color.g,
                           color.b < 0 ? 0 : color.b > 1 ? 1 : color.b);
-    }
-
-    #pour = (rate: number): void => {
-        if (!this.target) {
-            return;
-        }
-        const sourceLiquidMaterial = getChildMeshByName(this.source, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
-        const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
-        const sourceAlpha = sourceLiquidMaterial.alpha;
-        const targetAlpha = targetLiquidMaterial.alpha;
-        const sourceColor = sourceLiquidMaterial.diffuseColor;
-        const targetColor = targetLiquidMaterial.diffuseColor;
-        if (sourceAlpha > 0) {
-            const aInc = Math.min(sourceAlpha, rate);  // Note that we want this to pour even if targetAlpha === 1
-            const colorInc = new Color3(Math.min(1 - targetColor.r, sourceColor.r, rate),
-                                        Math.min(1 - targetColor.g, sourceColor.g, rate),
-                                        Math.min(1 - targetColor.b, sourceColor.b, rate));
-            sourceLiquidMaterial.alpha -= aInc;
-            targetLiquidMaterial.alpha += Math.min(1 - targetAlpha, aInc);
-            sourceLiquidMaterial.diffuseColor = sourceColor.subtract(colorInc);
-            targetLiquidMaterial.diffuseColor = targetColor.add(colorInc);
-        } else {
-            sourceLiquidMaterial.diffuseColor = Color3.Black();
-        }
     }
 
     #pourKeyFn = ({ event, type }: KeyboardInfo) => {

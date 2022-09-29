@@ -18,6 +18,10 @@ export function setAdvancedTexture(value: AdvancedDynamicTexture) {
 
 export const pourableTargets: AbstractMesh[] = [];
 
+export const collidingMeshes: AbstractMesh[] = [];  // For dynamic objects
+
+export const collidableMeshes: AbstractMesh[] = [];  // For static and dynamic objects
+
 export const pourRedCylinderTask: Task = {
     complete: false,
     current: true,
@@ -63,6 +67,8 @@ addTasks();
 export function resetGlobals() {
     performanceMonitor.reset();
     pourableTargets.splice(0, pourableTargets.length);
+    collidingMeshes.splice(0, collidingMeshes.length);
+    collidableMeshes.splice(0, collidableMeshes.length);
 
     bToCTask.complete = false;
     bToCTask.current = true;

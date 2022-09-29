@@ -20,7 +20,7 @@ export const loadRoom = () => SceneLoader.ImportMeshAsync('', `${rootPath}models
     });
     const ceilingMaterial = new StandardMaterial('ceiling-material');
     ceiling.material = ceilingMaterial;
-    ceiling.setParent(root);
+    ceiling.setParent(root, true);
     ceiling.rotation = new Vector3(-Math.PI / 2, 0, 0);
     ceiling.position.y = wallsBoundingBox.maximum.y;
     
