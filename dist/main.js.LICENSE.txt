@@ -48,6 +48,8 @@ object-assign
 
 /*! !!../../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./workbenchCanvas.scss */
 
+/*! !!../../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!../../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./MessageDialog.modules.scss */
+
 /*! !!../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./main.scss */
 
 /*! !../../../../../../../../../../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */
@@ -426,6 +428,8 @@ object-assign
 
 /*! ./MenuItem */
 
+/*! ./MessageDialog.modules.scss */
+
 /*! ./SubMenu */
 
 /*! ./actionTabs.scss */
@@ -521,6 +525,8 @@ object-assign
 /*! ./cjs/scheduler-tracing.development.js */
 
 /*! ./cjs/scheduler.development.js */
+
+/*! ./classNames */
 
 /*! ./colorComponentEntry */
 
@@ -910,8 +916,6 @@ object-assign
 
 /*! ./scss/topBar.scss */
 
-/*! ./sharedComponents/messageDialog */
-
 /*! ./sideBar/sideBarComponent */
 
 /*! ./sliderLineComponent */
@@ -1106,6 +1110,8 @@ object-assign
 
 /*! shared-ui-components/colorPicker/colorPicker */
 
+/*! shared-ui-components/components/MessageDialog */
+
 /*! shared-ui-components/imgs/LineSpacingIcon.svg */
 
 /*! shared-ui-components/imgs/addGridElementDark.svg */
@@ -1189,6 +1195,8 @@ object-assign
 /*! shared-ui-components/imgs/linePoint1Icon.svg */
 
 /*! shared-ui-components/imgs/linePoint2Icon.svg */
+
+/*! shared-ui-components/imgs/linkedMeshOffsetIcon.svg */
 
 /*! shared-ui-components/imgs/marginsIcon.svg */
 
@@ -1931,6 +1939,10 @@ object-assign
   \*********************************************************************/
 
 /*!*********************************************************************!*\
+  !*** ../../../dev/sharedUiComponents/dist/components/classNames.js ***!
+  \*********************************************************************/
+
+/*!*********************************************************************!*\
   !*** ../../../dev/sharedUiComponents/dist/imgs/LineSpacingIcon.svg ***!
   \*********************************************************************/
 
@@ -2082,9 +2094,9 @@ object-assign
   !*** ../../../tools/guiEditor/dist/imgs/makeChildOfContainerIcon.svg ***!
   \***********************************************************************/
 
-/*!***********************************************************************!*\
-  !*** ../../../tools/guiEditor/dist/sharedComponents/messageDialog.js ***!
-  \***********************************************************************/
+/*!************************************************************************!*\
+  !*** ../../../dev/sharedUiComponents/dist/components/MessageDialog.js ***!
+  \************************************************************************/
 
 /*!************************************************************************!*\
   !*** ../../../dev/sharedUiComponents/dist/imgs/addGridElementDark.svg ***!
@@ -2220,6 +2232,10 @@ object-assign
 
 /*!**************************************************************************!*\
   !*** ../../../dev/sharedUiComponents/dist/imgs/horizontalMarginIcon.svg ***!
+  \**************************************************************************/
+
+/*!**************************************************************************!*\
+  !*** ../../../dev/sharedUiComponents/dist/imgs/linkedMeshOffsetIcon.svg ***!
   \**************************************************************************/
 
 /*!**************************************************************************!*\
@@ -2441,6 +2457,10 @@ object-assign
 /*!*********************************************************************************!*\
   !*** ../../../tools/guiEditor/dist/components/sceneExplorer/sceneExplorer.scss ***!
   \*********************************************************************************/
+
+/*!**********************************************************************************!*\
+  !*** ../../../dev/sharedUiComponents/dist/components/MessageDialog.modules.scss ***!
+  \**********************************************************************************/
 
 /*!**********************************************************************************!*\
   !*** ../../../tools/guiEditor/dist/components/parentingPropertyGridComponent.js ***!
@@ -3525,6 +3545,10 @@ object-assign
 /*!******************************************************************************************************************************************************************************************************************************************!*\
   !*** ../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../../tools/guiEditor/dist/components/sceneExplorer/sceneExplorer.scss ***!
   \******************************************************************************************************************************************************************************************************************************************/
+
+/*!*******************************************************************************************************************************************************************************************************************************************!*\
+  !*** ../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!../../../dev/sharedUiComponents/dist/components/MessageDialog.modules.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************/
 
 /*!*********************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ../../../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../../dev/inspector/dist/components/actionTabs/tabs/performanceViewer/scss/performanceViewer.scss ***!
