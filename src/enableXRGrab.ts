@@ -30,8 +30,6 @@ export default function enableXRGrab(xrInput: WebXRInput) {
                             if (collidingMeshesIndex !== -1) {
                                 meshCollides = true;
                                 collidingMeshes.splice(collidingMeshesIndex, 1);
-                            } else {
-                                meshCollides = false;
                             }
                         }
                     }
