@@ -153,7 +153,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             }
         }
         if (this.xr?.state === WebXRState.IN_XR) {
-            const rotationTolerance = new Vector3(Math.PI / 4, Math.PI / 4, Math.PI / 4);
+            const rotationTolerance = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Math.PI / 4);
             if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(this.target), rotationTolerance)) {
                 if (!this.pouring) {
                     this.#startPour();
