@@ -24,7 +24,7 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
     interactableMesh!: AbstractMesh;  // The mesh to check if the mesh if currently being interacted with. This may be the mesh or a child mesh.
     observer: Nullable<Observer<Scene>>;
     activeTimerIDs: NodeJS.Timeout[];  // Only used to clear active timers when detached.
-    intervalID!: NodeJS.Timeout;
+    intervalID?: NodeJS.Timeout;
 
     constructor(respawnPosition: Vector3, respawnTimeout: number, interactableChildMesh?: AbstractMesh, fadeInOutTime?: number) {
         this.respawnPosition = respawnPosition;
@@ -99,108 +99,52 @@ export default class RespawnBehavior implements Behavior<AbstractMesh> {
 
     respawn = () => {
         this.respawning = true;
-        const collidingMeshesIndex = collidingMeshes.findIndex(mesh => mesh === this.mesh);
-        const collidableMeshesIndex = collidableMeshes.findIndex(mesh => mesh === this.mesh);
-        if (collidingMeshesIndex !== -1) {
-            collidingMeshes.splice(collidingMeshesIndex, 1);
-        }
-        if (collidableMeshesIndex !== -1) {
-            collidableMeshes.splice(collidableMeshesIndex, 1);
-        }
-        this.fadeOut();
-        const fadeOutTimerId = setTimeout(() => {
-            const fadeOutTimerIdIndex = this.activeTimerIDs.indexOf(fadeOutTimerId);
-            if (fadeOutTimerIdIndex !== -1) {
-                this.activeTimerIDs.splice(fadeOutTimerIdIndex, 1);
-            }
-            this.mesh.position.copyFrom(this.respawnPosition);  // Note that this.mesh.parent should be null here, else the coordinate space could be wrong.
-            this.fadeIn();
-            const fadeInTimerId = setTimeout(() => {
-                const fadeInTimerIdIndex = this.activeTimerIDs.indexOf(fadeInTimerId);
-                if (fadeInTimerIdIndex !== -1) {
-                    this.activeTimerIDs.splice(fadeInTimerIdIndex, 1);
-                }
-                if (collidingMeshesIndex !== -1) {
-                    collidingMeshes.push(this.mesh);
-                }
-                if (collidableMeshesIndex !== -1) {
-                    collidableMeshes.push(this.mesh);
-                }
-                this.respawning = false;
-            }, this.fadeInOutTime);
-            this.activeTimerIDs.push(fadeInTimerId);
-        }, this.fadeInOutTime);
-        this.activeTimerIDs.push(fadeOutTimerId);
-        
-        const onFadeOutTimeout = () => {
-            const fadeOutTimerIdIndex = this.activeTimerIDs.indexOf(fadeOutTimerId);
-            if (fadeOutTimerIdIndex !== -1) {
-                this.activeTimerIDs.splice(fadeOutTimerIdIndex, 1);
-            }
-            if (this.fading) {
-                // In case the timing is a little off and the mesh hasn't finished fading out yet
-                const fadeOutTimerId = setTimeout(onFadeOutTimeout, this.fadeInOutTime / 10);
-                this.activeTimerIDs.push(fadeOutTimerId);
-            } else {
-                this.mesh.position.copyFrom(this.respawnPosition);  // Note that this.mesh.parent should be null here.
-                this.fadeIn();
-                const fadeInTimerId = setTimeout(() => {
-                    const fadeInTimerIdIndex = this.activeTimerIDs.indexOf(fadeInTimerId);
-                    if (fadeInTimerIdIndex !== -1) {
-                        this.activeTimerIDs.splice(fadeInTimerIdIndex, 1);
-                    }
-                    if (collidingMeshesIndex !== -1) {
-                        collidingMeshes.push(this.mesh);
-                    }
-                    if (collidableMeshesIndex !== -1) {
-                        collidableMeshes.push(this.mesh);
-                    }
-                    this.respawning = false;
-                    console.log(`${this.mesh.name} respawned, position is`, this.mesh.position);
-                    setTimeout(() => {
-                        console.log(`${this.mesh.name} position one second after respawning: ${this.mesh.position}`);
-                    }, 1000);
-                }, this.fadeInOutTime);
-                this.activeTimerIDs.push(fadeInTimerId);
-            }
-        }
+        this.fadeOut().then(() => {
+            this.mesh.position.copyFrom(this.respawnPosition);
+            this.fadeIn().then(() => this.respawning = false);
+        });
     }
 
     fade = (fadeIn: boolean) => {
-        if (!this.fading) {
-            this.fading = true;
-            const alphaPerFrame = MS_PER_FRAME / this.fadeInOutTime;
-            this.intervalID = setInterval(() => {
-                this.#setAllVisibility(this.mesh, this.mesh.visibility + (fadeIn ? alphaPerFrame : -alphaPerFrame));
-                if (fadeIn) {
-                    if (this.mesh.visibility > 1) {
-                        this.#setAllVisibility(this.mesh, 1);
-                        this.fading = false;
-                        clearInterval(this.intervalID);
+        return new Promise(resolve => {
+            if (!this.fading) {
+                this.fading = true;
+                const alphaPerFrame = MS_PER_FRAME / this.fadeInOutTime;
+                this.intervalID = setInterval(() => {
+                    this.#setAllVisibility(this.mesh, this.mesh.visibility + (fadeIn ? alphaPerFrame : -alphaPerFrame));
+                    if (fadeIn) {
+                        if (this.mesh.visibility >= 1) {
+                            this.#setAllVisibility(this.mesh, 1);
+                            this.fading = false;
+                            clearInterval(this.intervalID!);
+                            resolve(fadeIn);
+                        }
+                    } else {
+                        if (this.mesh.visibility <= 0) {
+                            this.#setAllVisibility(this.mesh, 0);
+                            this.fading = false;
+                            clearInterval(this.intervalID!);
+                            resolve(fadeIn);
+                        }
                     }
-                } else {
-                    if (this.mesh.visibility < 0) {
-                        this.#setAllVisibility(this.mesh, 0);
-                        this.fading = false;
-                        clearInterval(this.intervalID);
-                    }
-                }
-            }, MS_PER_FRAME);
-        }
+                }, MS_PER_FRAME);
+            }
+        });
     }
 
     fadeIn = () => {
-        this.fade(true);
+        return this.fade(true);
     }
 
     fadeOut = () => {
-        this.fade(false);
+        return this.fade(false);
     }
 
     detach = () => {
         const scene = this.mesh.getScene();
         scene.onBeforeRenderObservable.remove(this.observer);
         this.activeTimerIDs.forEach(clearTimeout);
+        if (this.intervalID) clearInterval(this.intervalID);
     }
 
     #setAllVisibility = (mesh: AbstractMesh, visibility: number) => {
