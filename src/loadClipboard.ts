@@ -49,6 +49,6 @@ export const loadClipboard = () => SceneLoader.ImportMeshAsync('', `${rootPath}m
         texture.hasAlpha = true;
         clipboard.material = material;
    }
-   (clipboard as GrabbableAbstractMesh).grabbable = true;
+   // (clipboard as GrabbableAbstractMesh).grabbable = true;
    return result.meshes.find(mesh => mesh.name === '__root__')!;
 });
