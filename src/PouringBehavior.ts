@@ -78,7 +78,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const liquidHeight = liquidMeshMaterial.alpha * (liquidBoundingBox.maximum.y - liquidBoundingBox.minimum.y);
 
         const { x, z } = this.source.absolutePosition.subtract(targetMesh.absolutePosition);
-        const beta = Math.atan(z / x) + (x > 0 ? Math.PI : 0);
+        const beta = Math.atan(-z / x) + (x > 0 ? Math.PI : 0);
         const gamma = -Math.atan((2 * (cylinderHeight - liquidHeight)) / cylinderWidth);
         const rotation = new Vector3(0, beta, gamma);
         return rotation;
@@ -114,7 +114,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     calculateRestingRotation = (): Vector3 => {
         if (this.target) {
             const { x, z } = this.source.absolutePosition.subtract(this.target.absolutePosition);
-            const beta = Math.atan(z / x) + (x > 0 ? Math.PI : 0);
+            const beta = Math.atan(-z / x) + (x > 0 ? Math.PI : 0);
             return new Vector3(0, beta, 0);
         } else {
             return Vector3.Zero();
