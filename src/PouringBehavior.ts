@@ -23,6 +23,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     targetRotation!: Vector3
     shouldPour!: boolean;
     pouring!: boolean;
+    flagToPour: boolean = false;
     shouldRotate!: boolean;
     rotating!: boolean;
     pourKey = 'e';
@@ -50,7 +51,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         this.shouldRotate = false;
         this.rotating = false;
     }
-    
+
     attach = (source: AbstractMesh) => {
         this.source = source;
         this.targetRotation = this.calculateRestingRotation();
@@ -125,11 +126,11 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         const target = this.acquireTarget();
         if (target !== this.target) {
             if (this.target) {
-                const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>; 
+                const sourceHighlightBehavior = getChildMeshByName(this.source, CYLINDER_MESH_NAME)!.getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                 if (sourceHighlightBehavior) {
                     sourceHighlightBehavior.unhighlightSelf();
                     sourceHighlightBehavior.unhighlightMesh(getChildMeshByName(this.target, CYLINDER_MESH_NAME) as Mesh);
-                }    
+                }
             }
             this.target = target;
             this.targetRotation.copyFrom(this.calculateTargetRotation());
@@ -154,18 +155,42 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         }
         if (this.xr?.state === WebXRState.IN_XR) {
             const rotationTolerance = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Math.PI / 4);
-            if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(this.target), rotationTolerance)) {
-                if (!this.pouring) {
-                    this.#startPour();
+            const targetValue: AbstractMesh = this.target;
+            if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance)) {
+                if (this.flagToPour == false) {
+                    setTimeout(() => {
+                        if ((this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance))) { }
+                        if (!this.pouring) {
+                            this.#startPour();
+                        }
+                        else if (this.pouring) {
+                            this.#cancelPour();
+                        }
+                        this.flagToPour = false;
+                    }, 1000);//Increase or decrease time delay on pouring
+                    this.flagToPour = true;
                 }
             } else if (this.pouring) {
                 this.#cancelPour();
             }
         } else {
+            /*
+                This will check if it needs to pour, turn on a flag to give user ampel amount of time to decide if they REALLY want to pour.
+            */
             if (this.shouldPour) {
-                const rotationTolerance = new Vector3(Math.PI / 36, Math.PI / 36, Math.PI / 36);
-                if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
-                    this.#startPour();
+                if (this.flagToPour == false) {
+                    setTimeout(() => {
+                        if (this.shouldPour) {
+                            const rotationTolerance = new Vector3(Math.PI / 36, Math.PI / 36, Math.PI / 36);
+                            if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
+                                this.#startPour();
+                            }
+                        } else if (this.pouring) {
+                            this.#cancelPour();
+                        }
+                        this.flagToPour = false;
+                    }, 1000); //Change time here to increase/decrease time delay till pouring
+                    this.flagToPour = true;//Turns on flag so that setTimeout isnt called on every frame
                 }
             } else if (this.pouring) {
                 this.#cancelPour();
@@ -215,14 +240,14 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
         if (sourceLiquidMaterial.alpha <= 0) {
             return;
         }
-        
+
         if (this.onStartPour) this.onStartPour(this.target);
 
         this.pouring = true;
         const targetLiquidMaterial = getChildMeshByName(this.target, CYLINDER_LIQUID_MESH_NAME)!.material! as StandardMaterial;
         const sourceColor = sourceLiquidMaterial.diffuseColor;
         const targetColor = targetLiquidMaterial.diffuseColor;
-        
+
         const alphaPerFrame = MS_PER_FRAME / POUR_TIME;
         const colorIncPerFrame = sourceColor.scale(alphaPerFrame);
 
@@ -263,8 +288,8 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
     #correctColorBounds = (color: Color3): Color3 => {
         // Works out-of-place
         return new Color3(color.r < 0 ? 0 : color.r > 1 ? 1 : color.r,
-                          color.g < 0 ? 0 : color.g > 1 ? 1 : color.g,
-                          color.b < 0 ? 0 : color.b > 1 ? 1 : color.b);
+            color.g < 0 ? 0 : color.g > 1 ? 1 : color.g,
+            color.b < 0 ? 0 : color.b > 1 ? 1 : color.b);
     }
 
     #pourKeyFn = ({ event, type }: KeyboardInfo) => {
