@@ -71,6 +71,11 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
                             const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
                             this.#setAnimationKeys();
                             this.flying = true;
+                            if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
+                                this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_NONE;
+                            } else {
+                                this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
+                            }
                             scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
                                 this.flying = false;
                                 this.active = !this.active;
@@ -93,9 +98,8 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
         return targetPosition;
     }
 
-    calculateTargetRotation = () => {
-        // TODO: base the target rotation off the direction the camera is facing
-        return new Vector3(0, Math.PI / 4, 5 * Math.PI / 3);
+    setClipboardUp = () => {
+        return new Vector3(3.1468286, 4.6617744, 1.680752);
     }
 
     #setAnimationKeys = () => {
@@ -103,7 +107,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
         const translationAnimation = this.animations.find(({ name }) => name === 'translate')!;
         const rotationAnimation = this.animations.find(({ name }) => name === 'rotate')!;
         const translationKeys = [{ frame: 0, value: this.returnPosition }, { frame: BASE_FPS / 2, value: this.calculateTargetPositionWithOffset(this.offset) }];
-        const rotationKeys = [{ frame: 0, value: this.returnRotation }, { frame: BASE_FPS / 2, value: this.calculateTargetRotation() }];
+        const rotationKeys = [{ frame: 0, value: this.returnRotation }, { frame: BASE_FPS / 2, value: this.setClipboardUp() }];
         translationAnimation.setKeys(translationKeys)
         rotationAnimation.setKeys(rotationKeys);
     }
