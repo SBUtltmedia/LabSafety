@@ -159,14 +159,15 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance)) {
                 if (this.flagToPour == false) {
                     setTimeout(() => {
-                        if ((this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance))) { }
-                        if (!this.pouring) {
-                            this.#startPour();
+                        if ((this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance))) {
+                            if (!this.pouring) {
+                                this.#startPour();
+                            }
+                            else if (this.pouring) {
+                                this.#cancelPour();
+                            }
+                            this.flagToPour = false;
                         }
-                        else if (this.pouring) {
-                            this.#cancelPour();
-                        }
-                        this.flagToPour = false;
                     }, 1000);//Increase or decrease time delay on pouring
                     this.flagToPour = true;
                 }
@@ -177,11 +178,11 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             /*
                 This will check if it needs to pour, turn on a flag to give user ampel amount of time to decide if they REALLY want to pour.
             */
-            if (this.shouldPour) {
+            const rotationTolerance = new Vector3(Math.PI / 36, Math.PI / 36, Math.PI / 36);
+            if (this.shouldPour && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {
                 if (this.flagToPour == false) {
                     setTimeout(() => {
                         if (this.shouldPour) {
-                            const rotationTolerance = new Vector3(Math.PI / 36, Math.PI / 36, Math.PI / 36);
                             if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
                                 this.#startPour();
                             }

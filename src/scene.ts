@@ -18,7 +18,7 @@ import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisio
 import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { loadCylinders } from './loadCylinders';
-import { loadClipboard} from './loadClipboard';
+import { loadClipboard } from './loadClipboard';
 import { loadRoom } from './loadRoom';
 import enableXRGrab from './enableXRGrab';
 import PouringBehavior from './PouringBehavior';
@@ -42,7 +42,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     scene.collisionsEnabled = true;
 
     const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, -1.1), scene)];
-    
+
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
     camera.minZ = 0;  // To prevent clipping through near meshes
     camera.speed = 0.2;
@@ -92,7 +92,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                 });
             });
         });
-        
+
         const collisionOverrideObserver = scene.onBeforeRenderObservable.add(() => {
             collidingMeshes.forEach(cylinder => {
                 // TODO: fix the issue with colliding with multiple meshes simultaneously
@@ -151,7 +151,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const xr = await scene.createDefaultXRExperienceAsync(xrOptions);
         enableXRGrab(xr.input);
         const featureManager = xr.baseExperience.featuresManager;
-        
+
         const { cylinderA, cylinderC, cylinderB } = cylinders;
         const cylinderBBoundingBox = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const r = (cylinderBBoundingBox.maximum.y + cylinderBBoundingBox.minimum.y) / 2;
@@ -161,7 +161,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                 sop.failCurrentTask();
             }
         }, (target) => {
-            
+
         }));
         cylinderC.addBehavior(new PouringBehavior(r, xr.baseExperience, (target) => {
             const currentTask = sop.getCurrentTask();
@@ -253,7 +253,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         clipboard.rotationQuaternion = null;
         clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
         clipboard.addBehavior(new FlyToCameraBehavior());
-        
+
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
             lights.forEach(light => light.setEnabled(false));
@@ -274,7 +274,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         sop.addFailEffects(failSound, failCallback);
 
         const successSound = new Sound('ding', SUCCESS_SOUND_PATH, scene);
-        const successCallback = () => {};
+        const successCallback = () => { };
         sop.addSuccessEffects(successSound, successCallback);
 
         const completionSound = new Sound('fanfare', COMPLETION_SOUND_PATH, scene);
@@ -293,6 +293,6 @@ export function resetLastCreatedScene() {
         engine.stopRenderLoop();  // TODO: stop with the specific render function for the scene
         scene.dispose();
         resetGlobals();
-        createScene(engine, canvas).then(scene => engine.runRenderLoop(function() { scene.render(); }));
+        createScene(engine, canvas).then(scene => engine.runRenderLoop(function () { scene.render(); }));
     }
 }
