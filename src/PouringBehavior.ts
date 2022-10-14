@@ -165,10 +165,10 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                             this.#cancelPour();
                         }
                         this.flagToPour = false;
-                    }, 5000);//Increase or decrease time delay on pouring
-                    this.flagToPour = true;
+                    }, 10000); //Change time here to increase/decrease time delay till pouring
+                    this.flagToPour = true;//Turns on flag so that setTimeout isnt called on every frame
                 }
-            } else if (this.pouring) {
+            } else if (this.pouring && !this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {
                 this.#cancelPour();
                 this.flagToPour = false;
             }
@@ -192,7 +192,6 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                     this.flagToPour = true;//Turns on flag so that setTimeout isnt called on every frame
                 }
             } else if (this.pouring && !this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {
-                console.log("Cancel pour outside the timer");
                 this.#cancelPour();
                 this.flagToPour = false;
             }
