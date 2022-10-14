@@ -159,20 +159,18 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
             if (this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance)) {
                 if (this.flagToPour == false) {
                     setTimeout(() => {
-                        if ((this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance))) {
-                            if (!this.pouring) {
-                                this.#startPour();
-                            }
-                            else if (this.pouring) {
-                                this.#cancelPour();
-                            }
-                            this.flagToPour = false;
+                        if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance)) {
+                            this.#startPour();
+                        } else if (this.pouring && !this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.calculatePouringRotation(targetValue), rotationTolerance)) {
+                            this.#cancelPour();
                         }
+                        this.flagToPour = false;
                     }, 1000);//Increase or decrease time delay on pouring
                     this.flagToPour = true;
                 }
             } else if (this.pouring) {
                 this.#cancelPour();
+                this.flagToPour = false;
             }
         } else {
             /*
@@ -186,15 +184,17 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                             if (!this.pouring && this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {  // If the currect z-rotation is within 10 degrees of the current z-rotation.
                                 this.#startPour();
                             }
-                        } else if (this.pouring) {
+                        } else if (this.pouring && !this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {
                             this.#cancelPour();
                         }
                         this.flagToPour = false;
                     }, 1000); //Change time here to increase/decrease time delay till pouring
                     this.flagToPour = true;//Turns on flag so that setTimeout isnt called on every frame
                 }
-            } else if (this.pouring) {
+            } else if (this.pouring && !this.#rotationWithinTolerance(this.source.absoluteRotationQuaternion.toEulerAngles(), this.targetRotation, rotationTolerance)) {
+                console.log("Cancel pour outside the timer");
                 this.#cancelPour();
+                this.flagToPour = false;
             }
         }
     }
