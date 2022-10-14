@@ -165,7 +165,7 @@ export default class PouringBehavior implements Behavior<AbstractMesh> {
                             this.#cancelPour();
                         }
                         this.flagToPour = false;
-                    }, 1000);//Increase or decrease time delay on pouring
+                    }, 5000);//Increase or decrease time delay on pouring
                     this.flagToPour = true;
                 }
             } else if (this.pouring) {
