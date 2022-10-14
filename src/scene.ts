@@ -30,7 +30,7 @@ import { loadPlacards } from './loadPlacards';
 import FlyToCameraBehavior from './FlyToCameraBehavior';
 import { displayFailScreen } from './failScreen';
 import RespawnBehavior from './RespawnBehavior';
-
+import{MeshBuilder} from  '@babylonjs/core/Meshes';
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
@@ -44,6 +44,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, -1.1), scene)];
 
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
+
     camera.minZ = 0;  // To prevent clipping through near meshes
     camera.speed = 0.2;
     camera.keysUp.push(87);  // W
@@ -55,6 +56,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
+        const sphere =MeshBuilder.CreateSphere("sphere",{}, scene);
+        sphere.parent=camera;
+        sphere.position.z= 1;
         camera.applyGravity = true;
 
         // Enable collisions between meshes
