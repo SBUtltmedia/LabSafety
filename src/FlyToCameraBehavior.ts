@@ -6,7 +6,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { PointerEventTypes, PointerInfo } from '@babylonjs/core/Events/pointerEvents';
 import { Observer } from '@babylonjs/core/Misc/observable';
-
+import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { BASE_FPS } from './constants';
 
 
@@ -20,12 +20,13 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     returnPosition!: Vector3;
     returnRotation!: Vector3;
     onPointerDownObserver!: Observer<PointerInfo>;
-
-    constructor() {
+    xrCamera?: WebXRExperienceHelper;
+    constructor(currentXr?: WebXRExperienceHelper) {
         const translationAnimation = new Animation('translate', 'position', BASE_FPS, Animation.ANIMATIONTYPE_VECTOR3);
         const rotationAnimation = new Animation('rotate', 'rotation', BASE_FPS, Animation.ANIMATIONTYPE_VECTOR3);
         this.animations = [translationAnimation, rotationAnimation];
         // this.animations = [translationAnimation];  // TEMP
+        this.xrCamera = currentXr;
     }
 
     get name() {
@@ -92,8 +93,15 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     }
 
     calculateTargetPositionWithOffset = (offset: number) => {
-        const diff = this.camera.position.subtract(this.returnPosition);
-        const addend = diff.scale(1 - (offset / Vector3.Distance(this.returnPosition, this.camera.position)));
+        if (this.xrCamera !== undefined && this.xrCamera.state === WebXRState.IN_XR) {
+            console.log(this.xrCamera);
+            const diff = this.xrCamera.camera._position.subtract(this.returnPosition);
+            const addend = diff.scale(1 - (offset / Vector3.Distance(this.returnPosition, this.xrCamera.camera._position)));
+            const targetPosition = this.returnPosition.add(addend);
+            return targetPosition;
+        }
+        const diff = this.camera._position.subtract(this.returnPosition);
+        const addend = diff.scale(1 - (offset / Vector3.Distance(this.returnPosition, this.camera._position)));
         const targetPosition = this.returnPosition.add(addend);
         return targetPosition;
     }

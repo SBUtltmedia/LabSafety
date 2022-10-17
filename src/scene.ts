@@ -30,7 +30,7 @@ import { loadPlacards } from './loadPlacards';
 import FlyToCameraBehavior from './FlyToCameraBehavior';
 import { displayFailScreen } from './failScreen';
 import RespawnBehavior from './RespawnBehavior';
-import{MeshBuilder} from  '@babylonjs/core/Meshes';
+import { MeshBuilder } from '@babylonjs/core/Meshes';
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
@@ -56,9 +56,10 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
-        const sphere =MeshBuilder.CreateSphere("sphere",{}, scene);
-        sphere.parent=camera;
-        sphere.position.z= 1;
+        const sphere = MeshBuilder.CreateSphere("sphere", {}, scene);
+        //sphere.parent=camera;
+        sphere.visibility = 0;
+        sphere.position.z = 1;
         camera.applyGravity = true;
 
         // Enable collisions between meshes
@@ -154,6 +155,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         };
         const xr = await scene.createDefaultXRExperienceAsync(xrOptions);
         enableXRGrab(xr.input);
+        xr.baseExperience.sessionManager.onXRSessionInit.add(() => {
+            sphere.parent = xr.baseExperience.camera;
+        })
         const featureManager = xr.baseExperience.featuresManager;
 
         const { cylinderA, cylinderC, cylinderB } = cylinders;
@@ -256,7 +260,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         clipboard.position = new Vector3(cylinderAX - 0.5, tableMaximum.y, cylinderZ);
         clipboard.rotationQuaternion = null;
         clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
-        clipboard.addBehavior(new FlyToCameraBehavior());
+        clipboard.addBehavior(new FlyToCameraBehavior(xr.baseExperience));
 
         const failSound = new Sound('explosion', FAIL_SOUND_PATH, scene);
         const failCallback = () => {
