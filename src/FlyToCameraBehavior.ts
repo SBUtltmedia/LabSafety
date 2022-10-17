@@ -69,7 +69,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
                         if (!this.flying) {
                             const from = this.active ? BASE_FPS / 2 : 0;
                             const to = this.active ? 0 : BASE_FPS / 2;
-                            const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
+                            //const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
                             this.#setAnimationKeys();
                             this.flying = true;
                             if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
@@ -94,7 +94,6 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
 
     calculateTargetPositionWithOffset = (offset: number) => {
         if (this.xrCamera !== undefined && this.xrCamera.state === WebXRState.IN_XR) {
-            console.log(this.xrCamera);
             const diff = this.xrCamera.camera._position.subtract(this.returnPosition);
             const addend = diff.scale(1 - (offset / Vector3.Distance(this.returnPosition, this.xrCamera.camera._position)));
             const targetPosition = this.returnPosition.add(addend);
@@ -112,7 +111,6 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     }
 
     #setAnimationKeys = () => {
-        // TODO: update instead?
         const translationAnimation = this.animations.find(({ name }) => name === 'translate')!;
         const rotationAnimation = this.animations.find(({ name }) => name === 'rotate')!;
         const translationKeys = [{ frame: 0, value: this.returnPosition }, { frame: BASE_FPS / 2, value: this.calculateTargetPositionWithOffset(this.offset) }];
