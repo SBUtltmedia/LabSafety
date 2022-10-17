@@ -56,10 +56,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
-        const sphere = MeshBuilder.CreateSphere("sphere", {}, scene);
-        //sphere.parent=camera;
-        sphere.visibility = 0;
-        sphere.position.z = 1;
         camera.applyGravity = true;
 
         // Enable collisions between meshes
@@ -155,9 +151,9 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         };
         const xr = await scene.createDefaultXRExperienceAsync(xrOptions);
         enableXRGrab(xr.input);
-        xr.baseExperience.sessionManager.onXRSessionInit.add(() => {
-            sphere.parent = xr.baseExperience.camera;
-        })
+        // xr.baseExperience.sessionManager.onXRSessionInit.add(() => {
+        //     sphere.parent = xr.baseExperience.camera;
+        // })
         const featureManager = xr.baseExperience.featuresManager;
 
         const { cylinderA, cylinderC, cylinderB } = cylinders;

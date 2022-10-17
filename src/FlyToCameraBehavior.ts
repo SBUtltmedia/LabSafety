@@ -15,7 +15,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     active: boolean = false;  // The mesh is not currently being animated and the last animation to occur was toward the camera (in the positive direction)
     camera!: Camera;
     mesh!: AbstractMesh;
-    offset: number = 0.5;
+    offset: number = 0.3;
     animations: Animation[];
     returnPosition!: Vector3;
     returnRotation!: Vector3;
@@ -103,6 +103,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
         const diff = this.camera._position.subtract(this.returnPosition);
         const addend = diff.scale(1 - (offset / Vector3.Distance(this.returnPosition, this.camera._position)));
         const targetPosition = this.returnPosition.add(addend);
+
         return targetPosition;
     }
 
