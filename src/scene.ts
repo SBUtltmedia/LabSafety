@@ -31,6 +31,7 @@ import FlyToCameraBehavior from './FlyToCameraBehavior';
 import { displayFailScreen } from './failScreen';
 import RespawnBehavior from './RespawnBehavior';
 import { MeshBuilder } from '@babylonjs/core/Meshes';
+import { CannonJSPlugin, PhysicsImpostor } from '@babylonjs/core';
 
 export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => {
     const scene = new Scene(engine);
@@ -39,8 +40,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         scene.debugLayer.show();
     }
     scene.gravity = new Vector3(0, -9.80665, 0);
-    scene.collisionsEnabled = true;
-
+    scene.enablePhysics();
     const lights = [new HemisphericLight('light', new Vector3(0, 1, 0), scene), new PointLight('point-light', new Vector3(0, 1, -1.1), scene)];
 
     const camera = new UniversalCamera('camera', new Vector3(0, 1.8, -2), scene);
@@ -52,7 +52,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
     camera.keysLeft.push(65);  // A
     camera.keysRight.push(68);  // D
     camera.checkCollisions = true;
-
     Promise.all([loadCylinders(), loadRoom(), loadPlacards(), loadClipboard()]).then(async ([cylinders, { root, table, walls, cabinet, floor }, [placardA, placardB, placardC], clipboard]) => {
         camera.ellipsoid = new Vector3(0.4, 0.9, 0.4);
         camera.attachControl(canvas, true);
@@ -73,7 +72,6 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
             const cylinderAMesh = getChildMeshByName(cylinderA, CYLINDER_MESH_NAME)!;
             const cylinderCMesh = getChildMeshByName(cylinderC, CYLINDER_MESH_NAME)!;
             const cylinderBMesh = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!;
-
             // TODO: walls are tricky because the bounding box spans the whole room. Maybe each wall should be its own submesh to solve this?
             collidableMeshes.push(table, cabinet, floor, cylinderAMesh, cylinderCMesh, cylinderBMesh, placardA, placardB, placardC);
 
@@ -159,6 +157,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
         const { cylinderA, cylinderC, cylinderB } = cylinders;
         const cylinderBBoundingBox = getChildMeshByName(cylinderB, CYLINDER_MESH_NAME)!.getBoundingInfo().boundingBox;
         const r = (cylinderBBoundingBox.maximum.y + cylinderBBoundingBox.minimum.y) / 2;
+        //const physicsForCylinder: PhysicsImpostor = new PhysicsImpostor(cylinderA, PhysicsImpostor.CylinderImpostor, { mass: 24 }, scene);
         cylinderA.addBehavior(new PouringBehavior(r, xr.baseExperience, (target) => {
             const currentTask = sop.getCurrentTask();
             if (currentTask && !currentTask.complete) {
@@ -269,6 +268,7 @@ export const createScene = async (engine: Engine, canvas: HTMLCanvasElement) => 
                 }
             });
             if (xr.baseExperience.state === WebXRState.IN_XR) {
+                console.log("Reset!");
                 setTimeout(resetLastCreatedScene, FAILURE_RESET_DELAY);
             } else {
                 displayFailScreen(scene);
