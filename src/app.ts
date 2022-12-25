@@ -10,9 +10,11 @@ import {
     Mesh,
     Color3,
     UniversalCamera,
+    AbstractMesh,
 } from "@babylonjs/core";
 import { createCylinder } from "./loadCylinder";
 import { checkIfDebug } from "./utils";
+import { createClipboard } from "./loadClipboard";
 
 class App {
     constructor() {
@@ -27,44 +29,70 @@ class App {
             // { "fileName": "Placard_Label.glb" },
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 3, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
+            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
             { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 1, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
-            //  { "fileName": "clipboard.glb" }
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => addWebXR(mesh), "label": "Cylinder-C" },
+            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
+            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": mesh => createClipboard(mesh[0]) },
+            //{ "fileName": ""}
 
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" } = {}) {
 
             return { fileName, callback, root, label }
         })
-        createScene()//.then(processScene); //Can be turn back on if Z axis gets messed up
+        createScene().then(processScene); //Can be turn back on if Z axis gets messed up
 
         function processScene(scene: Scene) {
             scene.onBeforeRenderObservable.add(function () {
                 let cylinderLetters = ['A', 'B', 'C'];
                 for (var i = 0; i < cylinderLetters.length; i++) {
                     let cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-                    cylinder.position.z = 0.5;
+                    const table: AbstractMesh = scene.getMeshByName('Table');
+                    const tableBoundingBox = table.getBoundingInfo().boundingBox;
+                    //cylinder.position.z = 0.5;
+                    cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
                 }
             });
         }
 
-        //? We might wanna add the ability to change it based off rotation
+        async function addWebXR(scene: Scene) {
+            const wantedCollisions = [
+                'WallsandFloor',
+                'WallsAndFloor.001',
+                'Countertop',
+            ]
+            let xrOptions = {};
+            for (let getStringMesh of wantedCollisions) {
+                const getCollidableMesh: Mesh = scene.getMeshByName(getStringMesh) as Mesh;
+                if (getCollidableMesh) {
+                    xrOptions = {
+                        floorMeshes: [getCollidableMesh],
+                        ignoreNativeCameraTransformation: true
+                    };
+                }
+            }
+            const xr = await scene.createDefaultXRExperienceAsync(xrOptions);
+            //enableXRGrab(xr.input);
+        }
+
         function createRoom(mesh: Mesh[]) {
             //Allows us to turn on and off what meshes to add collision to
             const wantedCollisions = [
                 'WallsandFloor',
                 'WallsAndFloor.001',
                 'Table',
-                'Roof'
+                'Roof',
+                'Countertop',
+                'Walls',
             ]
             for (let getStringMesh of wantedCollisions) {
                 const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh);
                 if (getCollidableMesh) {
                     getCollidableMesh.checkCollisions = true;
                 }
+
             }
+
         }
 
 
@@ -102,7 +130,7 @@ class App {
 
 
         function createScene() {
-            return new Promise((resolve2, reject2) => {
+            return new Promise((finishedAllModels, reject2) => {
                 var canvas = document.getElementById('canvas') as HTMLCanvasElement
                 var engine = new Engine(canvas, true, { stencil: true });
                 var scene = new Scene(engine);
@@ -111,8 +139,8 @@ class App {
                     engine.resize();
                 });
                 checkIfDebug(scene);
-                const camera = new UniversalCamera('camera', new Vector3(1.088, 1.8, -1.134), scene);
-                camera.ellipsoid = new Vector3(0.4, 0.6, 0.4);
+                const camera = new UniversalCamera('camera', new Vector3(1.088, 1.82, -1.134), scene);
+                camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
                 camera.attachControl(canvas, true);
                 camera.applyGravity = true;
                 camera.minZ = 0;  // To prevent clipping through near meshes
@@ -122,6 +150,7 @@ class App {
                 camera.keysDown.push(83);  // S
                 camera.keysLeft.push(65);  // A
                 camera.keysRight.push(68);  // D
+                addWebXR(scene);
                 // let customGround: Mesh = MeshBuilder.CreateBox("ground", { width: 9, height: 0.01, depth: 5 }, scene);
                 // customGround.position.y = 0.4
                 // customGround.checkCollisions = true;
@@ -139,7 +168,7 @@ class App {
                     models.map((model) => {
                         //console.log(model)
                         model["callback"](model["mesh"])
-                        resolve2(scene);
+                        finishedAllModels(scene);
                     })
 
                 });

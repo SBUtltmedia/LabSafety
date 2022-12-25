@@ -8,6 +8,7 @@ export const POUR_TIME = 2000;  // milliseconds
 export const ROTATION_RATE = 0.1;  // velocity factor
 export const MAX_POURING_DISTANCE = 0.5;
 export const TIME_UNTIL_FADE = 6000;  // milliseconds
+export const NUMBER_OF_CYLINDERS = 3
 
 export const FAIL_SOUND_PATH = `${rootPath}sound/mi_explosion_03_hpx.mp3`;
 export const SUCCESS_SOUND_PATH = `${rootPath}sound/ding-idea-40142.mp3`;
