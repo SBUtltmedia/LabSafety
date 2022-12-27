@@ -1,6 +1,7 @@
-import { AbstractMesh, Mesh, Scene, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Scene, Vector3, WebXRDefaultExperience } from "@babylonjs/core";
+import FlyToCameraBehavior from "./FlyToCameraBehavior";
 
-export function createClipboard(clipboard: Mesh) {
+export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperience) {
     clipboard.name = 'clipboard';
     const scene: Scene = clipboard.getScene();
     const table: AbstractMesh = scene.getMeshByName('Table');
@@ -15,4 +16,5 @@ export function createClipboard(clipboard: Mesh) {
         clipboard.position.x = cylinderA.position.x + 0.2;
         clipboard.position.z = cylinderA.position.z + 0.5;
     }
+    clipboard.addBehavior(new FlyToCameraBehavior(xrCamera.baseExperience));
 }

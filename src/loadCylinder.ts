@@ -1,5 +1,5 @@
 import { AbstractMesh, Color3, HighlightLayer, Mesh, MeshBuilder, PointerDragBehavior, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, NUMBER_OF_CYLINDERS } from "./constants";
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, NUMBER_OF_CYLINDERS } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName } from "./utils";
 
