@@ -85,7 +85,7 @@ class App {
                 if (getCollidableMesh) {
                     getCollidableMesh.checkCollisions = true;
                     if (getCollidableMesh.name === 'Table') {
-
+                        //Todo: change the camera position here so it's in front of the table :D
                     }
                 }
             }

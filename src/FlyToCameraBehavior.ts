@@ -9,7 +9,6 @@ import { Observer } from '@babylonjs/core/Misc/observable';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
 import { BASE_FPS } from './Constants';
 
-
 export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     flying: boolean = false;  // The mesh is currently being animated
     active: boolean = false;  // The mesh is not currently being animated and the last animation to occur was toward the camera (in the positive direction)
@@ -21,6 +20,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     returnRotation!: Vector3;
     onPointerDownObserver!: Observer<PointerInfo>;
     xrCamera?: WebXRExperienceHelper;
+
     constructor(currentXr?: WebXRExperienceHelper) {
         const translationAnimation = new Animation('translate', 'position', BASE_FPS, Animation.ANIMATIONTYPE_VECTOR3);
         const rotationAnimation = new Animation('rotate', 'rotation', BASE_FPS, Animation.ANIMATIONTYPE_VECTOR3);
