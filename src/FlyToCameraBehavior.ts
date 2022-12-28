@@ -62,26 +62,23 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
             if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                 // If the picked mesh is a child of the mesh, create and start the animation
                 const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-                if (pickedMesh) {
-                    if (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) {
-                        // The user clicked on the mesh or its descendant
-                        if (!this.flying) {
-                            const from = this.active ? BASE_FPS / 2 : 0;
-                            const to = this.active ? 0 : BASE_FPS / 2;
-                            //const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
-                            this.#setAnimationKeys();
-                            this.flying = true;
-                            if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
-                                this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_NONE;
-                            } else {
-                                this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
-                            }
-                            scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
-                                this.flying = false;
-                                this.active = !this.active;
-                            });
-                        }
+                if (pickedMesh && (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) && !this.flying) {
+                    // The user clicked on the mesh or its descendant
+                    const from = this.active ? BASE_FPS / 2 : 0;
+                    const to = this.active ? 0 : BASE_FPS / 2;
+                    //const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
+                    this.#setAnimationKeys();
+                    this.flying = true;
+                    if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
+                        this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_NONE;
+                    } else {
+                        this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
                     }
+                    scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
+                        this.flying = false;
+                        this.active = !this.active;
+                    });
+            
                 }
             }
         })!;

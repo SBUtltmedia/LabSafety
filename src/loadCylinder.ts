@@ -27,12 +27,21 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     // let beakerDepth = beakerBounding.maximum.x - beakerBounding.minimum.x;
     //let base: Mesh = MeshBuilder.CreateBox(`pivot-${name}`, { size: 1, height: beakerHeight, width: beakerWidth, depth: beakerDepth }, cylinderMesh.getScene());
     const scene: Scene = cylinderMesh.getScene();
-    const table: AbstractMesh = scene.getMeshByName('Table');
+    const table: AbstractMesh = scene.getMeshByName('Table')!;
     //Adding a parent to the cylinder mesh and moving said parent to a valid position
     let base: Mesh = MeshBuilder.CreateSphere(`pivot-${name}`, { diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 }, cylinderMesh.getScene());
     base.visibility = 0;
     cylinderMesh.name = name;
     cylinderMesh.parent = base;
+
+    let topColliderDetection = MeshBuilder.CreateTorus('TORUS')
+    topColliderDetection.scaling.y = 0.4;
+    topColliderDetection.scaling.x = 0.2;
+    topColliderDetection.scaling.z = 0.2;
+    topColliderDetection.rotation.x = Math.PI;
+    topColliderDetection.parent = base;
+    topColliderDetection.position.y += 0.128;
+    //topColliderDetection.scaling = new Vector3(0.01, 0.01, 0.01);
 
     //Just changing the names of the beakerwOpacity to cylinder and BeakerLiquid to liquid
     cylinderMesh.getChildMeshes().forEach(childMesh => {
@@ -77,7 +86,7 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     highlightLayer.innerGlow = true;
     highlightLayer.outerGlow = false;
     highlightLayer.isEnabled = false;
-    getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME).addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
+    getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
     addDragCollision(base, base.position.x, base.position.y, base.position.z);
 }
 
@@ -129,8 +138,8 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
 function fadeAndRespawn(mesh: Mesh, originalX: number, originalY: number, originalZ: number) {
     mesh.isPickable = false;
     let childrenMeshes = mesh.getChildMeshes();
-    let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder');
-    let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid');
+    let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
+    let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid')!;
     let invisibilityInterval = setInterval(() => {
         if (cylinder.visibility <= 0 && liquid.visibility <= 0) {
             clearInterval(invisibilityInterval);

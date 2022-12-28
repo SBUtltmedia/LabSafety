@@ -10,14 +10,14 @@ import FlyToCameraBehavior from "./FlyToCameraBehavior";
 export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperience) {
     clipboard.name = 'clipboard';
     const scene: Scene = clipboard.getScene();
-    const table: AbstractMesh = scene.getMeshByName('Table');
+    const table: AbstractMesh = scene.getMeshByName('Table')!;
     if (table) {
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
         clipboard.position.y = tableBoundingBox.maximumWorld.y + 0.003;
     }
     clipboard.rotationQuaternion = null;
     clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
-    const cylinderA = scene.getMeshByName('pivot-Cylinder-A')
+    const cylinderA = scene.getMeshByName('pivot-Cylinder-A');
     if (cylinderA) {
         clipboard.position.x = cylinderA.position.x + 0.2;
         clipboard.position.z = cylinderA.position.z + 0.5;

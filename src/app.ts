@@ -20,17 +20,17 @@ import { createPlacard } from "./CreatePlarcard";
 
 class App {
     constructor() {
-        let xrCamera: WebXRDefaultExperience = null;
+        let xrCamera: WebXRDefaultExperience;
         const models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
-            { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": mesh => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
-            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": mesh => createClipboard(mesh[0], xrCamera) },
-            { "fileName": "Placard_Label.glb", 'callback': mesh => createPlacard(mesh, 1, "Placard-A") },
-            { "fileName": "Placard_Label.glb", 'callback': mesh => createPlacard(mesh, 2, "Placard-B") },
-            { "fileName": "Placard_Label.glb", 'callback': mesh => createPlacard(mesh, 3, "Placard-C") },
+            { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => createRoom(mesh), "label": "floor" },
+            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
+            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
+            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
+            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0], xrCamera) },
+            { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
+            { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
+            { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" } = {}) {
             return { fileName, callback, root, label }
@@ -42,7 +42,7 @@ class App {
                 let cylinderLetters = ['A', 'B', 'C'];
                 for (var i = 0; i < cylinderLetters.length; i++) {
                     const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-                    const table: AbstractMesh = scene.getMeshByName('Table');
+                    const table: AbstractMesh = scene.getMeshByName('Table')!;
                     if (table && cylinder) {
                         const tableBoundingBox = table.getBoundingInfo().boundingBox;
                         cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
@@ -81,7 +81,7 @@ class App {
                 'Walls',
             ]
             for (let getStringMesh of wantedCollisions) {
-                const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh);
+                const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh)!;
                 if (getCollidableMesh) {
                     getCollidableMesh.checkCollisions = true;
                     if (getCollidableMesh.name === 'Table') {
