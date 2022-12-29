@@ -22,5 +22,22 @@ export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperienc
         clipboard.position.x = cylinderA.position.x + 0.2;
         clipboard.position.z = cylinderA.position.z + 0.5;
     }
-    clipboard.addBehavior(new FlyToCameraBehavior(xrCamera.baseExperience));
+    // fetch(`${rootPath}images/sop42.svg`)
+    //     .then(r => r.text())
+    //     .then(text => {
+    //         let svgFrag = fragmentFromString(text); // returns DOM object
+    //         let procedureEL = svgFrag.getElementById("procedure-list")!;
+    //         let newOL = document.createElement("ol");
+    //         let newLI = document.createElement("li");
+    //         newLI.innerHTML = "Heyyo";
+    //         newOL.append(newLI);
+    //         procedureEL.innerHTML = "";
+    //         procedureEL.append(newOL);
+    //         const serializer = new XMLSerializer();
+    //         const document_fragment_string = serializer.serializeToString(svgFrag);
+    //         domToMaterial(document_fragment_string);
+    //     }).catch(console.error.bind(console));
+    const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
+    clipboard.addBehavior(flyToCamera);
+    flyToCamera.clipboardClick();
 }

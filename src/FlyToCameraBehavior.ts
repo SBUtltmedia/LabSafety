@@ -58,36 +58,38 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
         this.returnPosition = returnPosition;
         this.returnRotation = returnRotation;
 
-        this.onPointerDownObserver = scene.onPointerObservable.add(pointerInfo => {
-            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                // If the picked mesh is a child of the mesh, create and start the animation
-                const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-                if (pickedMesh && (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) && !this.flying) {
-                    // The user clicked on the mesh or its descendant
-                    const from = this.active ? BASE_FPS / 2 : 0;
-                    const to = this.active ? 0 : BASE_FPS / 2;
-                    //const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
-                    this.#setAnimationKeys();
-                    this.flying = true;
-                    if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
-                        this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_NONE;
-                    } else {
-                        this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
-                    }
-                    scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
-                        this.flying = false;
-                        this.active = !this.active;
-                    });
-            
-                }
-            }
-        })!;
+        this.onPointerDownObserver = scene.onPointerObservable.add(this.clipboardClick)!;
     }
 
     detach = () => {
         this.mesh.getScene().onPointerObservable.remove(this.onPointerDownObserver);
     }
+    clipboardClick = (pointerInfo = { type: PointerEventTypes.POINTERDOWN, pickInfo: { pickedMesh: this.mesh } }) => {
+        if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+            // If the picked mesh is a child of the mesh, create and start the animation
+            console.log(pointerInfo.pickInfo.pickedMesh);
+            const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+            if (pickedMesh && (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) && !this.flying) {
+                // The user clicked on the mesh or its descendant
+                const from = this.active ? BASE_FPS / 2 : 0;
+                const to = this.active ? 0 : BASE_FPS / 2;
+                //const targetPosition = this.active ? this.returnPosition : this.calculateTargetPositionWithOffset(this.offset);  // Might have counterintuitive effects if the clipboard is e.g. collided out of place
+                this.#setAnimationKeys();
+                this.flying = true;
+                if (this.mesh.billboardMode == AbstractMesh.BILLBOARDMODE_ALL) {
+                    this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_NONE;
+                } else {
+                    this.mesh.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
+                }
+                const scene = this.mesh.getScene();
+                scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
+                    this.flying = false;
+                    this.active = !this.active;
+                });
 
+            }
+        }
+    }
     calculateTargetPositionWithOffset = (offset: number) => {
         if (this.xrCamera !== undefined && this.xrCamera.state === WebXRState.IN_XR) {
             const diff = this.xrCamera.camera._position.subtract(this.returnPosition);

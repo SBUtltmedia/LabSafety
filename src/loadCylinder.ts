@@ -34,13 +34,12 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     cylinderMesh.name = name;
     cylinderMesh.parent = base;
 
-    let topColliderDetection = MeshBuilder.CreateTorus('TORUS')
-    topColliderDetection.scaling.y = 0.4;
+    let topColliderDetection = MeshBuilder.CreateTorus('TORUS', { thickness: 0.1 })
+    topColliderDetection.scaling.y = 0.04;
     topColliderDetection.scaling.x = 0.2;
     topColliderDetection.scaling.z = 0.2;
-    topColliderDetection.rotation.x = Math.PI;
     topColliderDetection.parent = base;
-    topColliderDetection.position.y += 0.128;
+    topColliderDetection.position.y += 0.3;
     //topColliderDetection.scaling = new Vector3(0.01, 0.01, 0.01);
 
     //Just changing the names of the beakerwOpacity to cylinder and BeakerLiquid to liquid
@@ -109,7 +108,6 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     let pointerDragBehavior = new PointerDragBehavior({
         dragPlaneNormal: new Vector3(0, 0, 1), //What limits our axis
     });
-
     pointerDragBehavior.moveAttached = false
     pointerDragBehavior.onDragStartObservable.add((eventData) => {
         if (thisInterval) {

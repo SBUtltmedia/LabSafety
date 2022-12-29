@@ -11,9 +11,10 @@ import {
     UniversalCamera,
     AbstractMesh,
     WebXRDefaultExperience,
+    PointerDragBehavior,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
-import { checkIfDebug } from "./utils";
+import { checkIfDebug, getChildMeshByName } from "./utils";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
@@ -49,6 +50,17 @@ class App {
                     }
                 }
             });
+            let cylinderLetters: Array<String> = ['A', 'B', 'C'];
+            for (var i = 0; i < cylinderLetters.length; i++) {
+                const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
+                const gotSomething = cylinder.getBehaviorByName('PointerDrag');
+                // const filteredList = cylinderLetters.filter(() => {
+                //     return true;
+                // })
+                (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
+                    console.log("WOAHHH");
+                })
+            }
         }
         async function addWebXR(scene: Scene) {
             const wantedCollisions = [
