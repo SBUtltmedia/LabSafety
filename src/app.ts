@@ -12,12 +12,15 @@ import {
     AbstractMesh,
     WebXRDefaultExperience,
     PointerDragBehavior,
+    Nullable,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
 import { checkIfDebug, getChildMeshByName } from "./utils";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
+import HighlightBehavior from "./HighlightBehavior";
+import { CYLINDER_MESH_NAME } from "./Constants";
 
 class App {
     constructor() {
@@ -33,7 +36,7 @@ class App {
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
-        ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" } = {}) {
+        ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" }) {
             return { fileName, callback, root, label }
         })
         createScene().then(processScene); //Can be turn back on if Z axis gets messed up
@@ -41,7 +44,7 @@ class App {
         function processScene(scene: Scene) {
             scene.onBeforeRenderObservable.add(function () {
                 let cylinderLetters = ['A', 'B', 'C'];
-                for (var i = 0; i < cylinderLetters.length; i++) {
+                for (let i = 0; i < cylinderLetters.length; i++) {
                     const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
                     const table: AbstractMesh = scene.getMeshByName('Table')!;
                     if (table && cylinder) {
@@ -50,15 +53,51 @@ class App {
                     }
                 }
             });
-            let cylinderLetters: Array<String> = ['A', 'B', 'C'];
-            for (var i = 0; i < cylinderLetters.length; i++) {
+            let cylinderLetters: Array<string> = ['A', 'B', 'C'];
+            let allCylinders = [];
+            for(let char of cylinderLetters){
+                const cylinder = scene.getMeshByName(`pivot-Cylinder-${char}`);
+                allCylinders.push((cylinder as Mesh));
+            }
+            for (let i = 0; i < cylinderLetters.length; i++) {
                 const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
                 const gotSomething = cylinder.getBehaviorByName('PointerDrag');
-                // const filteredList = cylinderLetters.filter(() => {
-                //     return true;
-                // })
+                let filteredMeshes = [];
+                for(let cylMesh of allCylinders){
+                    if(cylMesh != cylinder){
+                        filteredMeshes.push(cylMesh);
+                    }
+                }
+                const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
                 (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
-                    console.log("WOAHHH");
+                    for(let singleMesh of filteredMeshes){
+                        let torusOfOtherMesh = getChildMeshByName(singleMesh, 'TORUS');
+                        const highlightingTheTarget = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+
+                        if(cylinder.intersectsMesh(torusOfOtherMesh)){
+                            if(highlightingTheDrag){
+                                highlightingTheDrag.highlightSelf();
+                                highlightingTheTarget.highlightSelf();
+                            }
+                        }else{
+                            highlightingTheDrag.unhighlightSelf();
+                            highlightingTheTarget.unhighlightSelf();
+                        }
+                    }
+                });
+                (gotSomething as PointerDragBehavior).onDragEndObservable.add((eventData) => {
+                    for(let singleMesh of filteredMeshes){
+                        let torusOfOtherMesh = getChildMeshByName(singleMesh, 'TORUS');
+                        const highlightingTheTarget = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+
+                        if(cylinder.intersectsMesh(torusOfOtherMesh)){
+                            if(highlightingTheDrag){
+                                highlightingTheDrag.unhighlightSelf();
+                                highlightingTheTarget.unhighlightSelf();
+                            }
+                        }
+                    }
                 })
             }
         }
@@ -105,7 +144,7 @@ class App {
         }
 
         function createScene() {
-            return new Promise((finishedAllModels, reject2) => {
+            return new Promise((finishedAllModels,) => {
                 var canvas = document.getElementById('canvas') as HTMLCanvasElement
                 var engine = new Engine(canvas, true, { stencil: true });
                 var scene = new Scene(engine);
@@ -128,7 +167,7 @@ class App {
                 addWebXR(scene);
                 var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
                 Promise.all(models.map((model) => {
-                    return new Promise((resolve, reject) =>
+                    return new Promise((resolve,) =>
                         SceneLoader.ImportMesh('', model["root"], model.fileName, scene, function (container) {
                             model["mesh"] = container
                             resolve(container)

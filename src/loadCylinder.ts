@@ -36,8 +36,8 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
 
     let topColliderDetection = MeshBuilder.CreateTorus('TORUS', { thickness: 0.1 })
     topColliderDetection.scaling.y = 0.04;
-    topColliderDetection.scaling.x = 0.2;
-    topColliderDetection.scaling.z = 0.2;
+    topColliderDetection.scaling.x = 0.3;
+    topColliderDetection.scaling.z = 0.3;
     topColliderDetection.parent = base;
     topColliderDetection.position.y += 0.3;
     //topColliderDetection.scaling = new Vector3(0.01, 0.01, 0.01);
@@ -71,7 +71,7 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
         base.position.z = 0.5;
     }
     base.checkCollisions = true;
-    base.ellipsoid = new Vector3(0.02, 0.165, 0.2);
+    base.ellipsoid = new Vector3(0.02, 0.160, 0.02);
 
 
     //Adding color to the cylinder
