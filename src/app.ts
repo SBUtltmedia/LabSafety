@@ -21,10 +21,14 @@ import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import HighlightBehavior from "./HighlightBehavior";
 import { CYLINDER_MESH_NAME } from "./Constants";
+import SOP from './SOP';
 
 class App {
     constructor() {
         let xrCamera: WebXRDefaultExperience;
+        let sop = new SOP("", "", [{ next: "CtoA", label: "BtoC" },
+        { next: "complete", label: "CtoA" },
+        ]);
         const models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => createRoom(mesh), "label": "floor" },
@@ -55,7 +59,7 @@ class App {
             });
             let cylinderLetters: Array<string> = ['A', 'B', 'C'];
             let allCylinders = [];
-            for(let char of cylinderLetters){
+            for (let char of cylinderLetters) {
                 const cylinder = scene.getMeshByName(`pivot-Cylinder-${char}`);
                 allCylinders.push((cylinder as Mesh));
             }
@@ -63,39 +67,64 @@ class App {
                 const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
                 const gotSomething = cylinder.getBehaviorByName('PointerDrag');
                 let filteredMeshes = [];
-                for(let cylMesh of allCylinders){
-                    if(cylMesh != cylinder){
+                for (let cylMesh of allCylinders) {
+                    if (cylMesh != cylinder) {
                         filteredMeshes.push(cylMesh);
                     }
                 }
-                const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                 //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
+                let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
                 (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
-                    for(let singleMesh of filteredMeshes){
-                        let torusOfOtherMesh = getChildMeshByName(singleMesh, 'TORUS');
-                        const highlightingTheTarget = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-
-                        if(cylinder.intersectsMesh(torusOfOtherMesh)){
-                            if(highlightingTheDrag){
-                                highlightingTheDrag.highlightSelf();
-                                highlightingTheTarget.highlightSelf();
+                    const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                    for (let singleMesh of filteredMeshes) {
+                        let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
+                        let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
+                        let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
+                        if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
+                            let to = singleMesh.name.split('-')[2];
+                            let from = cylinder.name.split('-')[2];
+                            let fromAndTo = `${from}to${to}`
+                            console.log(sop.tasks[sop.currentState].label, fromAndTo);
+                            if (sop.tasks[sop.currentState].label === fromAndTo) {
+                                if (sop.tasks[sop.currentState].next === 'complete') {
+                                    console.log("done!");
+                                    window.location = '.';
+                                } else {
+                                    sop.currentState = sop.tasks.indexOf(sop.tasks.find((value, index) => value.label == sop.tasks[sop.currentState].next));
+                                }
                             }
-                        }else{
-                            highlightingTheDrag.unhighlightSelf();
-                            highlightingTheTarget.unhighlightSelf();
+                            if (highlightingTheDrag) {
+                                highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
+                                highlightingTheDrag.highlightMesh((targetCylinder as Mesh));
+                                sourceCylinder.rotation.z = 4.6146505;
+                                if (sourceCylinder.intersectsMesh(leftCollision)) {
+                                    targetCylinder.rotation.y = Math.PI;
+                                    sourceCylinder.rotation.y = 0;
+                                } else {
+                                    targetCylinder.rotation.y = 0;
+                                    sourceCylinder.rotation.y = Math.PI;
+                                }
+                            }
+                            break;
+                        } else {
+                            highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                            highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                            sourceCylinder.rotation.z = Math.PI * 2;
                         }
                     }
                 });
                 (gotSomething as PointerDragBehavior).onDragEndObservable.add((eventData) => {
-                    for(let singleMesh of filteredMeshes){
-                        let torusOfOtherMesh = getChildMeshByName(singleMesh, 'TORUS');
-                        const highlightingTheTarget = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-
-                        if(cylinder.intersectsMesh(torusOfOtherMesh)){
-                            if(highlightingTheDrag){
-                                highlightingTheDrag.unhighlightSelf();
-                                highlightingTheTarget.unhighlightSelf();
+                    const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                    for (let singleMesh of filteredMeshes) {
+                        let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
+                        let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
+                        let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
+                        if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
+                            if (highlightingTheDrag) {
+                                highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                                highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
                             }
+                            sourceCylinder.rotation.z = Math.PI * 2;
                         }
                     }
                 })

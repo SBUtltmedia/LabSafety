@@ -67,7 +67,6 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     clipboardClick = (pointerInfo = { type: PointerEventTypes.POINTERDOWN, pickInfo: { pickedMesh: this.mesh } }) => {
         if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
             // If the picked mesh is a child of the mesh, create and start the animation
-            console.log(pointerInfo.pickInfo.pickedMesh);
             const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
             if (pickedMesh && (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) && !this.flying) {
                 // The user clicked on the mesh or its descendant

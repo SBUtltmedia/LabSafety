@@ -39,5 +39,5 @@ export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperienc
     //     }).catch(console.error.bind(console));
     const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
     clipboard.addBehavior(flyToCamera);
-    flyToCamera.clipboardClick();
+    //flyToCamera.clipboardClick();
 }

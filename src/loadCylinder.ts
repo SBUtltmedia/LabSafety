@@ -33,13 +33,24 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     base.visibility = 0;
     cylinderMesh.name = name;
     cylinderMesh.parent = base;
+    cylinderMesh.rotationQuaternion = null;
+    let topLeftColliderDetection = MeshBuilder.CreateBox("LEFT_COLLISION")
+    topLeftColliderDetection.scaling.y = 0.01;
+    topLeftColliderDetection.scaling.x = 0.04;
+    topLeftColliderDetection.scaling.z = 0.04;
+    topLeftColliderDetection.parent = base;
+    topLeftColliderDetection.position.y += 0.3;
+    topLeftColliderDetection.position.x -= 0.15;
+    topLeftColliderDetection.visibility = 0;
 
-    let topColliderDetection = MeshBuilder.CreateTorus('TORUS', { thickness: 0.1 })
-    topColliderDetection.scaling.y = 0.04;
-    topColliderDetection.scaling.x = 0.3;
-    topColliderDetection.scaling.z = 0.3;
-    topColliderDetection.parent = base;
-    topColliderDetection.position.y += 0.3;
+    let topRightColliderDetection = MeshBuilder.CreateBox("RIGHT_COLLISION")
+    topRightColliderDetection.scaling.y = 0.01;
+    topRightColliderDetection.scaling.x = 0.04;
+    topRightColliderDetection.scaling.z = 0.04;
+    topRightColliderDetection.parent = base;
+    topRightColliderDetection.position.y += 0.3;
+    topRightColliderDetection.position.x += 0.15;
+    topRightColliderDetection.visibility = 0;
     //topColliderDetection.scaling = new Vector3(0.01, 0.01, 0.01);
 
     //Just changing the names of the beakerwOpacity to cylinder and BeakerLiquid to liquid
@@ -47,6 +58,8 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
         switch (childMesh.name) {
             case 'BeakerwOpacity':
                 childMesh.name = CYLINDER_MESH_NAME;
+                childMesh.rotationQuaternion = null;
+                childMesh.rotation.z = 2 * Math.PI;
                 childMesh.isPickable = false;
                 break;
             case 'BeakerLiquid':
