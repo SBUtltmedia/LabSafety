@@ -74,6 +74,10 @@ class App {
                 }
                 //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
                 let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
+                let rotationInterval;
+                let flagRotation = false;
+                let flagReset = false;
+                let resetInterval;
                 (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
                     const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                     for (let singleMesh of filteredMeshes) {
@@ -96,7 +100,20 @@ class App {
                             if (highlightingTheDrag) {
                                 highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
                                 highlightingTheDrag.highlightMesh((targetCylinder as Mesh));
-                                sourceCylinder.rotation.z = 4.6146505;
+                                //sourceCylinder.rotation.z = 4.6146505;
+                                if(flagRotation == false){
+                                    flagRotation = true;
+                                    flagReset = false;
+                                    clearInterval(resetInterval);
+                                    rotationInterval = setInterval(() => {
+                                        if(sourceCylinder.rotation.z >= 4.62){
+                                            sourceCylinder.rotation.z -= 0.10;
+                                        }else{
+                                            clearInterval(rotationInterval);
+                                            console.log("cleared interval?")
+                                        }
+                                    }, 60)
+                                }
                                 if (sourceCylinder.intersectsMesh(leftCollision)) {
                                     targetCylinder.rotation.y = Math.PI;
                                     sourceCylinder.rotation.y = 0;
@@ -109,7 +126,30 @@ class App {
                         } else {
                             highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
                             highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-                            sourceCylinder.rotation.z = Math.PI * 2;
+                            //sourceCylinder.rotation.z = Math.PI * 2;
+                            if(flagRotation == true){
+                                flagRotation = false;
+                                clearInterval(rotationInterval);
+                                if(flagReset == false){
+                                    flagReset = true;
+                                    resetInterval = setInterval(() => {
+                                        if(sourceCylinder.rotation.z < Math.PI * 2){
+                                            sourceCylinder.rotation.z += 0.10;
+                                        }else{
+                                            clearInterval(resetInterval);
+                                        }
+                                    }, 60)
+                                }
+                            }
+                            // if(sourceCylinder.rotation.z >= 4.61){
+                            //     rotationInterval = setInterval(() => {
+                            //         if(sourceCylinder.rotation.z >= 4.62){
+                            //             sourceCylinder.rotation.z -= 0.10;
+                            //         }else{
+                            //             clearInterval(rotationInterval);
+                            //         }
+                            //     }, 100)
+                            // }
                         }
                     }
                 });
