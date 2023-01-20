@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, HighlightLayer, Mesh, MeshBuilder, PointerDragBehavior, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, HighlightLayer, Mesh, MeshBuilder, PointerDragBehavior, Scene, StandardMaterial, Vector3, Animation } from "@babylonjs/core";
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, NUMBER_OF_CYLINDERS, TIME_UNTIL_FADE } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName } from "./utils";
@@ -148,30 +148,79 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
  */
 function fadeAndRespawn(mesh: Mesh, originalX: number, originalY: number, originalZ: number) {
     mesh.isPickable = false;
+    let scene = mesh.getScene();
     let childrenMeshes = mesh.getChildMeshes();
     let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
     let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid')!;
-    let invisibilityInterval = setInterval(() => {
-        if (cylinder.visibility <= 0 && liquid.visibility <= 0) {
-            clearInterval(invisibilityInterval);
-        } else {
-            cylinder.visibility -= 0.1;
-            liquid.visibility -= 0.1
-        }
-    }, 50)
-    setTimeout(() => {
+    let liquidVisibilityInitial = liquid.visibility;
+    let turnInvisibleCylinder = new Animation('InvisibilityOfCylinder', 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    let turnVisibleCylinder = new Animation('VisibilityOfCylinder', 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    let turnInvisibleLiquid = new Animation('InvisibilityOfLiquid', 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    let turnVisibleLiquid = new Animation('VisibilityOfLiquid', 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    const keyFramesInvisibleLiquid = [];
+    keyFramesInvisibleLiquid.push({
+        frame: 0,
+        value: liquidVisibilityInitial
+    });
+    keyFramesInvisibleLiquid.push({
+        frame: 60,
+        value: 0
+    });
+    const keyFramesVisibleLiquid = [];
+
+    keyFramesVisibleLiquid.push({
+        frame: 0,
+        value: 0
+    });
+    keyFramesVisibleLiquid.push({
+        frame: 60,
+        value: liquidVisibilityInitial
+    });
+
+    const keyFramesInvisibleCylinder = [];
+    keyFramesInvisibleCylinder.push({
+        frame: 0,
+        value: 1
+    });
+    keyFramesInvisibleCylinder.push({
+        frame: 60,
+        value: 0
+    });
+    const keyFramesVisibleCylinder = [];
+
+    keyFramesVisibleCylinder.push({
+        frame: 0,
+        value: 0
+    });
+    keyFramesVisibleCylinder.push({
+        frame: 60,
+        value: 1
+    });
+
+
+
+    cylinder.animations.push(turnInvisibleCylinder);
+    cylinder.animations.push(turnVisibleCylinder);
+
+    liquid.animations.push(turnInvisibleLiquid);
+    liquid.animations.push(turnVisibleLiquid);
+
+    turnInvisibleCylinder.setKeys(keyFramesInvisibleCylinder);
+    turnVisibleCylinder.setKeys(keyFramesVisibleCylinder);
+
+    turnInvisibleLiquid.setKeys(keyFramesInvisibleLiquid);
+    turnVisibleLiquid.setKeys(keyFramesVisibleLiquid);
+
+    scene.beginDirectAnimation(cylinder, [turnInvisibleCylinder], 0, 60, false);
+    scene.beginDirectAnimation(liquid, [turnInvisibleLiquid], 0, 60, false, undefined, () => {
+        console.log("HEY FINISHED ANIMATION!");
         mesh.position.x = originalX;
         mesh.position.y = originalY;
         mesh.position.z = originalZ;
-        let visibilityInterval = setInterval(() => {
-            if (cylinder.visibility >= 1 && liquid.visibility >= 1) {
-                clearInterval(visibilityInterval);
-                mesh.isPickable = true;
-            } else {
-                cylinder.visibility += 0.1;
-                liquid.visibility += 0.1
-            }
-        }, 50)
-    }, 1000);
+        scene.beginDirectAnimation(cylinder, [turnVisibleCylinder], 0, 60, false);
+        scene.beginDirectAnimation(liquid, [turnVisibleLiquid], 0, 60, false, undefined, () => {
+            mesh.isPickable = true;
+        });
+    });
 
 }
