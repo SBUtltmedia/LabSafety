@@ -14,6 +14,7 @@ import {
     PointerDragBehavior,
     Nullable,
     Animation,
+    BoundingBox,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
 import { checkIfDebug, getChildMeshByName } from "./utils";
@@ -94,11 +95,13 @@ class App {
                 let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
                 (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
                     const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                    let hitDetected = false;
                     for (let singleMesh of filteredMeshes) {
                         let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
                         let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
                         let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
                         if (cylinder.intersectsMesh(leftCollision) || cylinder.intersectsMesh(rightCollision)) {
+                            hitDetected = true;
                             let to = singleMesh.name.split('-')[2];
                             let from = cylinder.name.split('-')[2];
                             let fromAndTo = `${from}to${to}`
@@ -122,6 +125,7 @@ class App {
                                     sourceCylinder.rotation.y = Math.PI;
                                 }
                                 if(sourceCylinder.rotation.z == Math.PI * 2){
+                                    //console.log("rotation is still pie!");
                                     let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
                                     scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, true, undefined, () => {
 
@@ -129,16 +133,19 @@ class App {
                                 }
                             }
                             break;
-                        } else {
-                            highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                        }else{
                             highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-                            //sourceCylinder.rotation.z = Math.PI * 2;
-                            let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-                            if(sourceCylinder.rotation.z ==  4.62){
-                                scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 60, 120, true, undefined, () => {
-
-                                });
-                            }
+                        }
+                    }
+                    if(hitDetected == false){
+                        highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                        //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                        //sourceCylinder.rotation.z = Math.PI * 2;
+                        let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
+                        if(sourceCylinder.rotation.z == 4.62){
+                            scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 60, 120, true, undefined, () => {
+    
+                            });
                         }
                     }
                 });
@@ -189,16 +196,23 @@ class App {
                 'Countertop',
                 'Walls',
             ]
+            let scene: Scene, camera:UniversalCamera;
             for (let getStringMesh of wantedCollisions) {
                 const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh)!;
                 if (getCollidableMesh) {
                     getCollidableMesh.checkCollisions = true;
                     if (getCollidableMesh.name === 'Table') {
-                        //Todo: change the camera position here so it's in front of the table :D
+                        //TODO: change the camera position here so it's in front of the table :D
+                        const tableBoundingBox: BoundingBox = getCollidableMesh.getBoundingInfo().boundingBox;
+                        const cameraXPosition = tableBoundingBox.center.x;
+                        scene = getCollidableMesh.getScene();
+                        camera = (scene.getCameraByName('camera') as UniversalCamera);
+                        camera.position.x = cameraXPosition - 0.7;
                     }
                 }
             }
-
+            //Set the speed here so we have the room loaded before the user can move around.
+            camera.speed = 0.16;
         }
 
         function createScene() {
@@ -206,6 +220,7 @@ class App {
                 var canvas = document.getElementById('canvas') as HTMLCanvasElement
                 var engine = new Engine(canvas, true, { stencil: true });
                 var scene = new Scene(engine);
+                //scene.gravity.y = -0.01
                 scene.collisionsEnabled = true;
                 window.addEventListener("resize", function () {
                     engine.resize();
@@ -215,8 +230,8 @@ class App {
                 camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
                 camera.attachControl(canvas, true);
                 camera.applyGravity = true;
-                camera.minZ = 0;  // To prevent clipping through near meshes
-                camera.speed = 0.16;
+                camera.minZ = 0.0;  // To prevent clipping through near meshes
+                camera.speed = 0;
                 camera.checkCollisions = true;
                 camera.keysUp.push(87);  // W
                 camera.keysDown.push(83);  // S
