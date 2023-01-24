@@ -9,21 +9,17 @@ import {
     Mesh,
     Color3,
     UniversalCamera,
-    AbstractMesh,
     WebXRDefaultExperience,
-    PointerDragBehavior,
-    Nullable,
-    Animation,
     BoundingBox,
+    Light,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
-import { checkIfDebug, getChildMeshByName } from "./utils";
+import { checkIfDebug } from "./utils";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
-import HighlightBehavior from "./HighlightBehavior";
-import { CYLINDER_MESH_NAME } from "./Constants";
 import SOP from './SOP';
+import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 
 class App {
     constructor() {
@@ -48,123 +44,19 @@ class App {
         createScene().then(processScene); //Can be turn back on if Z axis gets messed up
 
         function processScene(scene: Scene) {
-            scene.onBeforeRenderObservable.add(function () {
-                let cylinderLetters = ['A', 'B', 'C'];
-                for (let i = 0; i < cylinderLetters.length; i++) {
-                    const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-                    const table: AbstractMesh = scene.getMeshByName('Table')!;
-                    if (table && cylinder) {
-                        const tableBoundingBox = table.getBoundingInfo().boundingBox;
-                        cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
-                    }
+            let camera = (scene.getCameraByName('camera') as UniversalCamera);
+            let light: Light = scene.getLightByName('light1');
+            //light.intensity = 1;
+            camera.speed = 0.16;
+            let cameraFadeIn = setInterval(() => {
+                if (light.intensity >= 1) {
+                    clearInterval(cameraFadeIn);
+                } else {
+                    light.intensity += 0.10;
                 }
-            });
-            let cylinderLetters: Array<string> = ['A', 'B', 'C'];
-            let allCylinders = [];
-            for (let char of cylinderLetters) {
-                const cylinder = scene.getMeshByName(`pivot-Cylinder-${char}`);
-                allCylinders.push((cylinder as Mesh));
-                let rotationAnimation = new Animation(`${char}-rotateAroundZ`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-                let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-                const keyFrames = [];
-                keyFrames.push({
-                    frame: 0,
-                    value: Math.PI * 2
-                });
-                keyFrames.push({
-                    frame: 60,
-                    value: 4.62
-                });
-                keyFrames.push({
-                    frame: 120,
-                    value: Math.PI * 2
-                });
-                sourceCylinder.animations.push(rotationAnimation);
-                rotationAnimation.setKeys(keyFrames);
-            }
-            for (let i = 0; i < cylinderLetters.length; i++) {
-                const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-                const gotSomething = cylinder.getBehaviorByName('PointerDrag');
-                let filteredMeshes = [];
-                for (let cylMesh of allCylinders) {
-                    if (cylMesh != cylinder) {
-                        filteredMeshes.push(cylMesh);
-                    }
-                }
-                //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
-                let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-                (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
-                    const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-                    let hitDetected = false;
-                    for (let singleMesh of filteredMeshes) {
-                        let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
-                        let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
-                        let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
-                        if (cylinder.intersectsMesh(leftCollision) || cylinder.intersectsMesh(rightCollision)) {
-                            hitDetected = true;
-                            let to = singleMesh.name.split('-')[2];
-                            let from = cylinder.name.split('-')[2];
-                            let fromAndTo = `${from}to${to}`
-                            console.log(sop.tasks[sop.currentState].label, fromAndTo);
-                            if (sop.tasks[sop.currentState].label === fromAndTo) {
-                                if (sop.tasks[sop.currentState].next === 'complete') {
-                                    console.log("done!");
-                                    window.location = '.';
-                                } else {
-                                    sop.currentState = sop.tasks.indexOf(sop.tasks.find((value, index) => value.label == sop.tasks[sop.currentState].next));
-                                }
-                            }
-                            if (highlightingTheDrag) {
-                                highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
-                                highlightingTheDrag.highlightMesh((targetCylinder as Mesh));
-                                if (cylinder.intersectsMesh(leftCollision)) {
-                                    targetCylinder.rotation.y = Math.PI;
-                                    sourceCylinder.rotation.y = 0;
-                                } else {
-                                    targetCylinder.rotation.y = 0;
-                                    sourceCylinder.rotation.y = Math.PI;
-                                }
-                                if(sourceCylinder.rotation.z == Math.PI * 2){
-                                    //console.log("rotation is still pie!");
-                                    let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-                                    scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, true, undefined, () => {
+            }, 60)
+            postSceneCylinder(scene, sop);
 
-                                    });
-                                }
-                            }
-                            break;
-                        }else{
-                            highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-                        }
-                    }
-                    if(hitDetected == false){
-                        highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-                        //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-                        //sourceCylinder.rotation.z = Math.PI * 2;
-                        let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-                        if(sourceCylinder.rotation.z == 4.62){
-                            scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 60, 120, true, undefined, () => {
-    
-                            });
-                        }
-                    }
-                });
-                (gotSomething as PointerDragBehavior).onDragEndObservable.add((eventData) => {
-                    const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-                    for (let singleMesh of filteredMeshes) {
-                        let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
-                        let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
-                        let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
-                        if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
-                            if (highlightingTheDrag) {
-                                highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-                                highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-                            }
-                            sourceCylinder.rotation.z = Math.PI * 2;
-                        }
-                    }
-                })
-            }
         }
         async function addWebXR(scene: Scene) {
             const wantedCollisions = [
@@ -196,7 +88,7 @@ class App {
                 'Countertop',
                 'Walls',
             ]
-            let scene: Scene, camera:UniversalCamera;
+            let scene: Scene, camera: UniversalCamera;
             for (let getStringMesh of wantedCollisions) {
                 const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh)!;
                 if (getCollidableMesh) {
@@ -212,7 +104,6 @@ class App {
                 }
             }
             //Set the speed here so we have the room loaded before the user can move around.
-            camera.speed = 0.16;
         }
 
         function createScene() {
@@ -239,6 +130,7 @@ class App {
                 camera.keysRight.push(68);  // D
                 addWebXR(scene);
                 var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
+                light1.intensity = 0;
                 Promise.all(models.map((model) => {
                     return new Promise((resolve,) =>
                         SceneLoader.ImportMesh('', model["root"], model.fileName, scene, function (container) {

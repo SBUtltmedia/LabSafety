@@ -148,6 +148,7 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
  */
 function fadeAndRespawn(mesh: Mesh, originalX: number, originalY: number, originalZ: number) {
     mesh.isPickable = false;
+    let getMeshLetter = mesh.name.split('-')[0];
     let scene = mesh.getScene();
     let childrenMeshes = mesh.getChildMeshes();
     let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
@@ -213,10 +214,10 @@ function fadeAndRespawn(mesh: Mesh, originalX: number, originalY: number, origin
 
     scene.beginDirectAnimation(cylinder, [turnInvisibleCylinder], 0, 60, false);
     scene.beginDirectAnimation(liquid, [turnInvisibleLiquid], 0, 60, false, undefined, () => {
-        console.log("HEY FINISHED ANIMATION!");
         mesh.position.x = originalX;
         mesh.position.y = originalY;
         mesh.position.z = originalZ;
+        let cylinderRotation = cylinder.getAnimationByName(`${getMeshLetter}-rotateAroundZ`);
         scene.beginDirectAnimation(cylinder, [turnVisibleCylinder], 0, 60, false);
         scene.beginDirectAnimation(liquid, [turnVisibleLiquid], 0, 60, false, undefined, () => {
             mesh.isPickable = true;
