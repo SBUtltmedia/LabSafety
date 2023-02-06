@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ammojs-typed": "^1.0.6",
+    "babylonjs": "^5.45.0",
     "vue": "^3.2.41"
   },
   "devDependencies": {

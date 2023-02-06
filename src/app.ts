@@ -30,9 +30,9 @@ class App {
         const models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => createRoom(mesh), "label": "floor" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
-            { "fileName": "TLLGraduatedCylinder.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
             { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0], xrCamera) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
@@ -75,9 +75,10 @@ class App {
                 }
             }
             xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+            xrCamera.teleportation.attach();
+            xrCamera.pointerSelection.attach();
             //enableXRGrab(xr.input);
         }
-
         function createRoom(mesh: Mesh[]) {
             //Allows us to turn on and off what meshes to add collision to
             const wantedCollisions = [
@@ -94,7 +95,6 @@ class App {
                 if (getCollidableMesh) {
                     getCollidableMesh.checkCollisions = true;
                     if (getCollidableMesh.name === 'Table') {
-                        //TODO: change the camera position here so it's in front of the table :D
                         const tableBoundingBox: BoundingBox = getCollidableMesh.getBoundingInfo().boundingBox;
                         const cameraXPosition = tableBoundingBox.center.x;
                         scene = getCollidableMesh.getScene();
@@ -117,7 +117,7 @@ class App {
                     engine.resize();
                 });
                 checkIfDebug(scene);
-                const camera = new UniversalCamera('camera', new Vector3(1.088, 1.84, -1.134), scene);
+                const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
                 camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
                 camera.attachControl(canvas, true);
                 camera.applyGravity = true;

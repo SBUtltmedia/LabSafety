@@ -32,12 +32,21 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
             frame: 60,
             value: 4.62
         });
-        keyFrames.push({
-            frame: 120,
-            value: Math.PI * 2
-        });
         sourceCylinder.animations.push(rotationAnimation);
         rotationAnimation.setKeys(keyFrames);
+
+        let resetRotationAnimation = new Animation(`${char}-resetRotateAroundZ`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+        const resetFrames = [];
+        resetFrames.push({
+            frame: 0,
+            value: 4.62
+        });
+        resetFrames.push({
+            frame: 60,
+            value: Math.PI * 2
+        });
+        sourceCylinder.animations.push(resetRotationAnimation);
+        resetRotationAnimation.setKeys(resetFrames);
     }
     for (let i = 0; i < cylinderLetters.length; i++) {
         const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
@@ -50,7 +59,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
         }
         //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
         let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-        (gotSomething as PointerDragBehavior).onDragObservable.add((eventData) => {
+        (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
             const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             let hitDetected = false;
             for (let singleMesh of filteredMeshes) {
@@ -68,7 +77,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                             console.log("done!");
                             window.location = '.';
                         } else {
-                            sop.currentState = sop.tasks.indexOf(sop.tasks.find((value, index) => value.label == sop.tasks[sop.currentState].next));
+                            sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
                         }
                     }
                     if (highlightingTheDrag) {
@@ -84,7 +93,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                         if (sourceCylinder.rotation.z == Math.PI * 2) {
                             //console.log("rotation is still pie!");
                             let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-                            scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, true, undefined, () => {
+                            scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
 
                             });
                         }
@@ -98,24 +107,28 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
                 //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
                 //sourceCylinder.rotation.z = Math.PI * 2;
-                let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
+                let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
                 if (sourceCylinder.rotation.z == 4.62) {
-                    scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 60, 120, true, undefined, () => {
+                    scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
 
                     });
                 }
             }
         });
-        (gotSomething as PointerDragBehavior).onDragEndObservable.add((eventData) => {
+        (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
             const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             for (let singleMesh of filteredMeshes) {
                 let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
                 let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
                 let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
+                highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
                 if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
-                    if (highlightingTheDrag) {
-                        highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-                        highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                    let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
+                    if (sourceCylinder.rotation.z == 4.62) {
+                        scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
+
+                        });
                     }
                     //sourceCylinder.rotation.z = Math.PI * 2;
                 }

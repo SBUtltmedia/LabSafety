@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, HighlightLayer, Mesh, MeshBuilder, PointerDragBehavior, Scene, StandardMaterial, Vector3, Animation } from "@babylonjs/core";
+import { AbstractMesh, Color3, HighlightLayer, Mesh, MeshBuilder, PointerDragBehavior, Scene, StandardMaterial, Vector3, Animation, DynamicTexture } from "@babylonjs/core";
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, NUMBER_OF_CYLINDERS, TIME_UNTIL_FADE } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName } from "./utils";
@@ -52,7 +52,6 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     topRightColliderDetection.position.x += 0.15;
     topRightColliderDetection.visibility = 0;
     //topColliderDetection.scaling = new Vector3(0.01, 0.01, 0.01);
-
     //Just changing the names of the beakerwOpacity to cylinder and BeakerLiquid to liquid
     cylinderMesh.getChildMeshes().forEach(childMesh => {
         switch (childMesh.name) {
@@ -68,6 +67,7 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
                 break;
         }
     });
+    //cylinderMesh.rotation.y = Math.PI;
     //If we are able to put it to a table then set it on top of that
     if (table) {
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
@@ -92,6 +92,21 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     const cylinderLiquidMaterial = new StandardMaterial('liquid-material');
     cylinderLiquidMaterial.diffuseColor = color;
     cylinderLiquid.material = cylinderLiquidMaterial;
+
+
+    const cylinderLabel: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "Label")!;
+    //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
+    //cylinderLabelMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
+    //cylinderLabel.material = cylinderLabelMaterial;
+    const texture: DynamicTexture = new DynamicTexture("dynamic texture", 256, scene);
+    // texture.wAng = -Math.PI / 2;
+    texture.uAng = Math.PI;
+    const material: StandardMaterial = new StandardMaterial("Mat", scene);
+    material.diffuseTexture = texture;
+    cylinderLabel.material = material;
+    const font: string = "bold 220px monospace";
+    texture.drawText(cylinderMesh.name.split("-")[1].toUpperCase(), 65, 185, font, "black", "white");
+    //placard.addChild(labelPlacard);
 
     //Highlight behavior used for later
     const highlightLayer: HighlightLayer = new HighlightLayer('highlight-layer');
@@ -121,8 +136,9 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     let pointerDragBehavior = new PointerDragBehavior({
         dragPlaneNormal: new Vector3(0, 0, 1), //What limits our axis
     });
+    pointerDragBehavior.dragButtons = [0, 1, 2]
     pointerDragBehavior.moveAttached = false
-    pointerDragBehavior.onDragStartObservable.add((eventData) => {
+    pointerDragBehavior.onDragStartObservable.add(() => {
         if (thisInterval) {
             clearTimeout(thisInterval);
         }
@@ -130,7 +146,7 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     pointerDragBehavior.onDragObservable.add((eventData) => {
         mesh.moveWithCollisions(eventData.delta); //not gonna lie dont even know how it works but it does
     })
-    pointerDragBehavior.onDragEndObservable.add((eventData) => {
+    pointerDragBehavior.onDragEndObservable.add(() => {
         thisInterval = setTimeout(() => fadeAndRespawn(mesh, originalX, originalY, originalZ), TIME_UNTIL_FADE); //Change time until fade for faster/slower respawn time
     })
     mesh.addBehavior(pointerDragBehavior)
@@ -211,9 +227,9 @@ function fadeAndRespawn(mesh: Mesh, originalX: number, originalY: number, origin
 
     turnInvisibleLiquid.setKeys(keyFramesInvisibleLiquid);
     turnVisibleLiquid.setKeys(keyFramesVisibleLiquid);
-
     scene.beginDirectAnimation(cylinder, [turnInvisibleCylinder], 0, 60, false);
     scene.beginDirectAnimation(liquid, [turnInvisibleLiquid], 0, 60, false, undefined, () => {
+        cylinder.rotation.z = Math.PI * 2;
         mesh.position.x = originalX;
         mesh.position.y = originalY;
         mesh.position.z = originalZ;
