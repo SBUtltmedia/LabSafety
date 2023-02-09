@@ -12,6 +12,7 @@ import {
     WebXRDefaultExperience,
     BoundingBox,
     Light,
+    WebXRControllerPointerSelection,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
 import { checkIfDebug } from "./utils";
@@ -20,6 +21,7 @@ import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
+
 
 class App {
     constructor() {
@@ -65,18 +67,18 @@ class App {
                 'Countertop',
             ]
             let xrOptions = {};
+            const floorMesh = []
             for (let getStringMesh of wantedCollisions) {
                 const getCollidableMesh: Mesh = scene.getMeshByName(getStringMesh) as Mesh;
                 if (getCollidableMesh) {
-                    xrOptions = {
-                        floorMeshes: [getCollidableMesh],
-                        ignoreNativeCameraTransformation: true
-                    };
+                    floorMesh.push(getCollidableMesh);
                 }
             }
+
             xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
-            xrCamera.teleportation.attach();
-            xrCamera.pointerSelection.attach();
+            // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
+            // controllerFeature.displayLaserPointer = false;
+            // console.log(xrCamera.baseExperience.featuresManager.);
             //enableXRGrab(xr.input);
         }
         function createRoom(mesh: Mesh[]) {
