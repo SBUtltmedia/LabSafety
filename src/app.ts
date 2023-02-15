@@ -21,6 +21,7 @@ import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
+import FlyToCameraBehavior from "./FlyToCameraBehavior";
 
 
 class App {
@@ -35,7 +36,7 @@ class App {
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
-            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0], xrCamera) },
+            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
@@ -45,7 +46,7 @@ class App {
         })
         createScene().then(processScene); //Can be turn back on if Z axis gets messed up
 
-        function processScene(scene: Scene) {
+        async function processScene(scene: Scene) {
             let camera = (scene.getCameraByName('camera') as UniversalCamera);
             let light: Light = scene.getLightByName('light1');
             //light.intensity = 1;
@@ -57,6 +58,12 @@ class App {
                     light.intensity += 0.10;
                 }
             }, 60)
+            await addWebXR(scene);
+            const clipboard = scene.getMeshByName('clipboard');
+            if (xrCamera) {
+                const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
+                clipboard.addBehavior(flyToCamera);
+            }
             postSceneCylinder(scene, sop);
 
         }
@@ -64,7 +71,6 @@ class App {
             const wantedCollisions = [
                 'WallsandFloor',
                 'WallsAndFloor.001',
-                'Countertop',
             ]
             const floorMesh = []
             for (let getStringMesh of wantedCollisions) {
@@ -74,12 +80,10 @@ class App {
                     floorMesh.push(getCollidableMesh);
                 }
             }
-            console.log(floorMesh)
             let xrOptions = {
                 floorMeshes: floorMesh
             }
             xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
-            console.log(xrCamera);
             // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
             // controllerFeature.displayLaserPointer = false;
             // console.log(xrCamera.baseExperience.featuresManager.);
@@ -109,7 +113,6 @@ class App {
                     }
                 }
             }
-            addWebXR(scene);
             //Set the speed here so we have the room loaded before the user can move around.
         }
 

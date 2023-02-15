@@ -7,7 +7,7 @@ import FlyToCameraBehavior from "./FlyToCameraBehavior";
  * @param xrCamera Camera used 
  */
 
-export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperience) {
+export function createClipboard(clipboard: Mesh) {
     clipboard.name = 'clipboard';
     const scene: Scene = clipboard.getScene();
     const table: AbstractMesh = scene.getMeshByName('Table')!;
@@ -37,9 +37,5 @@ export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperienc
     //         const document_fragment_string = serializer.serializeToString(svgFrag);
     //         domToMaterial(document_fragment_string);
     //     }).catch(console.error.bind(console));
-    if (xrCamera) {
-        const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
-        clipboard.addBehavior(flyToCamera);
-    }
     //flyToCamera.clipboardClick();
 }
