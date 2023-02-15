@@ -66,16 +66,20 @@ class App {
                 'WallsAndFloor.001',
                 'Countertop',
             ]
-            let xrOptions = {};
             const floorMesh = []
             for (let getStringMesh of wantedCollisions) {
+                console.log(getStringMesh);
                 const getCollidableMesh: Mesh = scene.getMeshByName(getStringMesh) as Mesh;
                 if (getCollidableMesh) {
                     floorMesh.push(getCollidableMesh);
                 }
             }
-
+            console.log(floorMesh)
+            let xrOptions = {
+                floorMeshes: floorMesh
+            }
             xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+            console.log(xrCamera);
             // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
             // controllerFeature.displayLaserPointer = false;
             // console.log(xrCamera.baseExperience.featuresManager.);
@@ -105,6 +109,7 @@ class App {
                     }
                 }
             }
+            addWebXR(scene);
             //Set the speed here so we have the room loaded before the user can move around.
         }
 
@@ -130,7 +135,6 @@ class App {
                 camera.keysDown.push(83);  // S
                 camera.keysLeft.push(65);  // A
                 camera.keysRight.push(68);  // D
-                addWebXR(scene);
                 var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
                 light1.intensity = 0;
                 Promise.all(models.map((model) => {

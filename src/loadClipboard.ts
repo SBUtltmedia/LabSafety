@@ -37,7 +37,9 @@ export function createClipboard(clipboard: Mesh, xrCamera: WebXRDefaultExperienc
     //         const document_fragment_string = serializer.serializeToString(svgFrag);
     //         domToMaterial(document_fragment_string);
     //     }).catch(console.error.bind(console));
-    const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
-    clipboard.addBehavior(flyToCamera);
+    if (xrCamera) {
+        const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
+        clipboard.addBehavior(flyToCamera);
+    }
     //flyToCamera.clipboardClick();
 }
