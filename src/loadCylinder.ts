@@ -136,8 +136,9 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     let pointerDragBehavior = new PointerDragBehavior({
         dragPlaneNormal: new Vector3(0, 0, 1), //What limits our axis
     });
-    pointerDragBehavior.dragButtons = [0, 1, 2]
-    pointerDragBehavior.moveAttached = false
+    pointerDragBehavior.useObjectOrientationForDragging = false;
+    //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
+    //pointerDragBehavior.moveAttached = false
     pointerDragBehavior.onDragStartObservable.add(() => {
         if (thisInterval) {
             clearTimeout(thisInterval);

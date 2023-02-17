@@ -13,6 +13,8 @@ import {
     BoundingBox,
     Light,
     WebXRControllerPointerSelection,
+    Ray,
+    AbstractMesh,
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
 import { checkIfDebug } from "./utils";
@@ -22,6 +24,7 @@ import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
+import { PointerDragBehavior } from "babylonjs";
 
 
 class App {
@@ -65,7 +68,35 @@ class App {
                 clipboard.addBehavior(flyToCamera);
             }
             postSceneCylinder(scene, sop);
-
+            let cylinder;
+            let gotSomething: PointerDragBehavior;
+            xrCamera.input.onControllerAddedObservable.add(controller => {
+                controller.onMotionControllerInitObservable.add(motionController => {
+                    const ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
+                    const squeezeComponent = motionController.getComponentOfType('squeeze')!;
+                    squeezeComponent.onButtonStateChangedObservable.add(() => {
+                        const controllerMesh = motionController.rootMesh;
+                        if (squeezeComponent.pressed) {
+                            controller.getWorldPointerRayToRef(ray, true);
+                            let pickingInfo = scene.pickWithRay(ray);
+                            if (pickingInfo.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
+                                cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
+                                gotSomething = cylinder.getBehaviorByName('PointerDrag');
+                                if (!gotSomething.dragging) {
+                                    console.log("starting the drag");
+                                    gotSomething.startDrag();
+                                }
+                            }
+                        } else {
+                            if (cylinder && gotSomething.dragging) {
+                                gotSomething.releaseDrag();
+                                cylinder = null;
+                                gotSomething = null;
+                            }
+                        }
+                    })
+                })
+            })
         }
         async function addWebXR(scene: Scene) {
             const wantedCollisions = [
