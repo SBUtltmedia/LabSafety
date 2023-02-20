@@ -138,7 +138,7 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     });
     pointerDragBehavior.useObjectOrientationForDragging = false;
     //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
-    //pointerDragBehavior.moveAttached = false
+    pointerDragBehavior.moveAttached = false
     pointerDragBehavior.onDragStartObservable.add(() => {
         if (thisInterval) {
             clearTimeout(thisInterval);
