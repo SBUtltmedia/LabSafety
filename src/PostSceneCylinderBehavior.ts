@@ -59,6 +59,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
         }
         //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
         let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
+        let rotationFlag = false;
         (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
             const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             let hitDetected = false;
@@ -71,10 +72,8 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                     let to = singleMesh.name.split('-')[2];
                     let from = cylinder.name.split('-')[2];
                     let fromAndTo = `${from}to${to}`
-                    console.log(sop.tasks[sop.currentState].label, fromAndTo);
                     if (sop.tasks[sop.currentState].label === fromAndTo) {
                         if (sop.tasks[sop.currentState].next === 'complete') {
-                            console.log("done!");
                             window.location = '.';
                         } else {
                             sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
@@ -90,9 +89,10 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                             targetCylinder.rotation.y = 0;
                             sourceCylinder.rotation.y = Math.PI;
                         }
-                        if (sourceCylinder.rotation.z == Math.PI * 2) {
+                        if (!rotationFlag) {
                             //console.log("rotation is still pie!");
                             let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
+                            rotationFlag = true;
                             scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
 
                             });
@@ -108,9 +108,9 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
                 //sourceCylinder.rotation.z = Math.PI * 2;
                 let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
-                if (sourceCylinder.rotation.z == 4.62) {
+                if (rotationFlag) {
+                    rotationFlag = false;
                     scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
-
                     });
                 }
             }
