@@ -1,9 +1,13 @@
-import { AbstractMesh, Mesh, Nullable, PointerDragBehavior, Scene, Animation } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName } from "./utils";
 import SOP from './SOP';
-
+import { Scene } from "@babylonjs/core/scene";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { Animation } from '@babylonjs/core/Animations/animation';
+import { Nullable } from "@babylonjs/core/types";
 export function postSceneCylinder(scene: Scene, sop: SOP) {
     scene.onBeforeRenderObservable.add(function () {
         let cylinderLetters = ['A', 'B', 'C'];
@@ -74,7 +78,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                     let fromAndTo = `${from}to${to}`
                     if (sop.tasks[sop.currentState].label === fromAndTo) {
                         if (sop.tasks[sop.currentState].next === 'complete') {
-                            window.location = '.';
+                            window.location.assign('.');
                         } else {
                             sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
                         }

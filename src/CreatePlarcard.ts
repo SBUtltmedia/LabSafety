@@ -1,4 +1,9 @@
-import { AbstractMesh, DynamicTexture, Mesh, StandardMaterial, Vector3 } from "@babylonjs/core";
+
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { NUMBER_OF_CYLINDERS, PLACARD_MESH_NAME } from "./Constants";
 
 export function createPlacard(meshes: Mesh[], i: number, placardLabel: string) {

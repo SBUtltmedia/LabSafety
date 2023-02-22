@@ -1,30 +1,29 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import {
-    Engine,
-    Scene,
-    SceneLoader,
-    Vector3,
-    HemisphericLight,
-    Mesh,
-    Color3,
-    UniversalCamera,
-    WebXRDefaultExperience,
-    BoundingBox,
-    Light,
-    WebXRControllerPointerSelection,
-    Ray,
-    AbstractMesh,
-    PointerDragBehavior 
-} from "@babylonjs/core";
-import { createCylinder } from "./LoadCylinder";
+import { Scene } from '@babylonjs/core/scene';
+import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
+
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
+import { Engine } from '@babylonjs/core/Engines/engine';
+import { Sound } from '@babylonjs/core/Audio/sound';
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Light } from "@babylonjs/core/Lights/light";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { Ray } from "@babylonjs/core/Culling/ray";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { checkIfDebug } from "./utils";
+import { createCylinder } from "./LoadCylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
+
 // import { } from "babylonjs";
 
 
@@ -115,7 +114,7 @@ class App {
             let xrOptions = {
                 floorMeshes: floorMesh
             }
-            xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+            WebXRDefaultExperience.CreateAsync(scene,xrOptions);
             // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
             // controllerFeature.displayLaserPointer = false;
             // console.log(xrCamera.baseExperience.featuresManager.);
