@@ -80,9 +80,9 @@ class App {
                         if (squeezeComponent.pressed) {
                             controller.getWorldPointerRayToRef(ray, true);
                             let pickingInfo = scene.pickWithRay(ray);
-                            if (pickingInfo.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
+                            if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
                                 cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
-                                gotSomething = cylinder.getBehaviorByName('PointerDrag');
+                                gotSomething = cylinder?.getBehaviorByName('PointerDrag');
                                 if (!gotSomething.dragging) {
                                     console.log("starting the drag");
                                     gotSomething.startDrag();
