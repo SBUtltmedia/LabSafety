@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { splitVendorChunkPlugin } from 'vite'
 // https://vitejs.dev/config/
 export default defineConfig({
+  base:"",
   plugins: [splitVendorChunkPlugin()],
   server: {
     port: 3443
