@@ -15,6 +15,7 @@ import {
     WebXRControllerPointerSelection,
     Ray,
     AbstractMesh,
+    PointerDragBehavior 
 } from "@babylonjs/core";
 import { createCylinder } from "./LoadCylinder";
 import { checkIfDebug } from "./utils";
@@ -24,7 +25,7 @@ import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
-import { PointerDragBehavior } from "babylonjs";
+// import { } from "babylonjs";
 
 
 class App {
@@ -44,8 +45,8 @@ class App {
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
-        ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" } = {}) {
-            return { fileName, callback, root, label }
+        ].map(function (model) {        
+            return Object.assign({}, { fileName:"LabBench.glb", root:"./models/", callback: defaultCallBack, label:"NoLabel" },model )
         })
         createScene().then(processScene); //Can be turn back on if Z axis gets messed up
 

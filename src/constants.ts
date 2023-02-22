@@ -7,7 +7,7 @@ export const FADE_IN_OUT_TIME = 300;  // milliseconds
 export const POUR_TIME = 2000;  // milliseconds
 export const ROTATION_RATE = 0.1;  // velocity factor
 export const MAX_POURING_DISTANCE = 0.5;
-export const TIME_UNTIL_FADE = 6000;  // milliseconds
+export const TIME_UNTIL_FADE = 50;  // milliseconds
 export const NUMBER_OF_CYLINDERS = 3
 
 export const FAIL_SOUND_PATH = `${rootPath}sound/mi_explosion_03_hpx.mp3`;
