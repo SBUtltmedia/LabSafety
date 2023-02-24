@@ -1,30 +1,30 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import {
-    Engine,
-    Scene,
-    SceneLoader,
-    Vector3,
-    HemisphericLight,
-    Mesh,
-    Color3,
-    UniversalCamera,
-    WebXRDefaultExperience,
-    BoundingBox,
-    Light,
-    WebXRControllerPointerSelection,
-    Ray,
-    AbstractMesh,
-} from "@babylonjs/core";
-import { createCylinder } from "./LoadCylinder";
+import { Scene } from '@babylonjs/core/scene';
+import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
+
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
+import { Engine } from '@babylonjs/core/Engines/engine';
+import { Sound } from '@babylonjs/core/Audio/sound';
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Light } from "@babylonjs/core/Lights/light";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { Ray } from "@babylonjs/core/Culling/ray";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { checkIfDebug } from "./utils";
+import { createCylinder } from "./LoadCylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
-import { PointerDragBehavior } from "babylonjs";
+
+// import { } from "babylonjs";
 
 
 class App {
@@ -44,8 +44,8 @@ class App {
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
-        ].map(function ({ fileName = "LabBench.glb", root = "./models/", callback = defaultCallBack, label = "NoLabel" } = {}) {
-            return { fileName, callback, root, label }
+        ].map(function (model) {
+            return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
         createScene().then(processScene); //Can be turn back on if Z axis gets messed up
 
@@ -81,9 +81,9 @@ class App {
                             console.log("HEY SHOULD PICK UP");
                             ray.length = 0.25;
                             let pickingInfo = scene.pickWithRay(ray);
-                            if (pickingInfo.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
+                            if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
                                 cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
-                                gotSomething = cylinder.getBehaviorByName('PointerDrag');
+                                gotSomething = cylinder?.getBehaviorByName('PointerDrag');
                                 if (!gotSomething.dragging) {
                                     console.log("starting the drag");
                                     gotSomething.startDrag();

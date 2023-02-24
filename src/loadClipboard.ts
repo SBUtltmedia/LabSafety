@@ -1,5 +1,10 @@
-import { AbstractMesh, Mesh, Scene, Vector3, WebXRDefaultExperience } from "@babylonjs/core";
-import FlyToCameraBehavior from "./FlyToCameraBehavior";
+
+// import FlyToCameraBehavior from "./FlyToCameraBehavior";
+
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Scene } from "@babylonjs/core/scene";
 
 /**
  * 

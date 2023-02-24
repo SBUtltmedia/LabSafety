@@ -1,4 +1,6 @@
-import { BoundingBoxGizmo, Color3 } from "@babylonjs/core";
+import { BoundingBoxGizmo } from "@babylonjs/core/Gizmos/boundingBoxGizmo";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+
 
 export function defaultCallBack(result) {
     var gizmo = new BoundingBoxGizmo(Color3.FromHexString("#0984e3"))
