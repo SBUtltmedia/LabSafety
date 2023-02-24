@@ -78,6 +78,8 @@ class App {
                         const controllerMesh = motionController.rootMesh;
                         if (squeezeComponent.pressed) {
                             controller.getWorldPointerRayToRef(ray, true);
+                            console.log("HEY SHOULD PICK UP");
+                            ray.length = 0.25;
                             let pickingInfo = scene.pickWithRay(ray);
                             if (pickingInfo.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
                                 cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
@@ -85,6 +87,7 @@ class App {
                                 if (!gotSomething.dragging) {
                                     console.log("starting the drag");
                                     gotSomething.startDrag();
+                                    //console.log(gotSomething.currentDraggingPointerId);
                                 }
                             }
                         } else {
@@ -115,6 +118,7 @@ class App {
                 floorMeshes: floorMesh
             }
             xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+            xrCamera.pointerSelection.detach();
             // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
             // controllerFeature.displayLaserPointer = false;
             // console.log(xrCamera.baseExperience.featuresManager.);
