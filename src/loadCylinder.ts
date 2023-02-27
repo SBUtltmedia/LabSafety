@@ -83,7 +83,7 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
         const cylinderOpacity = getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!;
         const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
         const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y + 0.00001;
-        base.position.y = tableBoundingBox.maximumWorld.y + cylinderVerticalOffset;
+        base.position.y = tableBoundingBox.maximumWorld.y + cylinderVerticalOffset + .5;
         //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
         base.position.x = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
         base.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
@@ -147,6 +147,7 @@ function addDragCollision(mesh: Mesh, originalX: number, originalY: number, orig
     });
     pointerDragBehavior.useObjectOrientationForDragging = false;
     //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
+    //pointerDragBehavior.dragButtons = [0,1,2]
     pointerDragBehavior.moveAttached = false
     pointerDragBehavior.onDragStartObservable.add(() => {
         if (thisInterval) {
