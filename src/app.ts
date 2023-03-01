@@ -7,12 +7,12 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
-import { Sound } from '@babylonjs/core/Audio/sound';
-import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+// import { Sound } from '@babylonjs/core/Audio/sound';
+// import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Light } from "@babylonjs/core/Lights/light";
-import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { Ray } from "@babylonjs/core/Culling/ray";
+// import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+// import { Ray } from "@babylonjs/core/Culling/ray";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { checkIfDebug } from "./utils";
@@ -20,27 +20,30 @@ import { createCylinder } from "./LoadCylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
+import {addWebXR} from "./addWebXR";
+import {addXRBehaviors} from "./addXRBehaviors";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { InputManager } from "@babylonjs/core/Inputs/scene.inputManager";
-import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { MotionControllerWithGrab } from "./constants";
+// import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+// import { InputManager } from "@babylonjs/core/Inputs/scene.inputManager";
+// import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
+// import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { MotionControllerWithGrab, sop } from "./constants";
+// import { AssetsManager } from "@babylonjs/core";
+
 
 // import { } from "babylonjs";
 
 
 class App {
+    handAnimation: any;
+    sop: SOP;
     constructor() {
-        let xrCamera: WebXRDefaultExperience;
-        let sop = new SOP("", "", [{ next: "CtoA", label: "BtoC" },
-        { next: "complete", label: "CtoA" },
-        ]);
-        const models = [
+
+        this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
-            { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => createRoom(mesh), "label": "floor" },
+            { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
@@ -52,211 +55,144 @@ class App {
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
-        createScene().then(processScene); //Can be turn back on if Z axis gets messed up
-
-        async function processScene(scene: Scene) {
-            let camera = (scene.getCameraByName('camera') as UniversalCamera);
-            let light: Light = scene.getLightByName('light1');
-            //light.intensity = 1;
-            camera.speed = 0.16;
-            let cameraFadeIn = setInterval(() => {
-                if (light.intensity >= 1) {
-                    clearInterval(cameraFadeIn);
-                } else {
-                    light.intensity += 0.10;
-                }
-            }, 60)
-            await addWebXR(scene);
-            const clipboard = scene.getMeshByName('clipboard');
-            if (xrCamera) {
-                const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
-                clipboard.addBehavior(flyToCamera);
-            }
-            postSceneCylinder(scene, sop);
-            let cylinder: AbstractMesh;
-            let gotSomething: PointerDragBehavior;
-            xrCamera.input.onControllerAddedObservable.add(controller => {
-                controller.onMotionControllerInitObservable.add(motionController => {
-                    (motionController as MotionControllerWithGrab).handID = motionController.handedness;
-                    //console.log((motionController as MotionControllerWithGrab).handID);
-                    let currentHand = (motionController as MotionControllerWithGrab);
-                    let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
-                    controller.getWorldPointerRayToRef(ray);
-                    // let sphereCollider = MeshBuilder.CreateSphere("sphere", { diameter: 0.1 }, scene);
-                    // sphereCollider.position = ray.origin;
-                    //const controllerMesh = motionController.rootMesh;
-                    //controllerMesh.addChild(sphereCollider, false);
-                    const squeezeComponent = motionController.getComponentOfType('squeeze')!;
-                    // scene.onBeforeRenderObservable.add(function () {
-                    //     //console.log(((motionController as MotionControllerWithGrab).grabbed));
-                    //     //let currentPos = ray.origin;
-                    //     //let currentMoveDelta = (motionController as MotionControllerWithGrab).moveDelta || ray.origin;
-                    //     //console.log((motionController as MotionControllerWithGrab));
-                    //     //motionController.moveDelta = new Vector3(0,1,2);
-                    //     //(motionController as MotionControllerWithGrab).moveDelta = new Vector3(0, 0, 1)//currentPos.subtract(currentMoveDelta);
-                    //     //console.log((motionController as MotionControllerWithGrab).moveDelta);
-                    //     //console.log(currentHand.handID);
-                    // });
-                    squeezeComponent.onButtonStateChangedObservable.add(() => {
-                        if (squeezeComponent.pressed && !currentHand.grabbed) {
-                            console.log("pressed")
-                            currentHand.grabbed = true;
-                            currentHand.meshGrabbed = scene.getMeshByName('pivot-Cylinder-A');
-                            controller.getWorldPointerRayToRef(ray);
-                            //ray.length = 0.25;
-                            let pickingInfo = scene.pickWithRay(ray);
-                            let rayHelper = new RayHelper(ray);
-                            rayHelper.show(scene);
-
-                            if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
-                                cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
-                                gotSomething = cylinder?.getBehaviorByName('PointerDrag');
-                                console.log("gotCylinder");
-                                if (!gotSomething.dragging) {
-
-                                    scene.onBeforeRenderObservable.add(function () {
-                                        let getOldPostion = currentHand.lastPosition;
-                                        console.log(getOldPostion);
-                                        if (getOldPostion) {
-                                            controller.getWorldPointerRayToRef(ray);
-                                            let getNewPosition = ray.origin;
-                                            if (Math.random() > 0.9) {
-                                                //console.log(getNewPosition.subtract(getOldPostion))
-                                                console.log(ray.origin);
-                                            }
-                                            cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion));
-                                        }
-                                        currentHand.lastPosition = Object.assign({}, ray.origin);
-
-                                    })
-                                    //console.log("raypick")
-                                    //console.log(pickingInfo);
-
-                                    //scene.simulatePointerDown(pickingInfo);
-                                    //gotSomething.startDrag(undefined, ray, cylinder.position);
-                                    //console.log(gotSomething.currentDraggingPointerId);
-                                }
-
-                            }
-                        } else {
-                            if (cylinder && gotSomething.dragging) {
-                                gotSomething.releaseDrag();
-                                cylinder = null;
-                                gotSomething = null;
-                            }
-                            currentHand.grabbed = false;
-                            currentHand.meshGrabbed = undefined;
-                        }
-                    })
-                })
-            })
-        }
-        async function addWebXR(scene: Scene) {
-            const wantedCollisions = [
-                'WallsandFloor',
-                'WallsAndFloor.001',
-            ]
-            const floorMesh = []
-            for (let getStringMesh of wantedCollisions) {
-                console.log(getStringMesh);
-                const getCollidableMesh: Mesh = scene.getMeshByName(getStringMesh) as Mesh;
-                if (getCollidableMesh) {
-                    floorMesh.push(getCollidableMesh);
-                }
-            }
-            let xrOptions = {
-                floorMeshes: floorMesh
-            }
-            xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
-            xrCamera.pointerSelection.detach();
-            // const controllerFeature = xrCamera.baseExperience.featuresManager.enableFeature(WebXRControllerPointerSelection.Name, "latest")
-            // controllerFeature.displayLaserPointer = false;
-            // console.log(xrCamera.baseExperience.featuresManager.);
-            //enableXRGrab(xr.input);
-        }
-        function createRoom(mesh: Mesh[]) {
-            //Allows us to turn on and off what meshes to add collision to
-            const wantedCollisions = [
-                'WallsandFloor',
-                'WallsAndFloor.001',
-                'Table',
-                'Roof',
-                'Countertop',
-                'Walls',
-            ]
-            let scene: Scene, camera: UniversalCamera;
-            for (let getStringMesh of wantedCollisions) {
-                const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh)!;
-                if (getCollidableMesh) {
-                    getCollidableMesh.checkCollisions = true;
-                    if (getCollidableMesh.name === 'Table') {
-                        const tableBoundingBox: BoundingBox = getCollidableMesh.getBoundingInfo().boundingBox;
-                        const cameraXPosition = tableBoundingBox.center.x;
-                        scene = getCollidableMesh.getScene();
-                        camera = (scene.getCameraByName('camera') as UniversalCamera);
-                        camera.position.x = cameraXPosition - 0.7;
-                    }
-                }
-            }
-            //Set the speed here so we have the room loaded before the user can move around.
-        }
-
-        function createScene() {
-            return new Promise((finishedAllModels,) => {
-                var canvas = document.getElementById('canvas') as HTMLCanvasElement
-                var engine = new Engine(canvas, true, { stencil: true });
-                var scene = new Scene(engine);
-                //scene.gravity.y = -0.01
-                scene.collisionsEnabled = true;
-                window.addEventListener("resize", function () {
-                    engine.resize();
-                });
-                checkIfDebug(scene);
-                const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
-                camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
-                camera.attachControl(canvas, true);
-                camera.applyGravity = true;
-                camera.minZ = 0.0;  // To prevent clipping through near meshes
-                camera.speed = 0;
-                camera.checkCollisions = true;
-                camera.keysUp.push(87);  // W
-                camera.keysDown.push(83);  // S
-                camera.keysLeft.push(65);  // A
-                camera.keysRight.push(68);  // D
-                var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-                light1.intensity = 0;
-                Promise.all(models.map((model) => {
-                    return new Promise((resolve,) =>
-                        SceneLoader.ImportMesh('', model["root"], model.fileName, scene, function (container) {
-                            model["mesh"] = container
-                            resolve(container)
-                        }))
-                })).then(() => {
-                    models.map((model) => {
-                        //console.log(model)
-                        model["callback"](model["mesh"])
-                        finishedAllModels(scene);
-                    })
-
-                });
-
-                window.addEventListener("keydown", (ev) => {
-                    // Shift+Ctrl+Alt+I
-                    if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-                        if (scene.debugLayer.isVisible()) {
-                            scene.debugLayer.hide();
-                        } else {
-                            scene.debugLayer.show();
-                        }
-                    }
-                });
-                // run the main render loop
-                engine.runRenderLoop(() => {
-                    scene.render();
-                });
-            });
-        }
+        this.createScene().then(this.processScene);
 
     }
+    //Can be turn back on if Z axis gets messed up
+
+    async processScene(scene: Scene) {
+
+       
+
+        let camera = (scene.getCameraByName('camera') as UniversalCamera);
+        let light: Light = scene.getLightByName('light1');
+        let xrCamera: any = {};
+        //light.intensity = 1;
+        camera.speed = 0.16;
+        let cameraFadeIn = setInterval(() => {
+            if (light.intensity >= 1) {
+                clearInterval(cameraFadeIn);
+            } else {
+                light.intensity += 0.10;
+            }
+        }, 60)
+        const wantedCollisions = [
+            'WallsandFloor',
+            'WallsAndFloor.001',
+        ]
+        const floorMesh = []
+        for (let getStringMesh of wantedCollisions) {
+            console.log(getStringMesh);
+            const getCollidableMesh: Mesh = scene.getMeshByName(getStringMesh) as Mesh;
+            if (getCollidableMesh) {
+                floorMesh.push(getCollidableMesh);
+            }
+        }
+        let xrOptions = {
+            floorMeshes: floorMesh
+        }
+        xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+      addWebXR(scene,xrCamera).then(console.log);
+        console.log("XR cam: ", xrCamera);
+        const clipboard = scene.getMeshByName('clipboard');
+        if (xrCamera) {
+            const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
+            clipboard.addBehavior(flyToCamera);
+        }
+        postSceneCylinder(scene, sop);
+        addXRBehaviors(scene, xrCamera )
+    
+
+        console.log(xrCamera);
+    }
+
+
+    createRoom(mesh: Mesh[]) {
+        //Allows us to turn on and off what meshes to add collision to
+        const wantedCollisions = [
+            'WallsandFloor',
+            'WallsAndFloor.001',
+            'Table',
+            'Roof',
+            'Countertop',
+            'Walls',
+        ]
+        let scene: Scene, camera: UniversalCamera;
+        for (let getStringMesh of wantedCollisions) {
+            const getCollidableMesh: Mesh = mesh.find(mesh => mesh.name === getStringMesh)!;
+            if (getCollidableMesh) {
+                getCollidableMesh.checkCollisions = true;
+                if (getCollidableMesh.name === 'Table') {
+                    const tableBoundingBox: BoundingBox = getCollidableMesh.getBoundingInfo().boundingBox;
+                    const cameraXPosition = tableBoundingBox.center.x;
+                    scene = getCollidableMesh.getScene();
+                    camera = (scene.getCameraByName('camera') as UniversalCamera);
+                    camera.position.x = cameraXPosition - 0.7;
+                }
+            }
+        }
+        //Set the speed here so we have the room loaded before the user can move around.
+    }
+
+    createScene() {
+        let models = this.models;
+        console.log(models);
+        return new Promise((finishedAllModels,) => {
+
+            var canvas = document.getElementById('canvas') as HTMLCanvasElement
+            var engine = new Engine(canvas, true, { stencil: true });
+            var scene = new Scene(engine);
+            //scene.gravity.y = -0.01
+            scene.collisionsEnabled = true;
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+            checkIfDebug(scene);
+            const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
+            camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
+            camera.attachControl(canvas, true);
+            camera.applyGravity = true;
+            camera.minZ = 0.0;  // To prevent clipping through near meshes
+            camera.speed = 0;
+            camera.checkCollisions = true;
+            camera.keysUp.push(87);  // W
+            camera.keysDown.push(83);  // S
+            camera.keysLeft.push(65);  // A
+            camera.keysRight.push(68);  // D
+            var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
+            light1.intensity = 0;
+            Promise.all(this.models.map((model) => {
+                return new Promise((resolve,) =>
+                    SceneLoader.ImportMesh('', model["root"], model.fileName, scene, function (container) {
+                        model["mesh"] = container
+                        resolve(container)
+                    }))
+            })).then(() => {
+                this.models.map((model) => {
+                    //console.log(model)
+                    model["callback"](model["mesh"])
+                    finishedAllModels(scene);
+                })
+
+            });
+
+            window.addEventListener("keydown", (ev) => {
+                // Shift+Ctrl+Alt+I
+                if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+                    if (scene.debugLayer.isVisible()) {
+                        scene.debugLayer.hide();
+                    } else {
+                        scene.debugLayer.show();
+                    }
+                }
+            });
+            // run the main render loop
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
+        });
+    }
+
 }
+
 new App();

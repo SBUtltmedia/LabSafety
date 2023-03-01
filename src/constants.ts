@@ -1,8 +1,9 @@
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
+import SOP from "./SOP";
 
-export const rootPath = document.location.href.includes('github') ? '' : '../';
+export const rootPath = ''
 export const RENDER_CANVAS_ID = 'canvas';
 export const MAX_XR_GRAB_DISTANCE = 0.25;  // meters
 export const BASE_FPS = 60;
@@ -27,7 +28,9 @@ export const CYLINDER_B_NAME = 'cylinder-b';
 export const CYLINDER_C_NAME = 'cylinder-c';
 
 export const PLACARD_MESH_NAME = 'placard';
-
+export const sop = new SOP("", "", [{ next: "CtoA", label: "BtoC" },
+{ next: "complete", label: "CtoA" },
+]);
 export interface MotionControllerWithGrab extends WebXRAbstractMotionController {
     //hand: {
     grabbed: boolean,

@@ -65,7 +65,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
         let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
         let rotationFlag = false;
         (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
-            console.log("DRAGGING");
+ 
             const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             let hitDetected = false;
             for (let singleMesh of filteredMeshes) {
