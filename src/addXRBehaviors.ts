@@ -13,7 +13,7 @@ export function addXRBehaviors(scene:Scene,xrCamera:any,handAnimations:any){
 xrCamera.input.onControllerAddedObservable.add(controller => {
     controller.onMotionControllerInitObservable.add(motionController => {
         (motionController as MotionControllerWithGrab).handID = motionController.handedness;
-        //console.log((motionController as MotionControllerWithGrab).handID);
+        
         let currentHand = (motionController as MotionControllerWithGrab);
         let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
         controller.getWorldPointerRayToRef(ray);
@@ -36,7 +36,7 @@ xrCamera.input.onControllerAddedObservable.add(controller => {
 
             if (squeezeComponent.pressed && !currentHand.grabbed) {
                 console.log("pressed")
-                      scene.animationGroups[1].play();
+                // scene.animationGroups[7].start(false, 1, 1, item.value*10, false);
                 currentHand.grabbed = true;
                 currentHand.meshGrabbed = scene.getMeshByName('pivot-Cylinder-A');
                 controller.getWorldPointerRayToRef(ray);
@@ -44,7 +44,6 @@ xrCamera.input.onControllerAddedObservable.add(controller => {
                 let pickingInfo = scene.pickWithRay(ray);
                 let rayHelper = new RayHelper(ray);
                 rayHelper.show(scene);
-
                 if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
                     cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
                     gotSomething = cylinder?.getBehaviorByName('PointerDrag');
@@ -76,10 +75,17 @@ xrCamera.input.onControllerAddedObservable.add(controller => {
 
                 }
             } else {
+                console.log("Controller: ", (motionController as MotionControllerWithGrab).handID);
                 if (cylinder && gotSomething.dragging) {
                     gotSomething.releaseDrag();
                     cylinder = null;
                     gotSomething = null;
+                }
+                console.log("ITEM: ", item);
+                if ((motionController as MotionControllerWithGrab).handID === "left") {
+                    scene.animationGroups[0].goToFrame(item.value*10);
+                } else if ((motionController as MotionControllerWithGrab).handID === "right") {
+                    scene.animationGroups[7].goToFrame(item.value*10);
                 }
                 currentHand.grabbed = false;
                 currentHand.meshGrabbed = undefined;

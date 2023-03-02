@@ -39,6 +39,7 @@ import { MotionControllerWithGrab, sop } from "./constants";
 class App {
     handAnimation: any;
     sop: SOP;
+    models: any;
     constructor() {
 
         this.models = [
@@ -89,21 +90,25 @@ class App {
             }
         }
         let xrOptions = {
-            floorMeshes: floorMesh
+            floorMeshes: floorMesh,
+            inputOptions: {
+                doNotLoadControllerMeshes: true
+            }
         }
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
-      addWebXR(scene,xrCamera).then(console.log);
-        console.log("XR cam: ", xrCamera);
+      addWebXR(scene,xrCamera).then((handAnimations)=>
+      {
         const clipboard = scene.getMeshByName('clipboard');
         if (xrCamera) {
             const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
             clipboard.addBehavior(flyToCamera);
         }
         postSceneCylinder(scene, sop);
-        addXRBehaviors(scene, xrCamera )
-    
+        addXRBehaviors(scene, xrCamera,handAnimations)
 
-        console.log(xrCamera);
+
+      });
+      
     }
 
 
@@ -142,6 +147,7 @@ class App {
             var canvas = document.getElementById('canvas') as HTMLCanvasElement
             var engine = new Engine(canvas, true, { stencil: true });
             var scene = new Scene(engine);
+            scene.debugLayer.show();
             //scene.gravity.y = -0.01
             scene.collisionsEnabled = true;
             window.addEventListener("resize", function () {
