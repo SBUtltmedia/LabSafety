@@ -34,6 +34,20 @@ xrCamera.input.onControllerAddedObservable.add(controller => {
         // });
         squeezeComponent.onButtonStateChangedObservable.add((item) => {
 
+            if (squeezeComponent.pressed) {
+                if ((motionController as MotionControllerWithGrab).handID === "left") {
+                    scene.animationGroups[0].goToFrame(item.value*10);
+                } else if ((motionController as MotionControllerWithGrab).handID === "right") {
+                    scene.animationGroups[7].goToFrame(item.value*10);
+                }                
+            } else {
+                if ((motionController as MotionControllerWithGrab).handID === "left") {
+                    scene.animationGroups[0].goToFrame(1);
+                } else if ((motionController as MotionControllerWithGrab).handID === "right") {
+                    scene.animationGroups[7].goToFrame(1);
+                }                
+            }
+
             if (squeezeComponent.pressed && !currentHand.grabbed) {
                 console.log("pressed")
                 // scene.animationGroups[7].start(false, 1, 1, item.value*10, false);
@@ -82,11 +96,6 @@ xrCamera.input.onControllerAddedObservable.add(controller => {
                     gotSomething = null;
                 }
                 console.log("ITEM: ", item);
-                if ((motionController as MotionControllerWithGrab).handID === "left") {
-                    scene.animationGroups[0].goToFrame(item.value*10);
-                } else if ((motionController as MotionControllerWithGrab).handID === "right") {
-                    scene.animationGroups[7].goToFrame(item.value*10);
-                }
                 currentHand.grabbed = false;
                 currentHand.meshGrabbed = undefined;
             }
