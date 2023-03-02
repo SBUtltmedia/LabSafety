@@ -104,6 +104,8 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
 
 
     const cylinderLabel: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "Label")!;
+    const cylinderLabel2: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "LabelBack")!;
+
     //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
     //cylinderLabelMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
     //cylinderLabel.material = cylinderLabelMaterial;
@@ -113,6 +115,7 @@ export const createCylinder = (cylinderMesh: Mesh, i: number, name: string, colo
     const material: StandardMaterial = new StandardMaterial("Mat", scene);
     material.diffuseTexture = texture;
     cylinderLabel.material = material;
+    cylinderLabel2.material = material;
     const font: string = "bold 220px monospace";
     texture.drawText(cylinderMesh.name.split("-")[1].toUpperCase(), 65, 185, font, "black", "white");
     //placard.addChild(labelPlacard);
