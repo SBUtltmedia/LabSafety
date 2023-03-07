@@ -28,6 +28,7 @@ import { InputManager } from "@babylonjs/core/Inputs/scene.inputManager";
 import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { MotionControllerWithGrab } from "./constants";
+import { Observer } from "@babylonjs/core/Misc/observable";
 
 // import { } from "babylonjs";
 
@@ -76,34 +77,22 @@ class App {
             let cylinder: AbstractMesh;
             let gotSomething: PointerDragBehavior;
             xrCamera.input.onControllerAddedObservable.add(controller => {
+                console.log(controller);
                 controller.onMotionControllerInitObservable.add(motionController => {
+                    console.log(motionController);
                     (motionController as MotionControllerWithGrab).handID = motionController.handedness;
                     //console.log((motionController as MotionControllerWithGrab).handID);
                     let currentHand = (motionController as MotionControllerWithGrab);
                     let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
                     controller.getWorldPointerRayToRef(ray);
-                    // let sphereCollider = MeshBuilder.CreateSphere("sphere", { diameter: 0.1 }, scene);
-                    // sphereCollider.position = ray.origin;
-                    //const controllerMesh = motionController.rootMesh;
-                    //controllerMesh.addChild(sphereCollider, false);
                     const squeezeComponent = motionController.getComponentOfType('squeeze')!;
-                    // scene.onBeforeRenderObservable.add(function () {
-                    //     //console.log(((motionController as MotionControllerWithGrab).grabbed));
-                    //     //let currentPos = ray.origin;
-                    //     //let currentMoveDelta = (motionController as MotionControllerWithGrab).moveDelta || ray.origin;
-                    //     //console.log((motionController as MotionControllerWithGrab));
-                    //     //motionController.moveDelta = new Vector3(0,1,2);
-                    //     //(motionController as MotionControllerWithGrab).moveDelta = new Vector3(0, 0, 1)//currentPos.subtract(currentMoveDelta);
-                    //     //console.log((motionController as MotionControllerWithGrab).moveDelta);
-                    //     //console.log(currentHand.handID);
-                    // });
+                    let pickUpObserver;
                     squeezeComponent.onButtonStateChangedObservable.add(() => {
-                        if (squeezeComponent.pressed && !currentHand.grabbed) {
-                            console.log("pressed")
+                        if (squeezeComponent.pressed) {
                             currentHand.grabbed = true;
                             currentHand.meshGrabbed = scene.getMeshByName('pivot-Cylinder-A');
                             controller.getWorldPointerRayToRef(ray);
-                            //ray.length = 0.25;
+                            ray.length = 0.25;
                             let pickingInfo = scene.pickWithRay(ray);
                             let rayHelper = new RayHelper(ray);
                             rayHelper.show(scene);
@@ -111,24 +100,18 @@ class App {
                             if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
                                 cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
                                 gotSomething = cylinder?.getBehaviorByName('PointerDrag');
-                                console.log("gotCylinder");
-                                if (!gotSomething.dragging) {
+                                if (!gotSomething.dragging && !pickUpObserver) {
 
-                                    scene.onBeforeRenderObservable.add(function () {
+                                    pickUpObserver = setInterval(function () {
                                         let getOldPostion = currentHand.lastPosition;
-                                        console.log(getOldPostion);
+                                        controller.getWorldPointerRayToRef(ray);
                                         if (getOldPostion) {
-                                            controller.getWorldPointerRayToRef(ray);
                                             let getNewPosition = ray.origin;
-                                            if (Math.random() > 0.9) {
-                                                //console.log(getNewPosition.subtract(getOldPostion))
-                                                console.log(ray.origin);
-                                            }
                                             cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion));
                                         }
                                         currentHand.lastPosition = Object.assign({}, ray.origin);
-
-                                    })
+                                        pickingInfo = scene.pickWithRay(ray);
+                                    }, 1)
                                     //console.log("raypick")
                                     //console.log(pickingInfo);
 
@@ -139,13 +122,20 @@ class App {
 
                             }
                         } else {
+                            if (currentHand.grabbed) {
+                                currentHand.grabbed = false;
+                                currentHand.meshGrabbed = undefined;
+                                currentHand.lastPosition = undefined;
+                            }
                             if (cylinder && gotSomething.dragging) {
                                 gotSomething.releaseDrag();
                                 cylinder = null;
                                 gotSomething = null;
                             }
-                            currentHand.grabbed = false;
-                            currentHand.meshGrabbed = undefined;
+                            if (pickUpObserver) {
+                                clearInterval(pickUpObserver)
+                                pickUpObserver = undefined;
+                            }
                         }
                     })
                 })
