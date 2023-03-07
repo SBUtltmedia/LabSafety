@@ -147,14 +147,14 @@ class App {
             var canvas = document.getElementById('canvas') as HTMLCanvasElement
             var engine = new Engine(canvas, true, { stencil: true });
             var scene = new Scene(engine);
-            scene.debugLayer.show();
+  
             //scene.gravity.y = -0.01
             scene.collisionsEnabled = true;
             window.addEventListener("resize", function () {
                 engine.resize();
             });
             checkIfDebug(scene);
-            const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
+            const camera = new UniversalCamera('camera', new Vector3(0, 1.84, 1.134), scene);
             camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
             camera.attachControl(canvas, true);
             camera.applyGravity = true;
