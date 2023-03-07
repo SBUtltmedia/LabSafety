@@ -54,6 +54,11 @@ export function addWebXR(scene: Scene,xrCamera:any) {
      xrCamera.input.onControllerAddedObservable.add((webXrInputSource) => {
         let handedness=webXrInputSource.inputSource.handedness;
         let controllerMesh = models[lookupHandModel[handedness]].parent.parent//.createInstance(`${handedness}Controller`);
+        
+        models[lookupHandModel[handedness]].isPickable = false;
+
+        console.log(controllerMesh);
+
         let sign =((Object.keys(models).indexOf(lookupHandModel[handedness]))-1)*2-1;
         console.log( models[lookupHandModel[handedness]])
         models[lookupHandModel[handedness]].rotation.y = Math.PI*sign;
