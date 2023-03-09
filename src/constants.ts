@@ -40,3 +40,4 @@ export interface MotionControllerWithGrab extends WebXRAbstractMotionController 
     lastPosition: Vector3,
     //}
 }
+export  const  lookupHandModel={"right":"handR2320","left":"handL2320"}

@@ -1,7 +1,7 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
-
+import {lookupHandModel} from './constants';
 export function addWebXR(scene: Scene,xrCamera:any) {
 
     let handAnimations;
@@ -12,7 +12,7 @@ export function addWebXR(scene: Scene,xrCamera:any) {
     const MODEL_LEFT_FILENAME = "left.glb";
     const MODEL_RIGHT_FILENAME = "right.glb";
     var models = {};
-    let lookupHandModel={"right":"handR2320","left":"handL2320"}
+   
     const assetsManager = new AssetsManager(scene);
     assetsManager.addMeshTask("load left hand", "", MODEL_BASE_URL, MODEL_LEFT_FILENAME);
     assetsManager.addMeshTask("load right hand", "", MODEL_BASE_URL, MODEL_RIGHT_FILENAME);  

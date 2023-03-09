@@ -56,14 +56,20 @@ class App {
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
-        this.createScene().then(this.processScene);
+
+
+        this.createScene().then((scene: Scene) => {
+            let positions = {"pivot-Cylinder-A": scene.getMeshByName("pivot-Cylinder-A").position,
+                             "pivot-Cylinder-B": scene.getMeshByName("pivot-Cylinder-B").position,
+                             "pivot-Cylinder-C": scene.getMeshByName("pivot-Cylinder-C").position};
+
+            this.processScene(scene, positions);
+        });
 
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene) {
-
-       
+    async processScene(scene: Scene, positions: any) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
@@ -96,18 +102,19 @@ class App {
             }
         }
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
-      addWebXR(scene,xrCamera).then((handAnimations)=>
-      {
-        const clipboard = scene.getMeshByName('clipboard');
-        if (xrCamera) {
-            const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
-            clipboard.addBehavior(flyToCamera);
-        }
-        postSceneCylinder(scene, sop);
-        addXRBehaviors(scene, xrCamera,handAnimations)
+        addWebXR(scene,xrCamera).then((handAnimations)=>
+        {
+            const clipboard = scene.getMeshByName('clipboard');
+            if (xrCamera) {
+                const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
+                clipboard.addBehavior(flyToCamera);
+            }
+            console.log(this.models[2]);
+            postSceneCylinder(scene, sop);
+            addXRBehaviors(scene, xrCamera,handAnimations, positions)
 
 
-      });
+        });
       
     }
 
