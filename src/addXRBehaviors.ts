@@ -100,7 +100,6 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
                                     // console.log(getOldPostion);
                                     if (getOldPostion) {
                                         controller.getWorldPointerRayToRef(ray);
-                                        let getNewPosition = ray.origin;
                                       //  let curPos =Object.assign({},cylinder.position);
                                         cylinder.position = ray.origin;
                                        // cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion));
