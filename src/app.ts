@@ -16,7 +16,7 @@ import { Light } from "@babylonjs/core/Lights/light";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { checkIfDebug } from "./utils";
-import { createCylinder } from "./LoadCylinder";
+import { Cylinder } from "./Cylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
@@ -40,18 +40,19 @@ class App {
     handAnimation: any;
     sop: SOP;
     models: any;
+    cylinders:any;
     constructor() {
-
+        this.cylinders=[]
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
-            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 1, "Cylinder-A", new Color3(1, 0, 0)), "label": "Cylinder-A" },
-            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 2, "Cylinder-B", new Color3(0, 1, 0)), "label": "Cylinder-B" },
-            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => createCylinder(mesh[0], 3, "Cylinder-C", new Color3(0, 0, 1)), "label": "Cylinder-C" },
             { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))), "label": "Cylinder-A" },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))), "label": "Cylinder-B" },
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }            
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
@@ -59,17 +60,21 @@ class App {
 
 
         this.createScene().then((scene: Scene) => {
-            let positions = {"pivot-Cylinder-A": scene.getMeshByName("pivot-Cylinder-A").position,
-                             "pivot-Cylinder-B": scene.getMeshByName("pivot-Cylinder-B").position,
-                             "pivot-Cylinder-C": scene.getMeshByName("pivot-Cylinder-C").position};
+          let positions={}
+        for (let i of ["A","B","C"]){
+            positions[`pivot-Cylinder-${i}`] =Object.assign({},scene.getMeshByName(`pivot-Cylinder-${i}`).position);
 
-            this.processScene(scene, positions);
+        }
+
+          
+
+            this.processScene(scene, positions,this.cylinders);
         });
 
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene, positions: any) {
+    async processScene(scene: Scene, positions: any,cylinders:any) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
@@ -111,7 +116,7 @@ class App {
             }
             console.log(this.models[2]);
             postSceneCylinder(scene, sop);
-            addXRBehaviors(scene, xrCamera,handAnimations, positions)
+            addXRBehaviors(scene, xrCamera,handAnimations, positions,cylinders)
 
 
         });
@@ -147,8 +152,8 @@ class App {
     }
 
     createScene() {
-        let models = this.models;
-        console.log(models);
+       
+     
         return new Promise((finishedAllModels,) => {
 
             var canvas = document.getElementById('canvas') as HTMLCanvasElement
@@ -181,11 +186,13 @@ class App {
                         resolve(container)
                     }))
             })).then(() => {
+                let callbackResults= []
                 this.models.map((model) => {
-                    //console.log(model)
-                    model["callback"](model["mesh"])
+                   
+                    callbackResults.push(model["callback"](model["mesh"]))
                     finishedAllModels(scene);
                 })
+                let [a,b,c,...d]=callbackResults
 
             });
 

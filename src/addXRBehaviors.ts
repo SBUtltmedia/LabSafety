@@ -7,8 +7,9 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
 import {lookupHandModel} from './constants';
 import { MotionControllerWithGrab } from "./Constants";
+// import {fadeAndRespawn} from "./Cylinder"
 
-export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cylinderPos: any) { 
+export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cylinderPos: any,cylinders:any) { 
     let cylinder: AbstractMesh;
     let gotSomething: PointerDragBehavior;
     let observer;
@@ -31,7 +32,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
             currentHand.handID = motionController.handedness;
             
             let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
-            controller.getWorldPointerRayToRef(ray);
+           // controller.getWorldPointerRayToRef(ray);
             // let sphereCollider = MeshBuilder.CreateSphere("sphere", { diameter: 0.1 }, scene);
             // sphereCollider.position = ray.origin;
             //const controllerMesh = motionController.rootMesh;
@@ -48,125 +49,90 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
             //     //console.log((motionController as MotionControllerWithGrab).moveDelta);
             //     //console.log(currentHand.handID);
             // });
+            function dropped(grabbedObject,grabInterval){
 
+                currentHand.lastPosition = null;
+                clearInterval(grabInterval);
+                console.log("Dropped test tube");
+                currentHand.grabbed = false;
+                currentHand.meshGrabbed = undefined;
+                console.log("Current hand: ", currentHand);
+                console.log(grabbedObject)
+
+                console.log(cylinders);
+            
+                if (grabbedObject) {
+                    let currentCylinder= cylinders.find((aCylinder)=>{
+                        console.log(aCylinder, grabbedObject)
+                        let grabName = grabbedObject.name.split("-");
+                        return aCylinder.name==grabName[grabName.length - 1];
+                    })
+
+                    currentCylinder.fadeAndRespawn(100);
+                }
+                
+           //  grabbedObject.position = cylinderPos[cylinder.name];
+                grabbedObject = undefined;
+            
+            }
             [triggerComponent, squeezeComponent].forEach((component)=>{ 
                 component.onButtonStateChangedObservable.add((item) => {
-                    console.log(item)
-
-                    if(!component.pressed){
-                    
-                    }
+                            // @ts-ignore
+                    let handMesh= lookupHandModel[currentHand.handID]
+                    let grabSetInterval;
                     console.log("Trigger pressed: ", item.value)
                     let animationMap={"left": 0,"right": 7}
-                    let targetFrame;
+                    // @ts-ignore
                     let currentAnimation = scene.animationGroups[animationMap[currentHand.handID]]
                     console.log(currentAnimation) 
-                    if (item.value) {
-                        targetFrame = item.value*currentAnimation._to
+                    // @ts-ignore
+                    currentAnimation.goToFrame(item.value*(currentAnimation._to-1)+1);
+                    // @ts-ignore
+                    let grabbedCylinder = intersect(scene.getMeshByName(lookupHandModel[currentHand.handID]));
+                    if (item.value > 0) {
+                        currentHand.lastPosition =Object.assign({},ray.origin);
                     }
-                     else{
-                        targetFrame = 1; 
-                    }
-                    currentAnimation.goToFrame(targetFrame);
-                    
 
-                    if (item.value && !currentHand.grabbed) {
-                        if(!currentHand.lastPosition) {
-                             currentHand.lastPosition =Object.assign({},ray.origin);
-                        }
-
-                        console.log("Cylinder inside: ", cylinder)
-
-                        currentHand.grabbed = true;
-                        controller.getWorldPointerRayToRef(ray);
-
-                        console.log("Current hand: ", currentHand);
-                        
-                        let grabbedCylinder = intersect(scene.getMeshByName(lookupHandModel[currentHand.handID]));
-
+                    if (item.value > 0 && !currentHand.grabbed) {
                         if (grabbedCylinder) {
                             cylinder = grabbedCylinder;
+                            currentHand.meshGrabbed = cylinder;
+                            currentHand.grabbed = true;
+                            controller.getWorldPointerRayToRef(ray);
+                            currentHand.lastPosition = Object.assign({},ray.origin);
+    
+                            console.log("Current hand: ", currentHand);
+
                             let getOldPostion = currentHand.lastPosition;
 
                             let getNewPosition = ray.origin;
-                            // let sphereCollider = MeshBuilder.CreateSphere("sphere", { diameter: 0.1 }, scene);
-
-                            // sphereCollider.position = ray.origin;                        
-
+                     
                             if (getNewPosition != getOldPostion) {
+                           
                                 // observer = scene.onBeforeRenderObservable.add(function () {
-                                    observer = setInterval(() => {
-                                    let getOldPostion = currentHand.lastPosition;
+                                    grabSetInterval= setInterval(() => {
+
+                                    let getOldPostion = currentHand.lastPosition; 
                                     // console.log(getOldPostion);
-                                    if (getOldPostion) {
+                                  
                                         controller.getWorldPointerRayToRef(ray);
                                       //  let curPos =Object.assign({},cylinder.position);
-                                        cylinder.position = ray.origin;
-                                       // cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion));
-                                    }
+                                   // cylinder.position = ray.origin;
+                                   if(getOldPostion)  {cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion))} 
+                              
+                                    // @ts-ignore
+                                  if(!intersect(scene.getMeshByName(handMesh))){
+                                    console.log(handMesh,cylinder)
+                                    dropped(cylinder,grabSetInterval);
+                                  }
+                                
                                    currentHand.lastPosition = Object.assign({}, ray.origin);
                                 }, 10)
                             }
                         }
-
-
-                        // let pickingInfo = scene.pickWithRay(ray);
-                        // let rayHelper = new RayHelper(ray);
-                        // rayHelper.show(scene);
-
-                        // console.log(pickingInfo);
-                        // // If we pickup a cylinder
-                        // if (pickingInfo?.hit && pickingInfo.pickedMesh.name.includes('pivot-Cylinder')) {
-                        //     cylinder = scene.getMeshByName(pickingInfo.pickedMesh.name);
-                        //     currentHand.meshGrabbed = cylinder;
-
-                        //     console.log("Mesh grabbed: ", currentHand.meshGrabbed);
-                        //     console.log("Pressed: ", item.value);
-                        //     console.log("Grabbed: ", currentHand.grabbed);
-                        //     console.log("Got something: ", gotSomething);                    
-        
-
-                        //     console.log("grabbed cil: ", cylinder);
-
-                        //    // gotSomething = cylinder?.getBehaviorByName('PointerDrag');
-                        //   //  console.log("gotCylinder");
-                        //     let getNewPosition = ray.origin;
-                        //     // let sphereCollider = MeshBuilder.CreateSphere("sphere", { diameter: 0.1 }, scene);
-
-                        //     // sphereCollider.position = ray.origin;
-
-                        //     let getOldPostion = currentHand.lastPosition;
-
-                        //     if (getNewPosition != getOldPostion) {
-                        //         // observer = scene.onBeforeRenderObservable.add(function () {
-                        //             observer = setInterval(() => {
-                        //             let getOldPostion = currentHand.lastPosition;
-                        //             // console.log(getOldPostion);
-                        //             if (getOldPostion) {
-                        //                 controller.getWorldPointerRayToRef(ray);
-                        //                 let getNewPosition = ray.origin;
-                        //               //  let curPos =Object.assign({},cylinder.position);
-                        //                 cylinder.position =ray.origin;
-                        //                // cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion));
-                        //             }
-                        //            currentHand.lastPosition = Object.assign({}, ray.origin);
-                        //         }, 10)
-                        //     }
-                        // }
-                    } else if (!item.value) {
-                        // scene.onBeforeRenderObservable.remove(observer);
-                        // cylinder = undefined;
-                        currentHand.lastPosition = null;
-                        clearInterval(observer);
-                        console.log("Dropped test tube");
-                        currentHand.grabbed = false;
-                        currentHand.meshGrabbed = undefined;
-                        console.log("Current hand: ", currentHand);
-                        console.log(scene.getMeshByName("pivot-Cylinder-A").position)
-                        if (cylinder) {
-                            cylinder.position = cylinderPos[cylinder.name];
-                            cylinder = undefined;
-                        }
+                    } else if ((!item.value || !grabbedCylinder)) {
+                        console.log(handMesh,cylinder)
+                        dropped(cylinder,grabSetInterval);
                     }
                 })
             })
