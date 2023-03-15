@@ -1,7 +1,7 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
-import {lookupHandModel} from './constants';
+import {lookupHandModel} from './Constants';
 export function addWebXR(scene: Scene,xrCamera:any) {
 
     let handAnimations;

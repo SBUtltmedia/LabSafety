@@ -5,8 +5,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
-import {lookupHandModel} from './constants';
-import { MotionControllerWithGrab } from "./Constants";
+import { MotionControllerWithGrab, lookupHandModel } from "./Constants";
 // import {fadeAndRespawn} from "./Cylinder"
 
 export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cylinderPos: any,cylinders:any) { 

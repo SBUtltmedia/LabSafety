@@ -29,7 +29,7 @@ import FlyToCameraBehavior from "./FlyToCameraBehavior";
 // import { InputManager } from "@babylonjs/core/Inputs/scene.inputManager";
 // import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
 // import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { MotionControllerWithGrab, sop } from "./constants";
+import { MotionControllerWithGrab, sop } from "./Constants";
 // import { AssetsManager } from "@babylonjs/core";
 
 
@@ -107,6 +107,10 @@ class App {
             }
         }
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+
+        xrCamera.pointerSelection.displayLaserPointer = false;
+        xrCamera.pointerSelection.displaySelectionMesh = false;
+
         addWebXR(scene,xrCamera).then((handAnimations)=>
         {
             const clipboard = scene.getMeshByName('clipboard');
@@ -117,7 +121,6 @@ class App {
             console.log(this.models[2]);
             postSceneCylinder(scene, sop);
             addXRBehaviors(scene, xrCamera,handAnimations, positions,cylinders)
-
 
         });
       

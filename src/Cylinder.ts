@@ -132,7 +132,7 @@ export class Cylinder{
         highlightLayer.outerGlow = false;
         highlightLayer.isEnabled = false;
         getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
-        this.addDragCollision();
+        // this.addDragCollision();
     }
 
 
@@ -154,6 +154,7 @@ export class Cylinder{
         //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
         //pointerDragBehavior.dragButtons = [0,1,2]
         pointerDragBehavior.moveAttached = false
+
         pointerDragBehavior.onDragStartObservable.add(() => {
             if (thisInterval) {
                 clearTimeout(thisInterval);
