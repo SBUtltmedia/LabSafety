@@ -8,6 +8,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { Nullable } from "@babylonjs/core/types";
+
 export function postSceneCylinder(scene: Scene, sop: SOP) {
     scene.onBeforeRenderObservable.add(function () {
         let cylinderLetters = ['A', 'B', 'C'];
