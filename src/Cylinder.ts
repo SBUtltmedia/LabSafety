@@ -38,7 +38,7 @@ export class Cylinder{
         this.name=name;
         const scene: Scene = cylinderMesh.getScene();
         const table: AbstractMesh = scene.getMeshByName('Table')!;
-        let base: Mesh = MeshBuilder.CreateSphere(`pivot-Cylinder-${name}`, { diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 }, cylinderMesh.getScene());
+        let base: Mesh = MeshBuilder.CreateSphere(`pivot-Cylinder-${name}`, { segments: 2, diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 }, cylinderMesh.getScene());
         base.visibility = 0;
         cylinderMesh.name = name;
         cylinderMesh.parent = base;

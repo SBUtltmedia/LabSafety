@@ -15,10 +15,11 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
 
     function intersect(mesh) {
        for (let i of ["A", "B", "C"]){
+        
             let cylinder = scene.getMeshByName(`pivot-Cylinder-${i}`);
-        if (mesh.intersectsMesh(cylinder, false)) {
-            return cylinder;
-        }
+            if (mesh.intersectsMesh(cylinder, false)) {
+                return cylinder;
+            }
 
         }
         return false; 
@@ -60,17 +61,23 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
             [triggerComponent, squeezeComponent].forEach((component)=>{ 
                 component.onButtonStateChangedObservable.add((item) => {
                             // @ts-ignore
-                    let handMesh= lookupHandModel[currentHand.handID]
+                    let handMesh = currentHand.handID;
                     let grabSetInterval;
                     console.log("Trigger pressed: ", item.value)
-                    let animationMap={"left": 0,"right": 7}
+                    let animationMap={"left": "Fist","right": "Grip"}
                     // @ts-ignore
-                    let currentAnimation = scene.animationGroups[animationMap[currentHand.handID]]
-                    console.log(currentAnimation) 
+                    let currentAnimation = scene.animationGroups.find((animation, idx) => {
+                        console.log(idx, handMesh);
+                        return animation.name === `${handMesh}_${animationMap[handMesh]}`;
+                    });
+                    console.log(currentAnimation._to);
+                    // [animationMap[currentHand.handID]]
+                    console.log(scene.animationGroups[0], scene.animationGroups[7]); 
                     // @ts-ignore
                     currentAnimation.goToFrame(item.value*(currentAnimation._to-1)+1);
                     // @ts-ignore
-                    let grabbedCylinder = intersect(scene.getMeshByName(lookupHandModel[currentHand.handID]));
+                    let grabbedCylinder = intersect(scene.getMeshByName(currentHand.handID));
+
                     if (item.value > 0) {
                         currentHand.lastPosition =Object.assign({},ray.origin);
                     }
@@ -90,7 +97,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
                             let getNewPosition = ray.origin;
                      
                             if (getNewPosition != getOldPostion) {
-                                grabSetInterval= setInterval(() => {
+                                grabSetInterval = setInterval(() => {
                                     let getOldPostion = currentHand.lastPosition; 
                                     
                                     controller.getWorldPointerRayToRef(ray);
