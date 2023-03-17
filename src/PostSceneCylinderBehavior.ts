@@ -53,92 +53,92 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
         sourceCylinder.animations.push(resetRotationAnimation);
         resetRotationAnimation.setKeys(resetFrames);
     }
-    // for (let i = 0; i < cylinderLetters.length; i++) {
-    //     const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-    //     const gotSomething = cylinder.getBehaviorByName('PointerDrag');
-    //     let filteredMeshes = [];
-    //     for (let cylMesh of allCylinders) {
-    //         if (cylMesh != cylinder) {
-    //             filteredMeshes.push(cylMesh);
-    //         }
-    //     }
-    //     //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
-    //     let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-    //     let rotationFlag = false;
-    //     (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
+    for (let i = 0; i < cylinderLetters.length; i++) {
+        const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
+        const gotSomething = cylinder.getBehaviorByName('PointerDrag');
+        let filteredMeshes = [];
+        for (let cylMesh of allCylinders) {
+            if (cylMesh != cylinder) {
+                filteredMeshes.push(cylMesh);
+            }
+        }
+        //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
+        let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
+        let rotationFlag = false;
+        (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
  
-    //         const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-    //         let hitDetected = false;
-    //         for (let singleMesh of filteredMeshes) {
-    //             let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
-    //             let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
-    //             let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
-    //             if (cylinder.intersectsMesh(leftCollision) || cylinder.intersectsMesh(rightCollision)) {
-    //                 hitDetected = true;
-    //                 let to = singleMesh.name.split('-')[2];
-    //                 let from = cylinder.name.split('-')[2];
-    //                 let fromAndTo = `${from}to${to}`
-    //                 if (sop.tasks[sop.currentState].label === fromAndTo) {
-    //                     if (sop.tasks[sop.currentState].next === 'complete') {
-    //                         window.location.assign('.');
-    //                     } else {
-    //                         sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-    //                     }
-    //                 }
-    //                 if (highlightingTheDrag) {
-    //                     highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
-    //                     highlightingTheDrag.highlightMesh((targetCylinder as Mesh));
-    //                     if (cylinder.intersectsMesh(leftCollision)) {
-    //                         targetCylinder.rotation.y = Math.PI;
-    //                         sourceCylinder.rotation.y = 0;
-    //                     } else {
-    //                         targetCylinder.rotation.y = 0;
-    //                         sourceCylinder.rotation.y = Math.PI;
-    //                     }
-    //                     if (!rotationFlag) {
-    //                         //console.log("rotation is still pie!");
-    //                         let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-    //                         rotationFlag = true;
-    //                         scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
+            const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+            let hitDetected = false;
+            for (let singleMesh of filteredMeshes) {
+                let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
+                let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
+                let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
+                if (cylinder.intersectsMesh(leftCollision) || cylinder.intersectsMesh(rightCollision)) {
+                    hitDetected = true;
+                    let to = singleMesh.name.split('-')[2];
+                    let from = cylinder.name.split('-')[2];
+                    let fromAndTo = `${from}to${to}`
+                    if (sop.tasks[sop.currentState].label === fromAndTo) {
+                        if (sop.tasks[sop.currentState].next === 'complete') {
+                            window.location.assign('.');
+                        } else {
+                            sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                        }
+                    }
+                    if (highlightingTheDrag) {
+                        highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
+                        highlightingTheDrag.highlightMesh((targetCylinder as Mesh));
+                        if (cylinder.intersectsMesh(leftCollision)) {
+                            targetCylinder.rotation.y = Math.PI;
+                            sourceCylinder.rotation.y = 0;
+                        } else {
+                            targetCylinder.rotation.y = 0;
+                            sourceCylinder.rotation.y = Math.PI;
+                        }
+                        if (!rotationFlag) {
+                            //console.log("rotation is still pie!");
+                            let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
+                            rotationFlag = true;
+                            scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
 
-    //                         });
-    //                     }
-    //                 }
-    //                 break;
-    //             } else {
-    //                 highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-    //             }
-    //         }
-    //         if (hitDetected == false) {
-    //             highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-    //             //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-    //             //sourceCylinder.rotation.z = Math.PI * 2;
-    //             let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
-    //             if (rotationFlag) {
-    //                 rotationFlag = false;
-    //                 scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
-    //                 });
-    //             }
-    //         }
-    //     });
-    //     (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
-    //         const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-    //         for (let singleMesh of filteredMeshes) {
-    //             let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
-    //             let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
-    //             let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
-    //             highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-    //             highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
-    //             if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
-    //                 let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
-    //                 if (sourceCylinder.rotation.z == 4.62) {
-    //                     scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
+                            });
+                        }
+                    }
+                    break;
+                } else {
+                    highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                }
+            }
+            if (hitDetected == false) {
+                highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                //highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                //sourceCylinder.rotation.z = Math.PI * 2;
+                let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
+                if (rotationFlag) {
+                    rotationFlag = false;
+                    scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
+                    });
+                }
+            }
+        });
+        (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
+            const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+            for (let singleMesh of filteredMeshes) {
+                let leftCollision = getChildMeshByName(singleMesh, 'LEFT_COLLISION');
+                let rightCollision = getChildMeshByName(singleMesh, 'RIGHT_COLLISION');
+                let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
+                highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+                if (sourceCylinder.intersectsMesh(leftCollision) || sourceCylinder.intersectsMesh(rightCollision)) {
+                    let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
+                    if (sourceCylinder.rotation.z == 4.62) {
+                        scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
 
-    //                     });
-    //                 }
-    //                 //sourceCylinder.rotation.z = Math.PI * 2;
-    //             }
-    //         }
-    //     })
-    // }
+                        });
+                    }
+                    //sourceCylinder.rotation.z = Math.PI * 2;
+                }
+            }
+        })
+    }
 }

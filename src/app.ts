@@ -2,17 +2,12 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import { Engine } from '@babylonjs/core/Engines/engine';
-// import { Sound } from '@babylonjs/core/Audio/sound';
-// import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Light } from "@babylonjs/core/Lights/light";
-// import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-// import { Ray } from "@babylonjs/core/Culling/ray";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
 import { checkIfDebug } from "./utils";
@@ -25,15 +20,8 @@ import {addXRBehaviors} from "./addXRBehaviors";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
-// import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-// import { InputManager } from "@babylonjs/core/Inputs/scene.inputManager";
-// import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
-// import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { MotionControllerWithGrab, sop } from "./Constants";
-// import { AssetsManager } from "@babylonjs/core";
-
-
-// import { } from "babylonjs";
+import { sop } from "./Constants";
+import { WebXRDefaultExperience } from "@babylonjs/core";
 
 
 class App {
@@ -61,24 +49,23 @@ class App {
 
         this.createScene().then((scene: Scene) => {
           let positions={}
-        for (let i of ["A","B","C"]){
-            positions[`pivot-Cylinder-${i}`] =Object.assign({},scene.getMeshByName(`pivot-Cylinder-${i}`).position);
+            for (let i of ["A","B","C"]){
+                positions[`pivot-Cylinder-${i}`] =Object.assign({},scene.getMeshByName(`pivot-Cylinder-${i}`).position);
 
-        }
-
-          
-
-            this.processScene(scene, positions,this.cylinders);
+            }
+            this.processScene(scene, this.cylinders);
         });
+
+
 
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene, positions: any,cylinders:any) {
+    async processScene(scene: Scene, cylinders: Array<Cylinder>) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
-        let xrCamera: any = {};
+        let xrCamera: WebXRDefaultExperience;
         //light.intensity = 1;
         camera.speed = 0.16;
         let cameraFadeIn = setInterval(() => {
@@ -111,16 +98,14 @@ class App {
         xrCamera.pointerSelection.displayLaserPointer = false;
         xrCamera.pointerSelection.displaySelectionMesh = false;
 
-        addWebXR(scene,xrCamera).then((handAnimations)=>
-        {
+        addWebXR(scene,xrCamera,cylinders).then((handAnimations) => {
             const clipboard = scene.getMeshByName('clipboard');
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
                 clipboard.addBehavior(flyToCamera);
             }
-            console.log(this.models[2]);
             postSceneCylinder(scene, sop);
-            addXRBehaviors(scene, xrCamera,handAnimations, positions,cylinders)
+            addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
 
         });
       
@@ -128,7 +113,6 @@ class App {
 
 
     createRoom(mesh: Mesh[]) {
-        //Allows us to turn on and off what meshes to add collision to
         const wantedCollisions = [
             'WallsandFloor',
             'WallsAndFloor.001',
@@ -155,10 +139,7 @@ class App {
     }
 
     createScene() {
-       
-     
         return new Promise((finishedAllModels,) => {
-
             var canvas = document.getElementById('canvas') as HTMLCanvasElement
             var engine = new Engine(canvas, true, { stencil: true });
             var scene = new Scene(engine);
@@ -191,11 +172,10 @@ class App {
             })).then(() => {
                 let callbackResults= []
                 this.models.map((model) => {
-                   
                     callbackResults.push(model["callback"](model["mesh"]))
                     finishedAllModels(scene);
                 })
-                let [a,b,c,...d]=callbackResults
+                let [a,b,c,...d] = callbackResults
 
             });
 

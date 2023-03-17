@@ -32,6 +32,7 @@ export class Cylinder{
     name:String;
     position:Vector3;
     mesh:Mesh;
+    dragCollision: PointerDragBehavior;
     
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3)  {
         console.log(cylinderMesh);
@@ -132,7 +133,7 @@ export class Cylinder{
         highlightLayer.outerGlow = false;
         highlightLayer.isEnabled = false;
         getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
-        // this.addDragCollision();
+        this.addDragCollision();
     }
 
 
@@ -153,7 +154,8 @@ export class Cylinder{
         pointerDragBehavior.useObjectOrientationForDragging = false;
         //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
         //pointerDragBehavior.dragButtons = [0,1,2]
-        pointerDragBehavior.moveAttached = false
+        pointerDragBehavior.moveAttached = false;
+
 
         pointerDragBehavior.onDragStartObservable.add(() => {
             if (thisInterval) {
@@ -161,12 +163,18 @@ export class Cylinder{
             }
         })
         pointerDragBehavior.onDragObservable.add((eventData) => {
-            this.mesh.moveWithCollisions(eventData.delta); //not gonna lie dont even know how it works but it does
+            this.mesh.moveWithCollisions(eventData.delta);
         })
         pointerDragBehavior.onDragEndObservable.add(() => {
             this.fadeAndRespawn();
         })
-        this.mesh.addBehavior(pointerDragBehavior)
+        this.mesh.addBehavior(pointerDragBehavior);
+        this.dragCollision = pointerDragBehavior;
+
+    }
+
+    removeDragCollision() {
+        this.mesh.removeBehavior(this.dragCollision);
     }
 
     /**

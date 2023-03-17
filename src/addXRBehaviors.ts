@@ -1,29 +1,24 @@
-import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Ray } from "@babylonjs/core/Culling/ray";
-import { RayHelper } from "@babylonjs/core/Debug/rayHelper";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
-import { MotionControllerWithGrab, lookupHandModel } from "./Constants";
-// import {fadeAndRespawn} from "./Cylinder"
+import { WebXRDefaultExperience } from "@babylonjs/core";
+import { MotionControllerWithGrab} from "./Constants";
+import { Cylinder } from "./Cylinder";
 
-export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cylinderPos: any,cylinders:any) { 
+export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
+
     let cylinder: AbstractMesh;
-    let gotSomething: PointerDragBehavior;
-    let observer;
+    let labels = ["A", "B", "C"];
 
     function intersect(mesh) {
-       for (let i of ["A", "B", "C"]){
-        
+       for (let i of labels){
             let cylinder = scene.getMeshByName(`pivot-Cylinder-${i}`);
             if (mesh.intersectsMesh(cylinder, false)) {
                 return cylinder;
             }
-
         }
-        return false; 
-        
+        return false;   
     }
 
     xrCamera.input.onControllerAddedObservable.add(controller => {
@@ -33,10 +28,10 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
             
             let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
 
-            const squeezeComponent = motionController.getComponentOfType('squeeze')!;
+            const squeezeComponent = motionController.getComponentOfType('squeeze');
             const triggerComponent = motionController.getComponentOfType('trigger');
 
-            function dropped(grabbedObject,grabInterval){
+            function dropped(grabbedObject, grabInterval){
 
                 currentHand.lastPosition = null;
                 clearInterval(grabInterval);
@@ -58,18 +53,21 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
                 }            
             }
 
-            [triggerComponent, squeezeComponent].forEach((component)=>{ 
+            [triggerComponent, squeezeComponent].forEach((component) => { 
                 component.onButtonStateChangedObservable.add((item) => {
-                            // @ts-ignore
+                    // @ts-ignore
                     let handMesh = currentHand.handID;
                     let grabSetInterval;
-                    console.log("Trigger pressed: ", item.value)
                     let animationMap={"left": "Fist","right": "Grip"}
+
                     // @ts-ignore
                     let currentAnimation = scene.animationGroups.find((animation, idx) => {
                         console.log(idx, handMesh);
+                        // @ts-ignore
                         return animation.name === `${handMesh}_${animationMap[handMesh]}`;
                     });
+
+                    //@ts-ignore
                     console.log(currentAnimation._to);
                     // [animationMap[currentHand.handID]]
                     console.log(scene.animationGroups[0], scene.animationGroups[7]); 
@@ -89,8 +87,6 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
                             currentHand.grabbed = true;
                             controller.getWorldPointerRayToRef(ray);
                             currentHand.lastPosition = Object.assign({},ray.origin);
-    
-                            console.log("Current hand: ", currentHand);
 
                             let getOldPostion = currentHand.lastPosition;
 
@@ -106,9 +102,9 @@ export function addXRBehaviors(scene:Scene, xrCamera:any, handAnimations:any, cy
                                 
                                     // @ts-ignore
                                     if(!intersect(scene.getMeshByName(handMesh)) && cylinder){
-                                    console.log(handMesh,cylinder)
-                                    dropped(cylinder,grabSetInterval);
-                                    cylinder = null;
+                                        console.log(handMesh,cylinder)
+                                        dropped(cylinder,grabSetInterval);
+                                        cylinder = null;
                                     }
                                 
                                     currentHand.lastPosition = Object.assign({}, ray.origin);
