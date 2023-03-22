@@ -116,6 +116,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
                 if (rotationFlag) {
                     rotationFlag = false;
+                    console.log(sourceCylinder,individualAnimation,`${cylinderLetters[i]}-resetRotateAroundZ`)
                     scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
                     });
                 }

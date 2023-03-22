@@ -1,5 +1,6 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
+
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
@@ -10,7 +11,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Light } from "@babylonjs/core/Lights/light";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
-import { checkIfDebug } from "./utils";
+// import { checkIfDebug } from "./utils";
 import { Cylinder } from "./Cylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
@@ -23,6 +24,13 @@ import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { sop } from "./Constants";
 import { WebXRDefaultExperience } from "@babylonjs/core";
 
+import "@babylonjs/core/Loading/loadingScreen";
+
+import '@babylonjs/loaders/glTF';  // To enable loading .glb meshes
+import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the default XR experience
+// import '@babylonjs/core/Rendering/boundingBoxRenderer';  // To render bounding boxes
+import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisions
+import '@babylonjs/core/Audio/audioSceneComponent';
 
 class App {
     handAnimation: any;
@@ -93,6 +101,7 @@ class App {
                 doNotLoadControllerMeshes: true
             }
         }
+   
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
         xrCamera.pointerSelection.displayLaserPointer = false;
@@ -143,13 +152,13 @@ class App {
             var canvas = document.getElementById('canvas') as HTMLCanvasElement
             var engine = new Engine(canvas, true, { stencil: true });
             var scene = new Scene(engine);
-            scene.debugLayer.show();
+            // scene.debugLayer.show();
             //scene.gravity.y = -0.01
             scene.collisionsEnabled = true;
             window.addEventListener("resize", function () {
                 engine.resize();
             });
-            checkIfDebug(scene);
+            // checkIfDebug(scene);
             const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
             camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
             camera.attachControl(canvas, true);
