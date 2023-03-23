@@ -2,7 +2,7 @@ import { WebXRDefaultExperience } from "@babylonjs/core";
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Cylinder } from "./Cylinder";
-
+import '@babylonjs/core/Materials/Node/Blocks';
 export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinders: Array<Cylinder>) {
 
     let handAnimations;
@@ -28,12 +28,12 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
 
         assetsManager.onTaskSuccess = (task) => { 
             
-            models[model_names[idx]] = task.loadedMeshes[1];
-            task.loadedMeshes[1].name = model_names[idx];
+            models[model_names[idx]] = task["loadedMeshes"][1];
+            task["loadedMeshes"][1].name = model_names[idx];
 
-            handAnimations = task.loadedAnimationGroups;
-            for (let i = 0; i < task.loadedAnimationGroups.length; i++) {
-                task.loadedAnimationGroups[i].name = `${model_names[idx]}_${task.loadedAnimationGroups[i].name}`;
+            handAnimations = task["loadedAnimationGroups"];
+            for (let i = 0; i <  handAnimations.length; i++) {
+                handAnimations[i].name = `${model_names[idx]}_${handAnimations[i].name}`;
 
             }        
             idx++;

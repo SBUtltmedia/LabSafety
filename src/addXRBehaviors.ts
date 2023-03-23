@@ -114,6 +114,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     } else if ((!item.value || !grabbedCylinder) && cylinder) {
                         console.log(handMesh,cylinder)
                         dropped(cylinder,grabSetInterval);
+                        
                         cylinder = null;
                     }
                 })

@@ -44,23 +44,23 @@ export class Cylinder {
         cylinderMesh.name = name;
         cylinderMesh.parent = base;
         cylinderMesh.rotationQuaternion = null;
-        let topLeftColliderDetection = MeshBuilder.CreateBox("LEFT_COLLISION")
-        topLeftColliderDetection.scaling.y = 0.01;
-        topLeftColliderDetection.scaling.x = 0.04;
-        topLeftColliderDetection.scaling.z = 0.04;
-        topLeftColliderDetection.parent = base;
-        topLeftColliderDetection.position.y += 0.3;
-        topLeftColliderDetection.position.x -= 0.15;
-        topLeftColliderDetection.visibility = 0;
+        // let topLeftColliderDetection = MeshBuilder.CreateBox("LEFT_COLLISION")
+        // topLeftColliderDetection.scaling.y = 0.01;
+        // topLeftColliderDetection.scaling.x = 0.04;
+        // topLeftColliderDetection.scaling.z = 0.04;
+        // topLeftColliderDetection.parent = base;
+        // topLeftColliderDetection.position.y += 0.3;
+        // topLeftColliderDetection.position.x -= 0.15;
+        // topLeftColliderDetection.visibility = 0;
 
-        let topRightColliderDetection = MeshBuilder.CreateBox("RIGHT_COLLISION")
-        topRightColliderDetection.scaling.y = 0.01;
-        topRightColliderDetection.scaling.x = 0.04;
-        topRightColliderDetection.scaling.z = 0.04;
-        topRightColliderDetection.parent = base;
-        topRightColliderDetection.position.y += 0.3;
-        topRightColliderDetection.position.x += 0.15;
-        topRightColliderDetection.visibility = 0;
+        // let topRightColliderDetection = MeshBuilder.CreateBox("RIGHT_COLLISION")
+        // topRightColliderDetection.scaling.y = 0.01;
+        // topRightColliderDetection.scaling.x = 0.04;
+        // topRightColliderDetection.scaling.z = 0.04;
+        // topRightColliderDetection.parent = base;
+        // topRightColliderDetection.position.y += 0.3;
+        // topRightColliderDetection.position.x += 0.15;
+        // topRightColliderDetection.visibility = 0;
 
         cylinderMesh.getChildMeshes().forEach(childMesh => {
             switch (childMesh.name) {
@@ -189,27 +189,38 @@ export class Cylinder {
             let getMeshLetter = this.mesh.name.split('-')[0];
             let scene = this.mesh.getScene();
             let childrenMeshes = this.mesh.getChildMeshes();
+            console.log(childrenMeshes);
             let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
             let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid')!;
-            let animations = [{ name: 'InvisibilityOfCylinder', startValue: 1 }, { name: 'VisibilityOfCylinder', startValue: 0 }, { name: 'VisbilityOfLiquid', startValue: 1 }, { name: 'InvisibilityOfLiquid', startValue: 0 }]
+            let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
             animations.forEach(animation => {
                 animation["init"] = new Animation(animation.name, 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
                 animation["init"].setKeys([{ frame: 0, value: animation.startValue }, { frame: endFrame, value: 1 - animation.startValue }])
+            });
 
+            for (let i = 0; i < childrenMeshes.length - 1; ++i) {
+                let mesh = childrenMeshes[i];
+                scene.beginDirectAnimation(mesh, [animations[0]["init"]], 0, 60, false);
+            }
 
-            })
-
-            scene.beginDirectAnimation(cylinder, [animations[0]["init"]], 0, 60, false);
-            scene.beginDirectAnimation(liquid, [animations[2]["init"]], 0, 60, false, undefined, () => {
-                cylinder.rotation.z = Math.PI * 2;
+            
+            scene.beginDirectAnimation(childrenMeshes[childrenMeshes.length - 1], [animations[0]["init"]], 0, 60, false, undefined, () => {
                 console.log(this.mesh, this.position);
                 //@ts-ignore
                 this.mesh.position.x = this.position._x;
                 this.mesh.position.y = this.position._y;
                 this.mesh.position.z = this.position._z;
-                cylinder.getAnimationByName(`${getMeshLetter}-rotateAroundZ`);
-                scene.beginDirectAnimation(cylinder, [animations[1]["init"]], 0, 60, false);
-                scene.beginDirectAnimation(liquid, [animations[3]["init"]], 0, 60, false, undefined, () => {
+                this.mesh.animations = cylinder.animations;
+
+                this.mesh.rotation.x = 0;
+                this.mesh.rotation.y = 0;
+                this.mesh.rotation.z = 0;
+
+                for (let i = 0; i < childrenMeshes.length - 1; ++i) {
+                    let mesh = childrenMeshes[i];
+                    scene.beginDirectAnimation(mesh, [animations[1]["init"]], 0, 60, false);
+                }                
+                scene.beginDirectAnimation(childrenMeshes[childrenMeshes.length - 1], [animations[1]["init"]], 0, 60, false, undefined, () => {
                     this.mesh.isPickable = true;
                 })
 
