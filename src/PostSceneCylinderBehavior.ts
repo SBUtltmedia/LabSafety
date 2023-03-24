@@ -1,4 +1,4 @@
-import { CYLINDER_MESH_NAME } from "./Constants";
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName } from "./utils";
 import SOP from './SOP';
@@ -8,6 +8,10 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { Nullable } from "@babylonjs/core/types";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
+import { StandardMaterial } from "@babylonjs/core";
 
 function resetRotation(cylinder) {
     cylinder.rotation.x = 0;
@@ -59,6 +63,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
         sourceCylinder.animations.push(resetRotationAnimation);
         resetRotationAnimation.setKeys(resetFrames);
     }
+    let failBeaker: boolean = false
     for (let i = 0; i < cylinderLetters.length; i++) {
         const cylinder = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
         const gotSomething = cylinder.getBehaviorByName('PointerDrag');
@@ -68,7 +73,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 filteredMeshes.push(cylMesh);
             }
         }
-        
+
         //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
         let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
         let rotationFlag = false;
@@ -78,7 +83,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
             for (let j = 0; j < cylinderLetters.length; j++) {
                 if (i == j) continue;
                 const cylinderHitDetected = scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[j]}`);
-                
+
                 resetRotation(cylinder);
                 resetRotation(cylinderHitDetected);
 
@@ -92,6 +97,23 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                             window.location.assign('.');
                         } else {
                             sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                        }
+                    } else {
+                        if (!failBeaker) {
+                            failBeaker = true;
+                            const particleSystem = new ParticleSystem("particles", 500, scene);
+                            particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
+                            particleSystem.minLifeTime = 2;
+                            particleSystem.maxLifeTime = 6;
+                            particleSystem.emitRate = 10;
+                            particleSystem.gravity = new Vector3(0, 1.5, 0);
+                            particleSystem.addSizeGradient(0.3, 0.05, 0.05);
+                            //particleSystem.addColorGradient(1, )
+                            const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+                            particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
+                            particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+                            particleSystem.emitter = cylinderHitDetected.position;
+                            particleSystem.start();
                         }
                     }
                     if (highlightingTheDrag) {
@@ -108,7 +130,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                         if (target_x < current_x) { // left hit
                             console.log("Left hit!");
                             sourceCylinder.rotation.y = Math.PI;
-                            cylinderHitDetected.rotation.y =  sourceCylinder.rotation.y;
+                            cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
                         } else {
                             console.log("Right hit!");
                             sourceCylinder.rotation.y = 0;
@@ -135,7 +157,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
                 if (rotationFlag) {
                     rotationFlag = false;
-                    console.log(sourceCylinder,individualAnimation,`${cylinderLetters[i]}-resetRotateAroundZ`)
+                    console.log(sourceCylinder, individualAnimation, `${cylinderLetters[i]}-resetRotateAroundZ`)
                     scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
                     });
                 }
@@ -145,7 +167,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
             const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
             for (let singleMesh of filteredMeshes) {
                 if (singleMesh == sourceCylinder) continue;
- 
+
                 let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
 
                 highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
@@ -154,7 +176,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                 if (sourceCylinder.intersectsMesh(singleMesh)) {
                     let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
                     if (sourceCylinder.rotation.z == 4.62) {
-                        scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {});
+                        scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => { });
                     }
                 }
             }

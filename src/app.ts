@@ -16,8 +16,8 @@ import { Cylinder } from "./Cylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
-import {addWebXR} from "./addWebXR";
-import {addXRBehaviors} from "./addXRBehaviors";
+import { addWebXR } from "./addWebXR";
+import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
@@ -32,15 +32,18 @@ import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the defaul
 import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisions
 import '@babylonjs/core/Audio/audioSceneComponent';
 
-console.log = () => {}
+import '@babylonjs/inspector'
+import { Observer } from '@babylonjs/core'
+
+//console.log = () => { }
 
 class App {
     handAnimation: any;
     sop: SOP;
     models: any;
-    cylinders:any;
+    cylinders: any;
     constructor() {
-        this.cylinders=[]
+        this.cylinders = []
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
@@ -50,7 +53,7 @@ class App {
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))), "label": "Cylinder-A" },
             { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))), "label": "Cylinder-B" },
-            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }            
+            { "fileName": "TLLGraduatedCylinderWithLabel.glb", "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
@@ -58,9 +61,9 @@ class App {
 
 
         this.createScene().then((scene: Scene) => {
-          let positions={}
-            for (let i of ["A","B","C"]){
-                positions[`pivot-Cylinder-${i}`] =Object.assign({},scene.getMeshByName(`pivot-Cylinder-${i}`).position);
+            let positions = {}
+            for (let i of ["A", "B", "C"]) {
+                positions[`pivot-Cylinder-${i}`] = Object.assign({}, scene.getMeshByName(`pivot-Cylinder-${i}`).position);
 
             }
             this.processScene(scene, this.cylinders);
@@ -103,13 +106,13 @@ class App {
                 doNotLoadControllerMeshes: true
             }
         }
-   
+
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
         xrCamera.pointerSelection.displayLaserPointer = false;
         xrCamera.pointerSelection.displaySelectionMesh = false;
 
-        addWebXR(scene,xrCamera,cylinders).then((handAnimations) => {
+        addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
             const clipboard = scene.getMeshByName('clipboard');
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
@@ -119,7 +122,7 @@ class App {
             addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
 
         });
-      
+
     }
 
 
@@ -151,9 +154,9 @@ class App {
 
     createScene() {
         return new Promise((finishedAllModels,) => {
-            var canvas = document.getElementById('canvas') as HTMLCanvasElement
-            var engine = new Engine(canvas, true, { stencil: true });
-            var scene = new Scene(engine);
+            const canvas = document.getElementById('canvas') as HTMLCanvasElement
+            const engine = new Engine(canvas, true, { stencil: true });
+            const scene = new Scene(engine);
             // scene.debugLayer.show();
             //scene.gravity.y = -0.01
             scene.collisionsEnabled = true;
@@ -181,12 +184,12 @@ class App {
                         resolve(container)
                     }))
             })).then(() => {
-                let callbackResults= []
+                let callbackResults = []
                 this.models.map((model) => {
                     callbackResults.push(model["callback"](model["mesh"]))
                     finishedAllModels(scene);
                 })
-                let [a,b,c,...d] = callbackResults
+                let [a, b, c, ...d] = callbackResults
 
             });
 
