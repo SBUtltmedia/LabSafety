@@ -65,7 +65,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                 console.log(individualAnimation);
                 if (individualAnimation) {
                     console.log("Label: ", label);
-                    scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
+                    scene.beginDirectAnimation(getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
                     });        
                 }
             }
@@ -173,13 +173,13 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             let label = cylinder.name.split("-")[2];
                                             let individualAnimation = cylinder.getAnimationByName(`${label}-resetRotateAroundZ`);
                                             if (rotationFlag) {
-                                                rotationFlag = false;
-                                                scene.beginDirectAnimation(cylinder, [individualAnimation], 0, 60, false, undefined, () => {
+                                                scene.beginDirectAnimation(getChildMeshByName(cylinder, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
                                                 });
+                                                rotationFlag = false;
                                             }                                            
                                         }
                                     }
-                                
+
                                     currentHand.lastPosition = Object.assign({}, ray.origin);
                                 }, 10)
                             }

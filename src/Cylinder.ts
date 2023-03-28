@@ -65,7 +65,7 @@ export class Cylinder {
             const tableBoundingBox = table.getBoundingInfo().boundingBox;
             const cylinderOpacity = getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!;
             const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
-            const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y + .01001;
+            const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y + .00000001;
             base.position.y = tableBoundingBox.maximumWorld.y + cylinderVerticalOffset;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
