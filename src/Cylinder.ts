@@ -44,23 +44,6 @@ export class Cylinder {
         cylinderMesh.name = name;
         cylinderMesh.parent = base;
         cylinderMesh.rotationQuaternion = null;
-        // let topLeftColliderDetection = MeshBuilder.CreateBox("LEFT_COLLISION")
-        // topLeftColliderDetection.scaling.y = 0.01;
-        // topLeftColliderDetection.scaling.x = 0.04;
-        // topLeftColliderDetection.scaling.z = 0.04;
-        // topLeftColliderDetection.parent = base;
-        // topLeftColliderDetection.position.y += 0.3;
-        // topLeftColliderDetection.position.x -= 0.15;
-        // topLeftColliderDetection.visibility = 0;
-
-        // let topRightColliderDetection = MeshBuilder.CreateBox("RIGHT_COLLISION")
-        // topRightColliderDetection.scaling.y = 0.01;
-        // topRightColliderDetection.scaling.x = 0.04;
-        // topRightColliderDetection.scaling.z = 0.04;
-        // topRightColliderDetection.parent = base;
-        // topRightColliderDetection.position.y += 0.3;
-        // topRightColliderDetection.position.x += 0.15;
-        // topRightColliderDetection.visibility = 0;
 
         cylinderMesh.getChildMeshes().forEach(childMesh => {
             switch (childMesh.name) {
@@ -108,7 +91,7 @@ export class Cylinder {
 
 
         const cylinderLabel: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "Label")!;
-        const cylinderLabel2: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "LabelBack")!;
+        // const cylinderLabel2: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "LabelBack")!;
 
         console.log("Label:", cylinderLabel);
 
@@ -116,12 +99,10 @@ export class Cylinder {
         //cylinderLabelMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
         //cylinderLabel.material = cylinderLabelMaterial;
         const texture: DynamicTexture = new DynamicTexture("dynamic texture", 256, scene);
-        // texture.wAng = -Math.PI / 2;
         texture.uAng = Math.PI;
         const material: StandardMaterial = new StandardMaterial("Mat", scene);
         material.diffuseTexture = texture;
         cylinderLabel.material = material;
-        cylinderLabel2.material = material;
         const font: string = "bold 220px monospace";
 
         texture.drawText(cylinderMesh.name.toUpperCase(), 65, 185, font, "black", "white");
@@ -133,6 +114,13 @@ export class Cylinder {
         highlightLayer.outerGlow = false;
         highlightLayer.isEnabled = false;
         getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
+
+
+        let childrenMeshes = this.mesh.getChildMeshes();
+        let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
+        
+        this.mesh.animations = cylinder.animations;
+
         this.addDragCollision();
     }
 
@@ -189,7 +177,6 @@ export class Cylinder {
             let getMeshLetter = this.mesh.name.split('-')[0];
             let scene = this.mesh.getScene();
             let childrenMeshes = this.mesh.getChildMeshes();
-            console.log(childrenMeshes);
             let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
             let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid')!;
             let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
