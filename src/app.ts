@@ -1,5 +1,5 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
@@ -35,7 +35,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 import '@babylonjs/inspector'
 import { Observer } from '@babylonjs/core'
 
-//console.log = () => { }
+console.log = () => { }
 
 class App {
     handAnimation: any;
