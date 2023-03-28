@@ -93,6 +93,7 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                     let from = cylinder.name.split('-')[2];
                     let fromAndTo = `${from}to${to}`
                     if (sop.tasks[sop.currentState].label === fromAndTo) {
+                        console.log("WHAT??");
                         if (sop.tasks[sop.currentState].next === 'complete') {
                             window.location.assign('.');
                         } else {
@@ -103,12 +104,13 @@ export function postSceneCylinder(scene: Scene, sop: SOP) {
                             failBeaker = true;
                             const particleSystem = new ParticleSystem("particles", 500, scene);
                             particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
-                            particleSystem.minLifeTime = 2;
-                            particleSystem.maxLifeTime = 6;
-                            particleSystem.emitRate = 10;
-                            particleSystem.gravity = new Vector3(0, 1.5, 0);
-                            particleSystem.addSizeGradient(0.3, 0.05, 0.05);
-                            //particleSystem.addColorGradient(1, )
+                            particleSystem.minLifeTime = 0.5;
+                            particleSystem.maxLifeTime = 0.7;
+                            particleSystem.emitRate = 100;
+                            particleSystem.gravity = new Vector3(0, .5, 0);
+                            particleSystem.minSize = 0.01;
+                            particleSystem.maxSize = 0.07;
+                            particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
                             const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
                             particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
                             particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
