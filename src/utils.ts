@@ -17,6 +17,8 @@ export function resetPosition(cylinder) {
 }
 
 
+
+
 // export function checkIfDebug(scene: Scene) {
 //     const searchParams = new URLSearchParams(document.location.search);
 //     let debug = searchParams.get('debug') === '' || searchParams.get('debug')?.toLowerCase() === 'true';

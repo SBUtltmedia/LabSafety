@@ -33,10 +33,14 @@ export class Cylinder {
     position: Vector3;
     mesh: Mesh;
     dragCollision: PointerDragBehavior;
-
+    highlightLayer:HighlightLayer;
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
+        this.highlightLayer= new HighlightLayer('highlight-layer');
+        this.highlightLayer.innerGlow = true;
+        this.highlightLayer.outerGlow = false;
+        this.highlightLayer.isEnabled = false;
         const scene: Scene = cylinderMesh.getScene();
         const table: AbstractMesh = scene.getMeshByName('Table')!;
         let base: Mesh = MeshBuilder.CreateSphere(`pivot-Cylinder-${name}`, { segments: 2, diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 }, cylinderMesh.getScene());
@@ -110,11 +114,8 @@ export class Cylinder {
         //placard.addChild(labelPlacard);
 
         //Highlight behavior used for later
-        const highlightLayer: HighlightLayer = new HighlightLayer('highlight-layer');
-        highlightLayer.innerGlow = true;
-        highlightLayer.outerGlow = false;
-        highlightLayer.isEnabled = false;
-        getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
+
+      //  getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!.addBehavior(new HighlightBehavior(highlightLayer, Color3.Green()));
 
 
         let childrenMeshes = this.mesh.getChildMeshes();
@@ -134,6 +135,14 @@ export class Cylinder {
      *          After the dragging is done it creates a timer for the cylinder if it's 
      *          interrupted the cylinder respawns to original points
      */
+
+    highlight(isOn=true){
+    
+        let method=['removeMesh','addMesh'][Number(isOn)];
+        this.highlightLayer[method](this.mesh,  Color3.Green());
+
+
+    }
 
     addDragCollision() {
         let thisInterval: number;

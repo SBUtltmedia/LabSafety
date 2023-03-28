@@ -10,7 +10,7 @@ import HighlightBehavior from "./HighlightBehavior";
 
 export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
 
-    let cylinder: AbstractMesh;
+    let cylinderMesh: AbstractMesh;
     let labels = ["A", "B", "C"];
     let hitDetected = false;
     let highlightedCylinder;
@@ -37,13 +37,15 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
         return false;
     }
 
-    function highlight(sourceCylinder, targetCylinder, highlightingTheDrag) {
-        hitDetected = true;
-        if (highlightingTheDrag) {
-            let hitCylinder = getChildMeshByName(targetCylinder, CYLINDER_MESH_NAME);
-            let hitCylinderSrc = getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME);
-            highlightingTheDrag.highlightMesh((hitCylinderSrc as Mesh));
-            highlightingTheDrag.highlightMesh((hitCylinder as Mesh));
+    function highlightAndRotateCylinders(sourceCylinder, targetCylinder) {
+            [sourceCylinder, targetCylinder].forEach(cylinderToHighlight){
+        
+
+            }
+ 
+            let targetCylinderGlassMesh = 
+            let sourceCylinderGlassMesh = getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME);
+    
             highlightedCylinder = targetCylinder;
 
             let current_x = sourceCylinder.getAbsolutePosition()._x;
@@ -64,7 +66,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                 let label = sourceCylinder.name.split("-")[2];
                 let individualAnimation = sourceCylinder.getAnimationByName(`${label}-rotateAroundZ`);
 
-                let sizes = cylinder.getHierarchyBoundingVectors();
+                let sizes = cylinderMesh.getHierarchyBoundingVectors();
                 let ySize = sizes.max.y - sizes.min.y;
                 let offset = -0.09;
                 let xPos = target_x;
@@ -87,7 +89,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     });        
                 }
             }
-        }
+    
     }
 
     xrCamera.input.onControllerAddedObservable.add(controller => {
@@ -124,6 +126,13 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
             [triggerComponent, squeezeComponent].forEach((component) => { 
                 component.onButtonStateChangedObservable.add((item) => {
+                    let grabbedCylinder = intersect(scene.getMeshByName(currentHand.handID));
+                    if (item.value > 0  && grabbedCylinder    ) {
+                        currentHand.lastPosition =Object.assign({},ray.origin);
+
+                        
+                    }
+
                     // @ts-ignore
                     let handMesh = currentHand.handID;
                     let grabSetInterval;
@@ -138,21 +147,18 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     // @ts-ignore
                     currentAnimation.goToFrame(item.value*(currentAnimation._to-1)+1);
                     // @ts-ignore
-                    let grabbedCylinder = intersect(scene.getMeshByName(currentHand.handID));
+                   
 
-                    if (item.value > 0) {
-                        currentHand.lastPosition =Object.assign({},ray.origin);
-                    }
-
+                 
                     if (item.value > 0 && !currentHand.grabbed) {
                         if (grabbedCylinder) {
-                            cylinder = grabbedCylinder;
-                            currentHand.meshGrabbed = cylinder;
+                            cylinderMesh = grabbedCylinder;
+                            currentHand.meshGrabbed = cylinderMesh;
                             currentHand.grabbed = true;
                             controller.getWorldPointerRayToRef(ray);
                             currentHand.lastPosition = Object.assign({},ray.origin);
 
-                            const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                     
 
                             let getOldPostion = currentHand.lastPosition;
 
@@ -164,24 +170,24 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                     
                                     controller.getWorldPointerRayToRef(ray);
 
-                                    if(getOldPostion && cylinder)  {cylinder.moveWithCollisions(getNewPosition.subtract(getOldPostion))} 
+                                    if(getOldPostion && cylinderMesh)  {cylinderMesh.moveWithCollisions(getNewPosition.subtract(getOldPostion))} 
                                 
                                     // @ts-ignore
-                                    if(!intersect(scene.getMeshByName(handMesh)) && cylinder){
+                                    if(!intersect(scene.getMeshByName(handMesh)) && cylinderMesh){
                                         if (highlightedCylinder) {
-                                            highlightingTheDrag.unhighlightMesh((getChildMeshByName(highlightedCylinder, CYLINDER_MESH_NAME) as Mesh));
+                                            cylinderMesh.highlight(false);
                                         }                                        
-                                        highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinder, CYLINDER_MESH_NAME) as Mesh));
-                                        dropped(cylinder,grabSetInterval);
+        
+                                        dropped(cylinderMesh,grabSetInterval);
 
-                                        cylinder = null;
+                                        cylinderMesh = null;
                                     }
                                     
-                                    if (cylinder) {
-                                        let collidedCylinder = intersectCylinder(cylinder);
+                                    if (cylinderMesh) {
+                                        let collidedCylinder = intersectCylinder(cylinderMesh);
                                         if (collidedCylinder) {
                                             let to = collidedCylinder.name.split('-')[2];
-                                            let from = cylinder.name.split('-')[2]; 
+                                            let from = cylinderMesh.name.split('-')[2]; 
                                             let fromAndTo = `${from}to${to}`;
                                             if (sop.tasks[sop.currentState].label === fromAndTo) {
                                                 if (sop.tasks[sop.currentState].next === 'complete') {
@@ -191,19 +197,19 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                                 }
                                             }                                            
                                             // rotationFlag = false;
-                                            highlight(cylinder, collidedCylinder, highlightingTheDrag);
+                                            highlightAndRotateCylinders(cylinderMesh, collidedCylinder);
                                         } else {
                                             hitDetected = false;
                                             if (highlightedCylinder) {
                                                 highlightingTheDrag.unhighlightMesh((getChildMeshByName(highlightedCylinder, CYLINDER_MESH_NAME) as Mesh));
                                             }
-                                            highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinder, CYLINDER_MESH_NAME) as Mesh));
-                                            let label = cylinder.name.split("-")[2];
-                                            let individualAnimation = cylinder.getAnimationByName(`${label}-resetRotateAroundZ`);
+                                            highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME) as Mesh));
+                                            let label = cylinderMesh.name.split("-")[2];
+                                            let individualAnimation = cylinderMesh.getAnimationByName(`${label}-resetRotateAroundZ`);
                                             if (rotationFlag) {
-                                                scene.beginDirectAnimation(getChildMeshByName(cylinder, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
+                                                scene.beginDirectAnimation(getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
                                                 });
-                                                resetPosition(getChildMeshByName(cylinder, CYLINDER_MESH_NAME));
+                                                resetPosition(getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME));
                                                 rotationFlag = false;
                                             }                                            
                                         }
@@ -213,15 +219,15 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                 }, 10)
                             }
                         }
-                    } else if ((!item.value || !grabbedCylinder) && cylinder) {
-                        const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-                        highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinder, CYLINDER_MESH_NAME) as Mesh));
+                    } else if ((!item.value || !grabbedCylinder) && cylinderMesh) {
+                        const highlightingTheDrag = getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                        highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME) as Mesh));
                         if (highlightedCylinder) {
                             highlightingTheDrag.unhighlightMesh((getChildMeshByName(highlightedCylinder, CYLINDER_MESH_NAME) as Mesh));
                         }
-                        dropped(cylinder,grabSetInterval);
+                        dropped(cylinderMesh,grabSetInterval);
                         
-                        cylinder = null;
+                        cylinderMesh = null;
                     }
                 })
             })
