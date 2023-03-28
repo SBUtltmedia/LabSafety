@@ -12,7 +12,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import HighlightBehavior from "./HighlightBehavior";
-import { getChildMeshByName } from "./utils";
+import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 /**
  * 
  * @param cylinderMesh Cylinder Mesh needed that will be modified
@@ -91,21 +91,22 @@ export class Cylinder {
 
 
         const cylinderLabel: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "Label")!;
-        // const cylinderLabel2: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "LabelBack")!;
+        const cylinderLabel2: AbstractMesh = getChildMeshByName(cylinderMesh as AbstractMesh, "LabelBack")!;
 
-        console.log("Label:", cylinderLabel);
+        console.log("Label:", cylinderLabel2);
 
         //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
         //cylinderLabelMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
         //cylinderLabel.material = cylinderLabelMaterial;
         const texture: DynamicTexture = new DynamicTexture("dynamic texture", 256, scene);
-        texture.uAng = Math.PI;
+        // texture.uAng = Math.PI;
         const material: StandardMaterial = new StandardMaterial("Mat", scene);
         material.diffuseTexture = texture;
         cylinderLabel.material = material;
-        const font: string = "bold 220px monospace";
+        cylinderLabel2.material = material;
+        const font: string = "bold 300px monospace";
 
-        texture.drawText(cylinderMesh.name.toUpperCase(), 65, 185, font, "black", "white");
+        texture.drawText(cylinderMesh.name.toUpperCase(), 65, 225, font, "black", "white");
         //placard.addChild(labelPlacard);
 
         //Highlight behavior used for later
@@ -199,9 +200,11 @@ export class Cylinder {
                 this.mesh.position.z = this.position._z;
                 this.mesh.animations = cylinder.animations;
 
-                this.mesh.rotation.x = 0;
-                this.mesh.rotation.y = 0;
-                this.mesh.rotation.z = 0;
+                let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
+
+                resetRotation(this.mesh);
+                resetRotation(childMesh);
+                resetPosition(childMesh);
 
                 for (let i = 0; i < childrenMeshes.length - 1; ++i) {
                     let mesh = childrenMeshes[i];

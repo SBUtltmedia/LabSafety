@@ -3,9 +3,9 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Scene } from "@babylonjs/core/scene";
 import { Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
-import { CYLINDER_MESH_NAME, MotionControllerWithGrab} from "./Constants";
+import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
-import { getChildMeshByName } from "./utils";
+import { getChildMeshByName, resetPosition } from "./utils";
 import HighlightBehavior from "./HighlightBehavior";
 
 export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
@@ -51,6 +51,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
             if (target_x < current_x) { // left hit
                 console.log("Left hit!");
+
                 sourceCylinder.rotation.y = Math.PI;
                 targetCylinder.rotation.y = sourceCylinder.rotation.y;
             } else {
@@ -62,7 +63,24 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                 rotationFlag = true;
                 let label = sourceCylinder.name.split("-")[2];
                 let individualAnimation = sourceCylinder.getAnimationByName(`${label}-rotateAroundZ`);
-                console.log(individualAnimation);
+
+                let sizes = cylinder.getHierarchyBoundingVectors();
+                let ySize = sizes.max.y - sizes.min.y;
+                let offset = -0.09;
+                let xPos = target_x;
+                let deltaX = current_x - xPos;
+
+                let sourceCylinderMesh = getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME);
+
+                if (target_x < current_x) {
+                    console.log("Src pos: ", sourceCylinder.position.x);
+                    sourceCylinderMesh.position.x = deltaX + offset;
+                    sourceCylinderMesh.position.y = ySize - 0.2;
+                } else {
+                    sourceCylinderMesh.position.x = deltaX - offset;
+                    sourceCylinderMesh.position.y = ySize - 0.2;
+                }
+
                 if (individualAnimation) {
                     console.log("Label: ", label);
                     scene.beginDirectAnimation(getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
@@ -162,6 +180,16 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                     if (cylinder) {
                                         let collidedCylinder = intersectCylinder(cylinder);
                                         if (collidedCylinder) {
+                                            let to = collidedCylinder.name.split('-')[2];
+                                            let from = cylinder.name.split('-')[2]; 
+                                            let fromAndTo = `${from}to${to}`;
+                                            if (sop.tasks[sop.currentState].label === fromAndTo) {
+                                                if (sop.tasks[sop.currentState].next === 'complete') {
+                                                    window.location.assign('.');
+                                                } else {
+                                                    sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                                                }
+                                            }                                            
                                             // rotationFlag = false;
                                             highlight(cylinder, collidedCylinder, highlightingTheDrag);
                                         } else {
@@ -175,6 +203,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             if (rotationFlag) {
                                                 scene.beginDirectAnimation(getChildMeshByName(cylinder, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
                                                 });
+                                                resetPosition(getChildMeshByName(cylinder, CYLINDER_MESH_NAME));
                                                 rotationFlag = false;
                                             }                                            
                                         }
