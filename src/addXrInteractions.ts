@@ -6,14 +6,22 @@ import { Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, resetPosition } from "./utils";
-import HighlightBehavior from "./HighlightBehavior";
+import { Hand } from "./Hand";
 
-export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
+export class XRInteractions {
+    scene: Scene;
+    xrCamera: WebXRDefaultExperience;
+}
+export function addXrInteractions(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
 
     let cylinderMesh: AbstractMesh;
+    let cylinderInstance: Cylinder;
+
     let labels = ["A", "B", "C"];
     let hitDetected = false;
-    let highlightedCylinder;
+    let highlightedTargetCylinder: AbstractMesh;
+    let highlightedTargetCylinderInstance: Cylinder;
+
     let rotationFlag = false;
 
     function intersect(mesh) {
@@ -24,6 +32,18 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
             }
         }
         return false;   
+    }
+
+    function getCylinderInstanceFromMesh(cylinder) {
+        let name = cylinder.name.split("-")[2];
+        console.log("Name: ", name);
+        for (let instance of cylinders) {
+            console.log("Instance name: ", instance.name);
+            if (instance.name == name) {
+                return instance;
+            }
+        }
+        return false;
     }
 
     function intersectCylinder(sourceCylinder) {
@@ -37,16 +57,18 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
         return false;
     }
 
-    function highlightAndRotateCylinders(sourceCylinder, targetCylinder) {
-            [sourceCylinder, targetCylinder].forEach(cylinderToHighlight){
-        
+    function highlightAndRotateCylinders(sourceCylinder, targetCylinder) {   
+            let sourceCylinderInstance = getCylinderInstanceFromMesh(sourceCylinder);
+            highlightedTargetCylinder = targetCylinder;
 
-            }
- 
-            let targetCylinderGlassMesh = 
-            let sourceCylinderGlassMesh = getChildMeshByName(sourceCylinder, CYLINDER_MESH_NAME);
-    
-            highlightedCylinder = targetCylinder;
+            //@ts-ignore
+            highlightedTargetCylinderInstance = getCylinderInstanceFromMesh(highlightedTargetCylinder);
+
+            console.log("Trying to highlight");
+
+            //@ts-ignore
+            sourceCylinderInstance.highlight();
+            highlightedTargetCylinderInstance.highlight();
 
             let current_x = sourceCylinder.getAbsolutePosition()._x;
             let target_x = targetCylinder.getAbsolutePosition()._x;
@@ -94,8 +116,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
     xrCamera.input.onControllerAddedObservable.add(controller => {
         controller.onMotionControllerInitObservable.add(motionController => {
-            let currentHand = (motionController as MotionControllerWithGrab);
-            currentHand.handID = motionController.handedness;
+            let currentHand: Hand = new Hand(cylinders, motionController.handedness);
             
             let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
 
@@ -106,11 +127,9 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
                 currentHand.lastPosition = null;
                 clearInterval(grabInterval);
-                console.log("Dropped test tube");
                 currentHand.grabbed = false;
                 currentHand.meshGrabbed = undefined;
-                console.log("Current hand: ", currentHand);
-                console.log(grabbedObject)
+
 
                 console.log(cylinders);
             
@@ -126,12 +145,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
             [triggerComponent, squeezeComponent].forEach((component) => { 
                 component.onButtonStateChangedObservable.add((item) => {
+                    //@ts-ignore
                     let grabbedCylinder = intersect(scene.getMeshByName(currentHand.handID));
-                    if (item.value > 0  && grabbedCylinder    ) {
-                        currentHand.lastPosition =Object.assign({},ray.origin);
-
-                        
-                    }
 
                     // @ts-ignore
                     let handMesh = currentHand.handID;
@@ -153,12 +168,13 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     if (item.value > 0 && !currentHand.grabbed) {
                         if (grabbedCylinder) {
                             cylinderMesh = grabbedCylinder;
+                            // @ts-ignore
+                            cylinderInstance = getCylinderInstanceFromMesh(cylinderMesh);
+                            console.log("Insatance: ", cylinderInstance);
                             currentHand.meshGrabbed = cylinderMesh;
                             currentHand.grabbed = true;
                             controller.getWorldPointerRayToRef(ray);
                             currentHand.lastPosition = Object.assign({},ray.origin);
-
-                     
 
                             let getOldPostion = currentHand.lastPosition;
 
@@ -174,8 +190,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                 
                                     // @ts-ignore
                                     if(!intersect(scene.getMeshByName(handMesh)) && cylinderMesh){
-                                        if (highlightedCylinder) {
-                                            cylinderMesh.highlight(false);
+                                        if (highlightedTargetCylinder) {
+                                            highlightedTargetCylinderInstance.highlight(false);
                                         }                                        
         
                                         dropped(cylinderMesh,grabSetInterval);
@@ -200,10 +216,11 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             highlightAndRotateCylinders(cylinderMesh, collidedCylinder);
                                         } else {
                                             hitDetected = false;
-                                            if (highlightedCylinder) {
-                                                highlightingTheDrag.unhighlightMesh((getChildMeshByName(highlightedCylinder, CYLINDER_MESH_NAME) as Mesh));
+                                            if (highlightedTargetCylinder) {
+                                                highlightedTargetCylinderInstance.highlight(false);
                                             }
-                                            highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME) as Mesh));
+
+                                            cylinderInstance.highlight(false);
                                             let label = cylinderMesh.name.split("-")[2];
                                             let individualAnimation = cylinderMesh.getAnimationByName(`${label}-resetRotateAroundZ`);
                                             if (rotationFlag) {
@@ -220,11 +237,9 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                             }
                         }
                     } else if ((!item.value || !grabbedCylinder) && cylinderMesh) {
-                        const highlightingTheDrag = getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
-                        highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME) as Mesh));
-                        if (highlightedCylinder) {
-                            highlightingTheDrag.unhighlightMesh((getChildMeshByName(highlightedCylinder, CYLINDER_MESH_NAME) as Mesh));
-                        }
+                        cylinderInstance.highlight(false);
+                        if (highlightedTargetCylinderInstance)
+                            highlightedTargetCylinderInstance.highlight(false);
                         dropped(cylinderMesh,grabSetInterval);
                         
                         cylinderMesh = null;

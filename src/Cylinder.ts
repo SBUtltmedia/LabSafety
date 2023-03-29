@@ -34,14 +34,17 @@ export class Cylinder {
     mesh: Mesh;
     dragCollision: PointerDragBehavior;
     highlightLayer:HighlightLayer;
+
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
-        this.highlightLayer= new HighlightLayer('highlight-layer');
+    
+        const scene: Scene = cylinderMesh.getScene();
+        this.highlightLayer = new HighlightLayer('highlight-layer', scene);
+
         this.highlightLayer.innerGlow = true;
         this.highlightLayer.outerGlow = false;
-        this.highlightLayer.isEnabled = false;
-        const scene: Scene = cylinderMesh.getScene();
+
         const table: AbstractMesh = scene.getMeshByName('Table')!;
         let base: Mesh = MeshBuilder.CreateSphere(`pivot-Cylinder-${name}`, { segments: 2, diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 }, cylinderMesh.getScene());
         base.visibility = 0;
@@ -123,6 +126,8 @@ export class Cylinder {
         
         this.mesh.animations = cylinder.animations;
 
+        console.log("Children: ", this.mesh.getChildMeshes())
+
         this.addDragCollision();
     }
 
@@ -138,9 +143,21 @@ export class Cylinder {
 
     highlight(isOn=true){
     
-        let method=['removeMesh','addMesh'][Number(isOn)];
-        this.highlightLayer[method](this.mesh,  Color3.Green());
+        // let method=['removeMesh','addMesh'][Number(isOn)];
+        // this.highlightLayer[method](this.mesh,  Color3.Green());
 
+        let beaker = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
+        
+        if (isOn) {
+            console.log("Adding mesh");
+            if (!this.highlightLayer.hasMesh(beaker)) {
+                this.highlightLayer.addMesh(beaker, Color3.Green());
+            }
+        } else {
+            if (this.highlightLayer.hasMesh(beaker)) {
+                this.highlightLayer.removeMesh(beaker);
+            }
+        }
 
     }
 
