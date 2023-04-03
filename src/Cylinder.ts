@@ -11,7 +11,6 @@ import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDra
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 /**
  * 
@@ -34,12 +33,14 @@ export class Cylinder {
     mesh: Mesh;
     dragCollision: PointerDragBehavior;
     highlightLayer:HighlightLayer;
+    scene: Scene;
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
     
         const scene: Scene = cylinderMesh.getScene();
+        this.scene = scene;
         this.highlightLayer = new HighlightLayer('highlight-layer', scene);
 
         this.highlightLayer.innerGlow = true;
@@ -151,10 +152,12 @@ export class Cylinder {
         if (isOn) {
             console.log("Adding mesh");
             if (!this.highlightLayer.hasMesh(beaker)) {
+                //@ts-ignore
                 this.highlightLayer.addMesh(beaker, Color3.Green());
             }
         } else {
             if (this.highlightLayer.hasMesh(beaker)) {
+                //@ts-ignore
                 this.highlightLayer.removeMesh(beaker);
             }
         }
@@ -243,4 +246,14 @@ export class Cylinder {
             })
         }, timeUntilFade);
     }
+
+    rotateAroundZ() {
+        let individualAnimation = this.mesh.getAnimationByName(`${this.name}-rotateAroundZ`);
+        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {});        
+    }
+
+    resetAroundZ() {
+        let individualAnimation = this.mesh.getAnimationByName(`${this.name}-resetRotateAroundZ`);
+        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {});        
+    }    
 }

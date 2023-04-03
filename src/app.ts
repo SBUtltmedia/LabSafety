@@ -17,7 +17,7 @@ import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
 import { createPlacard } from "./CreatePlarcard";
 import { addWebXR } from "./addWebXR";
-import { addXrInteractions } from "./addXRBehaviors";
+import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from './SOP';
 import { postSceneCylinder } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
@@ -116,10 +116,11 @@ class App {
         addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
-                clipboard.addBehavior(flyToCamera);
+                const clipboard = scene.getMeshByName("clipboard");
+                clipboard.addBehavior(flyToCamera);        
             }
             postSceneCylinder(scene, sop);
-            addXrInteractions(scene, xrCamera, handAnimations, cylinders)
+            addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
 
         });
 
