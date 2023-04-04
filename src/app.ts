@@ -1,5 +1,5 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
@@ -19,7 +19,7 @@ import { createPlacard } from "./CreatePlarcard";
 import { addWebXR } from "./addWebXR";
 import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from './SOP';
-import { postSceneCylinder } from "./PostSceneCylinderBehavior";
+import { postSceneCylinder, SceneManager } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { sop } from "./Constants";
 import { WebXRDefaultExperience } from "@babylonjs/core";
@@ -37,7 +37,7 @@ import { Observer } from '@babylonjs/core'
 
 // console.log = () => { }
 
-class App {
+export class App {
     handAnimation: any;
     sop: SOP;
     models: any;
@@ -69,8 +69,6 @@ class App {
             }
             this.processScene(scene, this.cylinders);
         });
-
-
 
     }
     //Can be turn back on if Z axis gets messed up
@@ -114,12 +112,15 @@ class App {
         xrCamera.pointerSelection.displaySelectionMesh = false;
 
         addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
+            console.log("add webxr");
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
                 const clipboard = scene.getMeshByName("clipboard");
                 clipboard.addBehavior(flyToCamera);        
             }
-            postSceneCylinder(scene, sop);
+            
+            let sceneManger: SceneManager = new SceneManager(scene, sop);
+            sceneManger.postSceneCylinder();
             addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
 
         });

@@ -52,6 +52,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
             const triggerComponent = motionController.getComponentOfType('trigger');
 
             [triggerComponent, squeezeComponent].forEach((component) => { 
+                console.log(scene.getMeshByName("left"));
                 component.onButtonStateChangedObservable.add((item) => {
                     // @ts-ignore
                     let grabSetInterval;
@@ -82,12 +83,13 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                             let getNewPosition = ray.origin;
                      
                             if (getNewPosition != getOldPostion) {
+                                currentHandClass.disappearAnimation(true);
                                 grabSetInterval = setInterval(() => {
                                     let getOldPostion = currentHandClass.motionController.lastPosition;
-                                    console.log(getOldPostion, getNewPosition);                                    
+                                    // console.log(getOldPostion, getNewPosition);                                    
                                     controller.getWorldPointerRayToRef(ray);
                                     if(getOldPostion && currentHandClass.holdingMesh)  {
-                                        currentHandClass.holdingMesh.moveWithCollisions(getNewPosition.subtract(getOldPostion))
+                                        currentHandClass.moveWithCollisions(currentHandClass.holdingMesh, getNewPosition.subtract(getOldPostion));
                                     } 
                                 
                                     //@ts-ignore
@@ -96,7 +98,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             currentHandClass.targetMeshInstance.highlight(false);
                                         }
                                         currentHandClass.dropped(grabSetInterval);   
-                                        currentHandClass.motionController.grabbed = false;                               
+                                        currentHandClass.motionController.grabbed = false;      
+                                        currentHandClass.handMesh.isVisible = true;                         
                                     }
                                     
                                     if (currentHandClass.holdingMesh) {
@@ -135,6 +138,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                             currentHandClass.targetMeshInstance.highlight(false);
                         
                         currentHandClass.dropped(grabSetInterval);
+                        currentHandClass.disappearAnimation(false);
                     }
                 })
             })

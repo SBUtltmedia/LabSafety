@@ -1,7 +1,9 @@
-import { AbstractMesh, Mesh, Scene } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Scene, Vector3 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder"
 import { CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
+import { App } from './app';
+import { SceneManager } from "./PostSceneCylinderBehavior";
 
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
@@ -10,15 +12,21 @@ export abstract class Interact {
     labels: Array<string>
 
     constructor(scene) {
+         this.sceneManager = new SceneManager(scene, sop);
+         this.sceneManager.foo();
         this.labels = ["A", "B", "C"];
         this.scene = scene;
+    
     }
 
     updateSOPTask(from: string, to: string) {
+        console.log(this.scene)
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {
-                window.location.assign('.');
+
+            
+ 
             } else {
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
             }
@@ -87,5 +95,9 @@ export abstract class Interact {
             sourceCylinder.rotateAroundZ();
         }
         return rotationFlag;
+    }
+
+    moveWithCollisions(cylinderMesh: AbstractMesh, delta: Vector3) {
+        cylinderMesh.moveWithCollisions(delta);
     }
 }
