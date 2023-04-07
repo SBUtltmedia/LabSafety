@@ -57,10 +57,8 @@ export class Hand extends Interact {
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }
-                this.holdingMesh = null;
-                this.holdingInstance = null;
-                this.motionController.meshGrabbed = null;
                 this.disappearAnimation(false);                
+                this.dropped();
                 sceneManager.resetCylinders();
                 sop.resetSOP();
             } else {

@@ -112,8 +112,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);                                            
                                             let to = collidedCylinder.name.split('-')[2];
                                             let from = currentHandClass.holdingMesh.name.split('-')[2]; 
-                                            currentHandClass.updateSOPTask(from, to);
                                             rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
+                                            droppedFlag = currentHandClass.updateSOPTask(from, to, grabSetInterval);
                                             // rotationFlag = false;
                                         } else {
                                             if (currentHandClass.targetMeshInstance) {
