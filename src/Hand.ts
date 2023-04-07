@@ -48,7 +48,7 @@ export class Hand extends Interact {
         // }
     }
 
-    updateSOPTask(from: string, to: string) {
+    updateSOPTask(from: string, to: string, timeout) {
         console.log(this.scene)
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
@@ -58,11 +58,13 @@ export class Hand extends Interact {
                     cylinder.fadeAndRespawn(100);
                 }
                 this.disappearAnimation(false);                
-                this.dropped();
+                this.dropped(timeout);
                 sceneManager.resetCylinders();
                 sop.resetSOP();
+                return true;
             } else {
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                return false;
             }
         }        
     }    
