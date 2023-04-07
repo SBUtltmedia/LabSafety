@@ -22,10 +22,6 @@ export class SceneManager {
         this.sop = sop;
         console.log(scene)
     }
-   foo(){
-    console.log(this)
-   }
-
 
     resetCylinders() {
         console.log(this)
@@ -37,7 +33,8 @@ export class SceneManager {
                 const tableBoundingBox = table.getBoundingInfo().boundingBox;
                 cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
             }
-        }        
+        }
+        
     }
 
     postSceneCylinder() {

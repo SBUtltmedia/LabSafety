@@ -18,4 +18,10 @@ export default class SOP {
         this.currentState = currentState;
     }
 
+    resetSOP = () => {
+        this.currentState = 0;
+        this.failed = false;
+        this.complete = false;
+    }
+
 }

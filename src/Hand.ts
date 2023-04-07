@@ -1,7 +1,8 @@
 import { Mesh, AbstractMesh, Scene, Animation } from "@babylonjs/core";
-import { MotionControllerWithGrab } from "./Constants";
+import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { Interact } from "./Interact";
+import { SceneManager } from "./PostSceneCylinderBehavior";
 
 export class Hand extends Interact {
     handedness: string;
@@ -11,11 +12,13 @@ export class Hand extends Interact {
     targetMeshInstance: Cylinder | null;
     motionController: MotionControllerWithGrab | null;
     handMesh: Mesh | AbstractMesh;
+    isVisible: boolean;
 
-    constructor(handedness: string, scene: Scene) {
-        super(scene);
+    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>) {
+        super(scene, cylinderInstances);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
+        this.isVisible = true;
     }
 
     getMotionController() {
@@ -38,8 +41,33 @@ export class Hand extends Interact {
             this.holdingMesh = null;
             this.holdingInstance = null;
             this.motionController.meshGrabbed = null;
-        }            
+        }
+        
+        // if (!this.isVisible) {
+        //     this.disappearAnimation(false);
+        // }
     }
+
+    updateSOPTask(from: string, to: string) {
+        console.log(this.scene)
+        let fromAndTo = `${from}to${to}`;
+        if (sop.tasks[sop.currentState].label === fromAndTo) {
+            if (sop.tasks[sop.currentState].next === 'complete') {           
+                let sceneManager = new SceneManager(this.scene, sop);
+                for (let cylinder of this.cylinderInstances) {
+                    cylinder.fadeAndRespawn(100);
+                }
+                this.holdingMesh = null;
+                this.holdingInstance = null;
+                this.motionController.meshGrabbed = null;
+                this.disappearAnimation(false);                
+                sceneManager.resetCylinders();
+                sop.resetSOP();
+            } else {
+                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+            }
+        }        
+    }    
 
     disappearAnimation(disappear = true) {
         console.log("DISAPPEAR: ", disappear);
@@ -51,9 +79,11 @@ export class Hand extends Interact {
         });        
         console.log(this.handMesh);
         if (disappear) {
+            this.isVisible = false;
             // this.handMesh.visibility = 0.5;
             this.scene.beginDirectAnimation(this.handMesh, [animations[0]["init"]], 0, 60, false);            
         } else {
+            this.isVisible = true;
             // this.handMesh.visibility = 1;
             this.scene.beginDirectAnimation(this.handMesh, [animations[1]["init"]], 0, 60, false);            
         }

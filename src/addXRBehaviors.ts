@@ -10,8 +10,9 @@ import { Hand } from "./Hand";
 
 export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
 
-    let handRight: Hand = new Hand("right", scene);
-    let handLeft: Hand = new Hand("left", scene);
+    let handRight: Hand = new Hand("right", scene, cylinders);
+    let handLeft: Hand = new Hand("left", scene, cylinders);
+    let droppedFlag: boolean = false;
 
     let handTable = {
         "right": handRight,
@@ -72,8 +73,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     console.log("Grabbed Cylinder: ", grabbedCylinder);
 
                     if (item.value > 0 && !currentHandClass.motionController.grabbed) {
-                        // currentHandClass.motionController.lastPosition = Object.assign({},ray.origin);
                         if (grabbedCylinder) {
+                            droppedFlag = false;
                             currentHandClass.holdingMesh = grabbedCylinder;
                             currentHandClass.holdingInstance = getCylinderInstanceFromMesh(currentHandClass.holdingMesh);
                             currentHandClass.motionController.meshGrabbed = currentHandClass.holdingMesh;
@@ -99,7 +100,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                         }
                                         currentHandClass.dropped(grabSetInterval);   
                                         currentHandClass.motionController.grabbed = false;      
-                                        currentHandClass.handMesh.isVisible = true;                         
+                                        currentHandClass.handMesh.visibility = 1;         
+                                        droppedFlag = true;          
                                     }
                                     
                                     if (currentHandClass.holdingMesh) {
@@ -126,8 +128,10 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             }                                            
                                         }
                                     }
-                                    currentHandClass.motionController.lastPosition = Object.assign({}, ray.origin);
-                                    currentHand.lastPosition = Object.assign({}, ray.origin);
+                                    if (!droppedFlag) {
+                                        currentHandClass.motionController.lastPosition = Object.assign({}, ray.origin);
+                                        currentHand.lastPosition = Object.assign({}, ray.origin);
+                                    }
                                 }, 10)
                             }
                         }

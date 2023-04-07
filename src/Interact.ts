@@ -2,7 +2,6 @@ import { AbstractMesh, Mesh, Scene, Vector3 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder"
 import { CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
-import { App } from './app';
 import { SceneManager } from "./PostSceneCylinderBehavior";
 
 export abstract class Interact {
@@ -11,27 +10,13 @@ export abstract class Interact {
     scene: Scene;
     labels: Array<string>
 
-    constructor(scene) {
-         this.sceneManager = new SceneManager(scene, sop);
-         this.sceneManager.foo();
+    constructor(scene, cylinderInstances: Array<Cylinder>) {
         this.labels = ["A", "B", "C"];
         this.scene = scene;
-    
+        this.cylinderInstances = cylinderInstances;
     }
 
-    updateSOPTask(from: string, to: string) {
-        console.log(this.scene)
-        let fromAndTo = `${from}to${to}`;
-        if (sop.tasks[sop.currentState].label === fromAndTo) {
-            if (sop.tasks[sop.currentState].next === 'complete') {
 
-            
- 
-            } else {
-                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-            }
-        }        
-    }
 
     intersectHandCylinder(handMesh) {
         for (let i of this.labels){
@@ -41,7 +26,7 @@ export abstract class Interact {
              }
          }
          return null;   
-     }
+    }
 
     intersectCylinder(sourceCylinder) {
         for (let i of this.labels) {

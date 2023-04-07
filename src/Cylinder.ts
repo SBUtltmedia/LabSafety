@@ -240,6 +240,7 @@ export class Cylinder {
                     scene.beginDirectAnimation(mesh, [animations[1]["init"]], 0, 60, false);
                 }                
                 scene.beginDirectAnimation(childrenMeshes[childrenMeshes.length - 1], [animations[1]["init"]], 0, 60, false, undefined, () => {
+                    this.highlight(false);
                     this.mesh.isPickable = true;
                 })
 

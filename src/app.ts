@@ -19,7 +19,7 @@ import { createPlacard } from "./CreatePlarcard";
 import { addWebXR } from "./addWebXR";
 import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from './SOP';
-import { postSceneCylinder, SceneManager } from "./PostSceneCylinderBehavior";
+import { SceneManager } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { sop } from "./Constants";
 import { WebXRDefaultExperience } from "@babylonjs/core";
