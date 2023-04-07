@@ -35,7 +35,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 import '@babylonjs/inspector'
 import { Observer } from '@babylonjs/core'
 
-// console.log = () => { }
+console.log = () => { }
 
 export class App {
     handAnimation: any;

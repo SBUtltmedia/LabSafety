@@ -44,7 +44,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 scene.animationGroups[i].pause();
             }
             
-            xrCamera.pointerSelection.detach();
+            // xrCamera.pointerSelection.detach();
             
             xrCamera.input.onControllerAddedObservable.add((webXrInputSource) => {
                 let handedness=webXrInputSource.inputSource.handedness;

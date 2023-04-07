@@ -71,7 +71,7 @@ export class Hand extends Interact {
 
     disappearAnimation(disappear = true) {
         console.log("DISAPPEAR: ", disappear);
-        let endFrame = 60;
+        let endFrame = 30;
         let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
         animations.forEach(animation => {
             animation["init"] = new Animation(animation.name, `visibility`, 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
@@ -81,11 +81,11 @@ export class Hand extends Interact {
         if (disappear) {
             this.isVisible = false;
             // this.handMesh.visibility = 0.5;
-            this.scene.beginDirectAnimation(this.handMesh, [animations[0]["init"]], 0, 60, false);            
+            this.scene.beginDirectAnimation(this.handMesh, [animations[0]["init"]], 0, endFrame, false);            
         } else {
             this.isVisible = true;
             // this.handMesh.visibility = 1;
-            this.scene.beginDirectAnimation(this.handMesh, [animations[1]["init"]], 0, 60, false);            
+            this.scene.beginDirectAnimation(this.handMesh, [animations[1]["init"]], 0, endFrame, false);            
         }
     }
 
