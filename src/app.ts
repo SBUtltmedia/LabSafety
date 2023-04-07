@@ -1,5 +1,5 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
@@ -32,7 +32,6 @@ import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the defaul
 import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisions
 import '@babylonjs/core/Audio/audioSceneComponent';
 
-import '@babylonjs/inspector'
 import { Observer } from '@babylonjs/core'
 
 console.log = () => { }
