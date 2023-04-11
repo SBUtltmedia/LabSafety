@@ -21,6 +21,18 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
     let rotationFlag = false;
 
+    function getCylinderInstanceFromMesh(cylinder) {
+        let name = cylinder.name.split("-")[2];
+        console.log("Name: ", name);
+        for (let instance of cylinders) {
+            console.log("Instance name: ", instance.name);
+            if (instance.name == name) {
+                return instance;
+            }
+        }
+        return null;
+    }
+
     xrCamera.input.onControllerAddedObservable.add(controller => {
         controller.onMotionControllerInitObservable.add(motionController => {
             let currentHand = (motionController as MotionControllerWithGrab);
@@ -39,7 +51,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
             const squeezeComponent = motionController.getComponentOfType('squeeze');
             const triggerComponent = motionController.getComponentOfType('trigger');
 
-            [squeezeComponent].forEach((component) => { 
+            [triggerComponent, squeezeComponent].forEach((component) => { 
                 console.log(scene.getMeshByName("left"));
                 component.onButtonStateChangedObservable.add((item) => {
                     // @ts-ignore
@@ -63,7 +75,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                         if (grabbedCylinder) {
                             droppedFlag = false;
                             currentHandClass.holdingMesh = grabbedCylinder;
-                            currentHandClass.holdingInstance = currentHandClass.getCylinderInstanceFromMesh(currentHandClass.holdingMesh);
+                            currentHandClass.holdingInstance = getCylinderInstanceFromMesh(currentHandClass.holdingMesh);
                             currentHandClass.motionController.meshGrabbed = currentHandClass.holdingMesh;
                             currentHandClass.motionController.grabbed = true;
 
@@ -96,7 +108,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
 
                                         if (collidedCylinder) {
                                             currentHandClass.targetMesh = collidedCylinder;
-                                            currentHandClass.targetMeshInstance = currentHandClass.getCylinderInstanceFromMesh(collidedCylinder);                                            
+                                            currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);                                            
                                             let to = collidedCylinder.name.split('-')[2];
                                             let from = currentHandClass.holdingMesh.name.split('-')[2]; 
                                             rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
@@ -105,7 +117,6 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                         } else {
                                             if (currentHandClass.targetMeshInstance) {
                                                 currentHandClass.targetMeshInstance.highlight(false);
-                                                currentHandClass.targetMesh = null;
                                             }
 
                                             currentHandClass.holdingInstance.highlight(false);
@@ -129,7 +140,6 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                         if (currentHandClass.targetMeshInstance)
                             currentHandClass.targetMeshInstance.highlight(false);
                         
-                        currentHandClass.targetMesh = null;
                         currentHandClass.dropped(grabSetInterval);
                         currentHandClass.disappearAnimation(false);
                     }

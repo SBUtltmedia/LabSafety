@@ -1,9 +1,8 @@
-import { Mesh, AbstractMesh, Scene, Animation, ParticleSystem, Color4, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
-import { CYLINDER_LIQUID_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
+import { Mesh, AbstractMesh, Scene, Animation } from "@babylonjs/core";
+import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { Interact } from "./Interact";
 import { SceneManager } from "./PostSceneCylinderBehavior";
-import { getChildMeshByName } from "./utils";
 
 export class Hand extends Interact {
     handedness: string;
@@ -14,14 +13,12 @@ export class Hand extends Interact {
     motionController: MotionControllerWithGrab | null;
     handMesh: Mesh | AbstractMesh;
     isVisible: boolean;
-    failBeaker: boolean;
 
     constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>) {
         super(scene, cylinderInstances);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
-        this.failBeaker = false;
     }
 
     getMotionController() {
@@ -44,9 +41,11 @@ export class Hand extends Interact {
             this.holdingMesh = null;
             this.holdingInstance = null;
             this.motionController.meshGrabbed = null;
-            this.targetMesh = null;
-            this.targetMeshInstance = null;
         }
+        
+        // if (!this.isVisible) {
+        //     this.disappearAnimation(false);
+        // }
     }
 
     updateSOPTask(from: string, to: string, timeout) {
@@ -54,7 +53,7 @@ export class Hand extends Interact {
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {           
-                let sceneManager = new SceneManager(this.scene, super.cylinderInstances);
+                let sceneManager = new SceneManager(this.scene, this.cylinderInstances);
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }
@@ -63,21 +62,16 @@ export class Hand extends Interact {
                 sceneManager.resetCylinders();
                 sop.resetSOP();
                 return true;
+            } else {
+                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                return false;
             }
-        } else {
-            console.log("Target mesh: ", this.targetMeshInstance);
-            sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-            
-            // this.targetMeshInstance.startParticles();
-
-            return false;
-        }    
-    }      
-  
+        }        
+    }    
 
     disappearAnimation(disappear = true) {
         console.log("DISAPPEAR: ", disappear);
-        let endFrame = 30;
+        let endFrame = 60;
         let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
         animations.forEach(animation => {
             animation["init"] = new Animation(animation.name, `visibility`, 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
@@ -87,11 +81,11 @@ export class Hand extends Interact {
         if (disappear) {
             this.isVisible = false;
             // this.handMesh.visibility = 0.5;
-            this.scene.beginDirectAnimation(this.handMesh, [animations[0]["init"]], 0, endFrame, false);            
+            this.scene.beginDirectAnimation(this.handMesh, [animations[0]["init"]], 0, 60, false);            
         } else {
             this.isVisible = true;
             // this.handMesh.visibility = 1;
-            this.scene.beginDirectAnimation(this.handMesh, [animations[1]["init"]], 0, endFrame, false);            
+            this.scene.beginDirectAnimation(this.handMesh, [animations[1]["init"]], 0, 60, false);            
         }
     }
 
