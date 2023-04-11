@@ -1,4 +1,4 @@
-// import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/core/Debug/debugLayer";
 // import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
