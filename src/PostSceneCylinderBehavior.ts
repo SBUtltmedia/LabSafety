@@ -12,15 +12,14 @@ import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { StandardMaterial } from "@babylonjs/core";
+import { Interact } from "./Interact";
+import { Cylinder } from "./Cylinder";
+import { sop } from "./Constants";
 
-export class SceneManager {
-    scene: Scene
-    sop: SOP
+export class SceneManager extends Interact {
 
-    constructor(scene: Scene, sop: SOP) {
-        this.scene = scene;
-        this.sop = sop;
-        console.log(scene)
+    constructor(scene: Scene, cylinderInstances: Array<Cylinder>) {
+        super(scene, cylinderInstances);
     }
 
     resetCylinders() {
@@ -75,38 +74,43 @@ export class SceneManager {
         let failBeaker: boolean = false
         for (let i = 0; i < cylinderLetters.length; i++) {
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
+            let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
+
+            console.log("Dragging!")
+
             const gotSomething = cylinder.getBehaviorByName('PointerDrag');
+
+            console.log(gotSomething);
+
             let filteredMeshes = [];
             for (let cylMesh of allCylinders) {
                 if (cylMesh != cylinder) {
                     filteredMeshes.push(cylMesh);
                 }
             }
-    
+
             //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
             let rotationFlag = false;
+
             (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
-                const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                 let hitDetected = false;
-                for (let j = 0; j < cylinderLetters.length; j++) {
-                    if (i == j) continue;
-                    const cylinderHitDetected = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[j]}`);
-    
                     resetRotation(cylinder);
-                    resetRotation(cylinderHitDetected);
-    
-                    if (cylinder.intersectsMesh(cylinderHitDetected)) {
+                    const cylinderHitDetected = super.intersectCylinder(cylinder);
+                    if (cylinderHitDetected) {
+                        let cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
+                        console.log("Hit!");
                         hitDetected = true;
                         let to = cylinderHitDetected.name.split('-')[2];
                         let from = cylinder.name.split('-')[2];
                         let fromAndTo = `${from}to${to}`
-                        if (this.sop.tasks[this.sop.currentState].label === fromAndTo) {
-                            console.log("WHAT??");
-                            if (this.sop.tasks[this.sop.currentState].next === 'complete') {
-                                window.location.assign('.');
+                        if (sop.tasks[sop.currentState].label === fromAndTo) {
+                            if (sop.tasks[sop.currentState].next === 'complete') {
+                                this.resetCylinders();
+                                cylinderInstance.fadeAndRespawn();
+                                sop.resetSOP();
                             } else {
-                                this.sop.currentState = this.sop.tasks.indexOf(this.sop.tasks.find((value,) => value.label == this.sop.tasks[this.sop.currentState].next));
+                                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
                             }
                         } else {
                             if (!failBeaker) {
@@ -126,12 +130,7 @@ export class SceneManager {
                                 particleSystem.emitter = cylinderHitDetected.position;
                                 particleSystem.start();
                             }
-                        }
-                        if (highlightingTheDrag) {
-                            let hitCylinder = getChildMeshByName(cylinderHitDetected, CYLINDER_MESH_NAME);
-    
-                            highlightingTheDrag.highlightMesh((sourceCylinder as Mesh));
-                            highlightingTheDrag.highlightMesh((hitCylinder as Mesh));
+                        }   
     
                             let current_x = cylinder.getAbsolutePosition()._x;
                             let target_x = cylinderHitDetected.getAbsolutePosition()._x;
@@ -144,47 +143,22 @@ export class SceneManager {
                                 cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
                             }
                             if (!rotationFlag) {
-                                let sizes = cylinder.getHierarchyBoundingVectors();
-                                let ySize = sizes.max.y - sizes.min.y;
-                                let offset = -0.09;
-                                let xPos = target_x;
-                                let deltaX = current_x - xPos;
-    
-                                if (target_x < current_x) {
-                                    console.log("Src pos: ", sourceCylinder.position.x);
-                                    sourceCylinder.position.x = deltaX + offset;
-                                    sourceCylinder.position.y = ySize - 0.2;
-                                } else {
-                                    sourceCylinder.position.x = deltaX - offset;
-                                    sourceCylinder.position.y = ySize - 0.2;
-                                }
-    
-                                console.log("Y size: ", ySize);
-    
-                                let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-rotateAroundZ`);
-                                rotationFlag = true;
-                                this.scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
-                                });
+                                
+                                rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
                             }
-                        }
-                        break;
                     } else {
-                        highlightingTheDrag.unhighlightMesh((getChildMeshByName(cylinderHitDetected, CYLINDER_MESH_NAME) as Mesh));
-                        resetRotation(cylinderHitDetected);
+                        cylinderInstance.highlight(false);
                         resetRotation(cylinder);
                     }
-                }
+                
                 if (hitDetected == false) {
-                    highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
+                    cylinderInstance.highlight(false);
     
-                    let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
                     if (rotationFlag) {
                         sourceCylinder.position.x = 0;
                         sourceCylinder.position.y = 0;
                         rotationFlag = false;
-                        console.log(sourceCylinder, individualAnimation, `${cylinderLetters[i]}-resetRotateAroundZ`)
-                        this.scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => {
-                        });                    
+                        cylinderInstance.resetAroundZ();                    
                     }
                 }
             });
@@ -192,17 +166,15 @@ export class SceneManager {
                 const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                 for (let singleMesh of filteredMeshes) {
                     if (singleMesh == sourceCylinder) continue;
-    
-                    let targetCylinder = getChildMeshByName(singleMesh, CYLINDER_MESH_NAME);
-    
-                    highlightingTheDrag.unhighlightMesh((sourceCylinder as Mesh));
-                    highlightingTheDrag.unhighlightMesh((targetCylinder as Mesh));
+
+                    cylinderInstance.highlight(false);
+                    super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
     
                     if (sourceCylinder.intersectsMesh(singleMesh)) {
-                        let individualAnimation = sourceCylinder.getAnimationByName(`${cylinderLetters[i]}-resetRotateAroundZ`);
-                        if (sourceCylinder.rotation.z == 4.62) {
-                            this.scene.beginDirectAnimation(sourceCylinder, [individualAnimation], 0, 60, false, undefined, () => { });
-                        }
+                        cylinderInstance.resetAroundZ();
+                        sourceCylinder.position.x = 0;
+                        sourceCylinder.position.y = 0;
+                        rotationFlag = false;                        
                     }
                 }
             })

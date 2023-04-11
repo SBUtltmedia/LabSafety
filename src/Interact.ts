@@ -16,7 +16,17 @@ export abstract class Interact {
         this.cylinderInstances = cylinderInstances;
     }
 
-
+    getCylinderInstanceFromMesh(cylinder) {
+        let name = cylinder.name.split("-")[2];
+        console.log("Name: ", name);
+        for (let instance of this.cylinderInstances) {
+            console.log("Instance name: ", instance.name);
+            if (instance.name == name) {
+                return instance;
+            }
+        }
+        return null;
+    }    
 
     intersectHandCylinder(handMesh) {
         for (let i of this.labels){
@@ -36,7 +46,7 @@ export abstract class Interact {
                 return cylinder;
             }
         }
-        return false;
+        return null;
     }
 
     highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean) {   
