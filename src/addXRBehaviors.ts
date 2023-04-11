@@ -51,7 +51,7 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
             const squeezeComponent = motionController.getComponentOfType('squeeze');
             const triggerComponent = motionController.getComponentOfType('trigger');
 
-            [triggerComponent, squeezeComponent].forEach((component) => { 
+            [squeezeComponent].forEach((component) => { 
                 console.log(scene.getMeshByName("left"));
                 component.onButtonStateChangedObservable.add((item) => {
                     // @ts-ignore
