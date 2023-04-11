@@ -10,8 +10,9 @@ import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Animation } from '@babylonjs/core/Animations/animation';
-import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
+import { ParticleSystem, Texture } from "@babylonjs/core";
 /**
  * 
  * @param cylinderMesh Cylinder Mesh needed that will be modified
@@ -34,6 +35,7 @@ export class Cylinder {
     dragCollision: PointerDragBehavior;
     highlightLayer:HighlightLayer;
     scene: Scene;
+    particleSystem: ParticleSystem
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
@@ -129,9 +131,29 @@ export class Cylinder {
 
         console.log("Children: ", this.mesh.getChildMeshes())
 
+        const particleSystem = new ParticleSystem("particles", 500, this.scene);
+        particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
+        particleSystem.minLifeTime = 0.5;
+        particleSystem.maxLifeTime = 0.7;
+        particleSystem.emitRate = 100;
+        particleSystem.gravity = new Vector3(0, .5, 0);
+        particleSystem.minSize = 0.01;
+        particleSystem.maxSize = 0.07;
+        particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+        particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
+        particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+        particleSystem.emitter = (this.mesh as AbstractMesh).position;
+
+        this.particleSystem = particleSystem;
+
+
         this.addDragCollision();
     }
 
+
+    startParticles() {
+        this.particleSystem.start();
+    }
 
 
     /**

@@ -118,7 +118,7 @@ export class App {
                 clipboard.addBehavior(flyToCamera);        
             }
             
-            let sceneManger: SceneManager = new SceneManager(scene, sop);
+            let sceneManger: SceneManager = new SceneManager(scene, cylinders);
             sceneManger.postSceneCylinder();
             addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
 
