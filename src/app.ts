@@ -34,7 +34,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { Observer } from '@babylonjs/core'
 
-console.log = () => { }
+// console.log = () => { }
 
 export class App {
     handAnimation: any;
@@ -47,7 +47,7 @@ export class App {
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
-            { "fileName": "clipBoardWithPaperCompressedTexture.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
+            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
