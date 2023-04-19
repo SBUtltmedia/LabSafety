@@ -11,6 +11,7 @@
   "dependencies": {
     "@babylonjs/core": "^5.0.0",
     "ammojs-typed": "^1.0.6",
+    "handlebars": "^4.7.7",
     "vue": "^3.2.41"
   },
   "devDependencies": {

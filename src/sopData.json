@@ -1,0 +1,50 @@
+{
+  "facility": "Stony Brook University VR Laboratory",
+  "labDirector": "Victor Ruben",
+  "scope": "VR Chemical Mixture Synthesis",
+  "lastRevision": "4/1/2022",
+  "general": "General: Properly mixing VR chemicals",
+  "sopNum": "42",
+  "listType": "I",
+  "items": [
+    {
+      "text": "HAZARD IDENTIFICATION LOLZ XYTZ 123",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "text": "Improper mixing of chemicals can lead to explosive results!"
+        }
+      ]
+    },
+    {
+      "text": "CHEMICAL HANDLING PROCEDURES",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "text": "When mixing these chemicals - always follow the correct sequence"
+        },
+        {
+          "text": "Pour chemical B into chemical C"
+        },
+        {
+          "text": "Then pour chemical mixture B+C into chemical A"
+        }
+      ]
+    },
+    {
+      "text": "EMERGENCY PROCEDURES",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "text": "In the event of an improper mixture - use the fire extinguisher to put out the flames"
+        },
+        {
+          "text": "Evacuate the lab"
+        },
+        {
+          "text": "Call for emergency services"
+        }
+      ]
+    }
+  ]
+}

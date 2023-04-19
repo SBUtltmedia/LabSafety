@@ -1,6 +1,3 @@
-
-// import FlyToCameraBehavior from "./FlyToCameraBehavior";
-
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -8,6 +5,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Texture, StandardMaterial, Color3 } from "@babylonjs/core";
 import { rootPath } from "./Constants";
 import { getChildMeshByName } from "./utils";
+import Handlebars from "handlebars";
+import data from './sopData.json';
 
 /**
  * 
@@ -26,9 +25,6 @@ export function createClipboard(clipboard: Mesh) {
     clipboard.rotationQuaternion = null;
     clipboard.rotation = new Vector3(0, Math.PI / 4, 0);
 
-    // clipboard.scaling.x /= 25;
-    // clipboard.scaling.y /= 25;
-    // clipboard.scaling.z /= 25;
 
     const cylinderA = scene.getMeshByName('pivot-Cylinder-A');
     if (cylinderA) {
@@ -37,23 +33,32 @@ export function createClipboard(clipboard: Mesh) {
     }
 
     function fragmentFromString (stringHTML: string) {
+
+        console.log("data: ", data);
+
         let temp = document.createElement('template');
         temp.innerHTML = stringHTML;
-        return temp.content;
+        var template = Handlebars.compile(temp.innerHTML);
+        var html = template(data);
+        temp.innerHTML = html;
+        return temp.content
     }
+
    function domToMaterial(text: string){
   
 
         const svg = text;
         const buffer = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
     
-        // const texture = Texture.LoadFromDataString("tex", buffer, scene, undefined, undefined, undefined,Texture.NEAREST_SAMPLINGMODE);
-        const texture = Texture.LoadFromDataString("tex", buffer, scene);
+        const texture = Texture.LoadFromDataString("tex", buffer, scene, undefined, undefined, undefined,Texture.LINEAR_LINEAR_MIPNEAREST);
+        // const texture = Texture.LoadFromDataString("tex", buffer, scene);
+        // texture.samplingMode = Texture.NEAREST_SAMPLINGMODE;
         let material = new StandardMaterial("mat", scene);
     
         material.diffuseTexture = texture;
         texture.uScale = 1.0;
         texture.vScale = -1.0;
+        
         material.emissiveColor = Color3.White();
         material.useAlphaFromDiffuseTexture = true;
         texture.hasAlpha = true;
@@ -62,13 +67,14 @@ export function createClipboard(clipboard: Mesh) {
         console.log("Material set")
    }    
 
-    fetch(`${rootPath}images/sop42.svg`)
+    fetch(`${rootPath}images/sopTemplate.svg`)
         .then(r => r.text())
         .then(text => {
             console.log("fetched!")
             let svgFrag = fragmentFromString(text); // returns DOM object
+            // console.log(svgFrag);
             let procedureEL = svgFrag.getElementById("procedure-list")!;
-            // console.log(procedureEL)
+            console.log(procedureEL)
             // let newOL = document.createElement("ol");
             // let newLI = document.createElement("li");
             // // newLI.innerHTML = "Heyyo";
