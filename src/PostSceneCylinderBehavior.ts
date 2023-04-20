@@ -157,10 +157,13 @@ export class SceneManager extends Interact {
                             }
                             if (!rotationFlag) {
                                 rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
-                                
-                                if (!doneSOP) {
-                                    super.addColors(cylinderInstance, cylinderHitInstance);
+                                super.addColors(cylinderInstance, cylinderHitInstance);
+
+                                if (doneSOP) {
+                                    cylinderHitInstance.resetProperties();
+                                    doneSOP = false;
                                 }
+                                
                             }
                     } else {
                         cylinderInstance.highlight(false);
