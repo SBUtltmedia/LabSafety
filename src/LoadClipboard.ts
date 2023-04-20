@@ -32,7 +32,7 @@ export function createClipboard(clipboard: Mesh) {
         clipboard.position.z = cylinderA.position.z + 0.5;
     }
 
-    function fragmentFromString (stringHTML: string) {
+    function fragmentFromString(stringHTML: string) {
 
         console.log("data: ", data);
 
@@ -44,28 +44,28 @@ export function createClipboard(clipboard: Mesh) {
         return temp.content
     }
 
-   function domToMaterial(text: string){
-  
+    function domToMaterial(text: string) {
+
 
         const svg = text;
         const buffer = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    
-        const texture = Texture.LoadFromDataString("tex", buffer, scene, undefined, undefined, undefined,Texture.LINEAR_LINEAR_MIPNEAREST);
+
+        const texture = Texture.LoadFromDataString("tex", buffer, scene, undefined, undefined, undefined, Texture.LINEAR_LINEAR_MIPNEAREST);
         // const texture = Texture.LoadFromDataString("tex", buffer, scene);
         // texture.samplingMode = Texture.NEAREST_SAMPLINGMODE;
         let material = new StandardMaterial("mat", scene);
-    
+
         material.diffuseTexture = texture;
         texture.uScale = 1.0;
         texture.vScale = -1.0;
-        
+
         material.emissiveColor = Color3.White();
         material.useAlphaFromDiffuseTexture = true;
         texture.hasAlpha = true;
         let planeText = getChildMeshByName(clipboard, "Plane");
         planeText.material = material;
         console.log("Material set")
-   }    
+    }
 
     fetch(`${rootPath}images/sopTemplate.svg`)
         .then(r => r.text())

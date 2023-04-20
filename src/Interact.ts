@@ -1,6 +1,6 @@
-import { AbstractMesh, Mesh, Scene, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, Mesh, Scene, Vector3 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder"
-import { CYLINDER_MESH_NAME, sop } from "./Constants";
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
 import { SceneManager } from "./PostSceneCylinderBehavior";
 
@@ -50,6 +50,12 @@ export abstract class Interact {
     }
 
     highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean) {   
+        let sourceColor = sourceCylinder.currentColor;
+        let targetColor = targetCylinder.currentColor;
+
+        let newColor: Color3 = new Color3((sourceColor.r + targetColor.r) / 2, (sourceColor.g + targetColor.g) / 2, (sourceColor.b + targetColor.b) / 2);
+        targetCylinder.setColor(newColor);
+
         //@ts-ignore
         sourceCylinder.highlight();
         targetCylinder.highlight();

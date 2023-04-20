@@ -36,10 +36,13 @@ export class Cylinder {
     highlightLayer:HighlightLayer;
     scene: Scene;
     particleSystem: ParticleSystem
+    currentColor: Color3
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
+
+        this.currentColor = color;
     
         const scene: Scene = cylinderMesh.getScene();
         this.scene = scene;
@@ -278,5 +281,13 @@ export class Cylinder {
     resetAroundZ() {
         let individualAnimation = this.mesh.getAnimationByName(`${this.name}-resetRotateAroundZ`);
         this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {});        
-    }    
+    }
+
+    setColor(color: Color3) {
+        const cylinderLiquid: AbstractMesh = getChildMeshByName(this.mesh as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+        const cylinderLiquidMaterial = new StandardMaterial('liquid-material');
+        cylinderLiquidMaterial.diffuseColor = color;
+        cylinderLiquid.material = cylinderLiquidMaterial;
+        this.currentColor = color;
+    }
 }
