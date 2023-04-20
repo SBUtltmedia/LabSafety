@@ -57,10 +57,13 @@ export class Hand extends Interact {
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }
+                sop.resetSOP();
                 this.disappearAnimation(false);                
                 this.dropped(timeout);
                 sceneManager.resetCylinders();
-                sop.resetSOP();
+                for (let cylinderInstance of super.cylinderInstances) {
+                    cylinderInstance.resetProperties();
+                }                
                 return true;
             } else {
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));

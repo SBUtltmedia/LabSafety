@@ -50,12 +50,6 @@ export abstract class Interact {
     }
 
     highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean) {   
-        let sourceColor = sourceCylinder.currentColor;
-        let targetColor = targetCylinder.currentColor;
-
-        let newColor: Color3 = new Color3((sourceColor.r + targetColor.r) / 2, (sourceColor.g + targetColor.g) / 2, (sourceColor.b + targetColor.b) / 2);
-        targetCylinder.setColor(newColor);
-
         //@ts-ignore
         sourceCylinder.highlight();
         targetCylinder.highlight();
@@ -100,5 +94,15 @@ export abstract class Interact {
 
     moveWithCollisions(cylinderMesh: AbstractMesh, delta: Vector3) {
         cylinderMesh.moveWithCollisions(delta);
+    }
+
+    addColors(sourceInstance: Cylinder, targetInstance: Cylinder) {
+        let sourceColor = sourceInstance.currentColor;
+        let targetColor = targetInstance.currentColor;
+
+        console.log(sourceColor, targetColor);
+
+        let newColor: Color3 = new Color3((sourceColor.r + targetColor.r) / 2, (sourceColor.g + targetColor.g) / 2, (sourceColor.b + targetColor.b) / 2);
+        targetInstance.setColor(newColor);        
     }
 }

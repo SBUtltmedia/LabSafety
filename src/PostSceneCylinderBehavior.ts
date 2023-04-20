@@ -18,12 +18,16 @@ import { sop } from "./Constants";
 
 export class SceneManager extends Interact {
 
+    particleSystem: ParticleSystem;
+
     constructor(scene: Scene, cylinderInstances: Array<Cylinder>) {
         super(scene, cylinderInstances);
     }
 
     resetCylinders() {
-        console.log(this)
+        if (this.particleSystem) {
+            this.particleSystem.stop();
+        }
         let cylinderLetters = ['A', 'B', 'C'];
         for (let i = 0; i < cylinderLetters.length; i++) {
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
@@ -32,13 +36,15 @@ export class SceneManager extends Interact {
                 const tableBoundingBox = table.getBoundingInfo().boundingBox;
                 cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
             }
+            super.getCylinderInstanceFromMesh(cylinder).setOpacity(0.85);
+            super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
         }
-        
+
     }
 
     postSceneCylinder() {
         // this.scene.onBeforeRenderObservable.add(() => {this.resetCylinders()});
-        this.resetCylinders();
+        // this.resetCylinders();
         let cylinderLetters: Array<string> = ['A', 'B', 'C'];
         let allCylinders = [];
         for (let char of cylinderLetters) {
@@ -72,7 +78,9 @@ export class SceneManager extends Interact {
             resetRotationAnimation.setKeys(resetFrames);
         }
         let failBeaker: boolean = false
+        
         for (let i = 0; i < cylinderLetters.length; i++) {
+            let doneSOP = false;
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
             let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
 
@@ -106,9 +114,13 @@ export class SceneManager extends Interact {
                         let fromAndTo = `${from}to${to}`
                         if (sop.tasks[sop.currentState].label === fromAndTo) {
                             if (sop.tasks[sop.currentState].next === 'complete') {
-                                this.resetCylinders();
+                                // for (let cylinderInstance of super.cylinderInstances) {
+                                //     cylinderInstance.resetProperties();
+                                // }                                
                                 cylinderInstance.fadeAndRespawn();
                                 sop.resetSOP();
+                                this.resetCylinders();
+                                doneSOP = true;
                             } else {
                                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
                             }
@@ -128,7 +140,8 @@ export class SceneManager extends Interact {
                                 particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
                                 particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
                                 particleSystem.emitter = cylinderHitDetected.position;
-                                particleSystem.start();
+                                this.particleSystem = particleSystem;
+                                this.particleSystem.start();
                             }
                         }   
     
@@ -143,8 +156,11 @@ export class SceneManager extends Interact {
                                 cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
                             }
                             if (!rotationFlag) {
-                                
                                 rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
+                                
+                                if (!doneSOP) {
+                                    super.addColors(cylinderInstance, cylinderHitInstance);
+                                }
                             }
                     } else {
                         cylinderInstance.highlight(false);

@@ -35,14 +35,18 @@ export class Cylinder {
     dragCollision: PointerDragBehavior;
     highlightLayer:HighlightLayer;
     scene: Scene;
-    particleSystem: ParticleSystem
-    currentColor: Color3
+    particleSystem: ParticleSystem;
+    currentColor: Color3;
+    originalColor: Color3;
+    startOpacity: number
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
 
         this.currentColor = color;
+        this.originalColor = color;
+        this.startOpacity = 0.70;
     
         const scene: Scene = cylinderMesh.getScene();
         this.scene = scene;
@@ -149,6 +153,7 @@ export class Cylinder {
 
         this.particleSystem = particleSystem;
 
+        this.setOpacity(this.startOpacity);
 
         this.addDragCollision();
     }
@@ -234,10 +239,16 @@ export class Cylinder {
             let childrenMeshes = this.mesh.getChildMeshes();
             let cylinder = childrenMeshes.find((mesh) => mesh.name === 'cylinder')!;
             let liquid = childrenMeshes.find((mesh) => mesh.name === 'liquid')!;
-            let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
+
+            const cylinderLiquid: AbstractMesh = getChildMeshByName(this.mesh as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+
+            console.log("Visibility: ", cylinderLiquid.visibility)
+
+            let animations = [{ name: 'Invisibility', startValue: cylinderLiquid.visibility }, { name: 'Visibility', startValue: 0 }]
+
             animations.forEach(animation => {
                 animation["init"] = new Animation(animation.name, 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
-                animation["init"].setKeys([{ frame: 0, value: animation.startValue }, { frame: endFrame, value: 1 - animation.startValue }])
+                animation["init"].setKeys([{ frame: 0, value: animation.startValue }, { frame: endFrame, value: cylinderLiquid.visibility - animation.startValue }])
             });
 
             for (let i = 0; i < childrenMeshes.length - 1; ++i) {
@@ -289,5 +300,15 @@ export class Cylinder {
         cylinderLiquidMaterial.diffuseColor = color;
         cylinderLiquid.material = cylinderLiquidMaterial;
         this.currentColor = color;
+    }
+
+    setOpacity(opacity: number) {
+        const cylinderLiquid: AbstractMesh = getChildMeshByName(this.mesh as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+        cylinderLiquid.visibility = opacity;
+    }
+
+    resetProperties() {
+        this.setOpacity(this.startOpacity);
+        this.setColor(this.originalColor);
     }
 }
