@@ -7,11 +7,12 @@ import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, resetPosition } from "./utils";
 import { Hand } from "./Hand";
+import { GUIManager } from "./GUIManager";
 
-export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>) { 
+export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>, guiManager: GUIManager) { 
 
-    let handRight: Hand = new Hand("right", scene, cylinders);
-    let handLeft: Hand = new Hand("left", scene, cylinders);
+    let handRight: Hand = new Hand("right", scene, cylinders, guiManager);
+    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager);
     let droppedFlag: boolean = false;
 
     let handTable = {

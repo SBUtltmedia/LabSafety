@@ -3,17 +3,20 @@ import { Cylinder } from "./Cylinder"
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
 import { SceneManager } from "./PostSceneCylinderBehavior";
+import { GUIManager } from "./GUIManager";
 
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
     clipboard: AbstractMesh;
     scene: Scene;
-    labels: Array<string>
+    labels: Array<string>;
+    guiManager: GUIManager;
 
-    constructor(scene, cylinderInstances: Array<Cylinder>) {
+    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
         this.labels = ["A", "B", "C"];
         this.scene = scene;
         this.cylinderInstances = cylinderInstances;
+        this.guiManager = guiManager;
     }
 
     getCylinderInstanceFromMesh(cylinder) {
@@ -104,5 +107,9 @@ export abstract class Interact {
 
         let newColor: Color3 = new Color3((sourceColor.r + targetColor.r) / 2, (sourceColor.g + targetColor.g) / 2, (sourceColor.b + targetColor.b) / 2);
         targetInstance.setColor(newColor);        
+    }
+
+    showFinishScreen() {
+        this.guiManager.gameFinishPrompt.setVisible(true);
     }
 }

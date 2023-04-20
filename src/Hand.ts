@@ -1,6 +1,7 @@
 import { Mesh, AbstractMesh, Scene, Animation } from "@babylonjs/core";
 import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
+import { GUIManager } from "./GUIManager";
 import { Interact } from "./Interact";
 import { SceneManager } from "./PostSceneCylinderBehavior";
 
@@ -14,8 +15,8 @@ export class Hand extends Interact {
     handMesh: Mesh | AbstractMesh;
     isVisible: boolean;
 
-    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>) {
-        super(scene, cylinderInstances);
+    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
+        super(scene, cylinderInstances, guiManager);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
@@ -53,7 +54,7 @@ export class Hand extends Interact {
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {           
-                let sceneManager = new SceneManager(this.scene, this.cylinderInstances);
+                let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager);
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }

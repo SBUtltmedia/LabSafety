@@ -15,13 +15,14 @@ import { StandardMaterial } from "@babylonjs/core";
 import { Interact } from "./Interact";
 import { Cylinder } from "./Cylinder";
 import { sop } from "./Constants";
+import { GUIManager } from "./GUIManager";
 
 export class SceneManager extends Interact {
 
     particleSystem: ParticleSystem;
 
-    constructor(scene: Scene, cylinderInstances: Array<Cylinder>) {
-        super(scene, cylinderInstances);
+    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
+        super(scene, cylinderInstances, guiManager);
     }
 
     resetCylinders() {
@@ -39,6 +40,8 @@ export class SceneManager extends Interact {
             super.getCylinderInstanceFromMesh(cylinder).setOpacity(0.85);
             super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
         }
+
+        super.showFinishScreen();
 
     }
 

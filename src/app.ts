@@ -33,14 +33,16 @@ import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisio
 import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { Observer } from '@babylonjs/core'
+import { GUIManager } from "./GUIManager";
 
-// console.log = () => { }
+console.log = () => { }
 
 export class App {
     handAnimation: any;
     sop: SOP;
     models: any;
     cylinders: any;
+    guiManager: GUIManager;
     constructor() {
         this.cylinders = []
         let cylinderName = "TLLGraduatedCylinderNewLabel.glb"
@@ -61,18 +63,21 @@ export class App {
 
 
         this.createScene().then((scene: Scene) => {
+            this.guiManager = new GUIManager();
+            this.guiManager.welcomePrompt.setVisible(true);
             let positions = {}
             for (let i of ["A", "B", "C"]) {
                 positions[`pivot-Cylinder-${i}`] = Object.assign({}, scene.getMeshByName(`pivot-Cylinder-${i}`).position);
 
             }
-            this.processScene(scene, this.cylinders);
+            this.processScene(scene, this.cylinders, this.guiManager);
+
         });
 
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene, cylinders: Array<Cylinder>) {
+    async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
@@ -118,9 +123,9 @@ export class App {
                 clipboard.addBehavior(flyToCamera);        
             }
             
-            let sceneManger: SceneManager = new SceneManager(scene, cylinders);
+            let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager);
             sceneManger.postSceneCylinder();
-            addXRBehaviors(scene, xrCamera, handAnimations, cylinders)
+            addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager)
 
         });
 
