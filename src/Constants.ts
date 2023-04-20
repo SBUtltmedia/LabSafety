@@ -3,7 +3,7 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 import SOP from "./SOP";
 
-export const rootPath = ''
+export const rootPath = './'
 export const RENDER_CANVAS_ID = 'canvas';
 export const MAX_XR_GRAB_DISTANCE = 0.25;  // meters
 export const BASE_FPS = 60;
