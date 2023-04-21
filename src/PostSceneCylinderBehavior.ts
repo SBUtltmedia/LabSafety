@@ -66,7 +66,7 @@ export class SceneManager extends Interact {
             });
             sourceCylinder.animations.push(rotationAnimation);
             rotationAnimation.setKeys(keyFrames);
-    
+
             let resetRotationAnimation = new Animation(`${char}-resetRotateAroundZ`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
             const resetFrames = [];
             resetFrames.push({
@@ -81,7 +81,7 @@ export class SceneManager extends Interact {
             resetRotationAnimation.setKeys(resetFrames);
         }
         let failBeaker: boolean = false
-        
+        let samePour: boolean = false;
         for (let i = 0; i < cylinderLetters.length; i++) {
             let doneSOP = false;
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
@@ -106,81 +106,82 @@ export class SceneManager extends Interact {
 
             (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
                 let hitDetected = false;
-                    resetRotation(cylinder);
-                    const cylinderHitDetected = super.intersectCylinder(cylinder);
-                    if (cylinderHitDetected) {
-                        let cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
-                        console.log("Hit!");
-                        hitDetected = true;
-                        let to = cylinderHitDetected.name.split('-')[2];
-                        let from = cylinder.name.split('-')[2];
-                        let fromAndTo = `${from}to${to}`
-                        if (sop.tasks[sop.currentState].label === fromAndTo) {
-                            if (sop.tasks[sop.currentState].next === 'complete') {
-                                // for (let cylinderInstance of super.cylinderInstances) {
-                                //     cylinderInstance.resetProperties();
-                                // }                                
-                                cylinderInstance.fadeAndRespawn();
-                                sop.resetSOP();
-                                this.resetCylinders();
-                                doneSOP = true;
-                            } else {
-                                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-                            }
+                resetRotation(cylinder);
+                const cylinderHitDetected = super.intersectCylinder(cylinder);
+                if (cylinderHitDetected) {
+                    let cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
+                    console.log("Hit!");
+                    hitDetected = true;
+                    let to = cylinderHitDetected.name.split('-')[2];
+                    let from = cylinder.name.split('-')[2];
+                    let fromAndTo = `${from}to${to}`
+                    if (sop.tasks[sop.currentState].label === fromAndTo) {
+                        samePour = true;
+                        if (sop.tasks[sop.currentState].next === 'complete') {
+                            // for (let cylinderInstance of super.cylinderInstances) {
+                            //     cylinderInstance.resetProperties();
+                            // }                                
+                            cylinderInstance.fadeAndRespawn();
+                            sop.resetSOP();
+                            this.resetCylinders();
+                            doneSOP = true;
                         } else {
-                            if (!failBeaker) {
-                                failBeaker = true;
-                                const particleSystem = new ParticleSystem("particles", 500, this.scene);
-                                particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
-                                particleSystem.minLifeTime = 0.5;
-                                particleSystem.maxLifeTime = 0.7;
-                                particleSystem.emitRate = 100;
-                                particleSystem.gravity = new Vector3(0, .5, 0);
-                                particleSystem.minSize = 0.01;
-                                particleSystem.maxSize = 0.07;
-                                particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-                                const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
-                                particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
-                                particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
-                                particleSystem.emitter = cylinderHitDetected.position;
-                                this.particleSystem = particleSystem;
-                                this.particleSystem.start();
-                            }
-                        }   
-    
-                            let current_x = cylinder.getAbsolutePosition()._x;
-                            let target_x = cylinderHitDetected.getAbsolutePosition()._x;
-    
-                            if (target_x < current_x) { // left hit
-                                sourceCylinder.rotation.y = Math.PI;
-                                cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
-                            } else {
-                                sourceCylinder.rotation.y = 0;
-                                cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
-                            }
-                            if (!rotationFlag) {
-                                rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
-                                super.addColors(cylinderInstance, cylinderHitInstance);
-
-                                if (doneSOP) {
-                                    cylinderHitInstance.resetProperties();
-                                    doneSOP = false;
-                                }
-                                
-                            }
+                            sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                        }
                     } else {
-                        cylinderInstance.highlight(false);
-                        resetRotation(cylinder);
+                        if (!failBeaker && !samePour) {
+                            failBeaker = true;
+                            const particleSystem = new ParticleSystem("particles", 500, this.scene);
+                            particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
+                            particleSystem.minLifeTime = 0.5;
+                            particleSystem.maxLifeTime = 0.7;
+                            particleSystem.emitRate = 100;
+                            particleSystem.gravity = new Vector3(0, .5, 0);
+                            particleSystem.minSize = 0.01;
+                            particleSystem.maxSize = 0.07;
+                            particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+                            const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+                            particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
+                            particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+                            particleSystem.emitter = cylinderHitDetected.position;
+                            this.particleSystem = particleSystem;
+                            this.particleSystem.start();
+                        }
                     }
-                
+
+                    let current_x = cylinder.getAbsolutePosition()._x;
+                    let target_x = cylinderHitDetected.getAbsolutePosition()._x;
+
+                    if (target_x < current_x) { // left hit
+                        sourceCylinder.rotation.y = Math.PI;
+                        cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
+                    } else {
+                        sourceCylinder.rotation.y = 0;
+                        cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
+                    }
+                    if (!rotationFlag) {
+                        rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
+                        super.addColors(cylinderInstance, cylinderHitInstance);
+
+                        if (doneSOP) {
+                            cylinderHitInstance.resetProperties();
+                            doneSOP = false;
+                        }
+
+                    }
+                } else {
+                    cylinderInstance.highlight(false);
+                    resetRotation(cylinder);
+                }
+
                 if (hitDetected == false) {
                     cylinderInstance.highlight(false);
-    
+                    samePour = false;
                     if (rotationFlag) {
                         sourceCylinder.position.x = 0;
                         sourceCylinder.position.y = 0;
                         rotationFlag = false;
-                        cylinderInstance.resetAroundZ();                    
+                        cylinderInstance.resetAroundZ();
                     }
                 }
             });
@@ -191,15 +192,15 @@ export class SceneManager extends Interact {
 
                     cylinderInstance.highlight(false);
                     super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
-    
+
                     if (sourceCylinder.intersectsMesh(singleMesh)) {
                         cylinderInstance.resetAroundZ();
                         sourceCylinder.position.x = 0;
                         sourceCylinder.position.y = 0;
-                        rotationFlag = false;                        
+                        rotationFlag = false;
                     }
                 }
             })
         }
-    }    
+    }
 }
