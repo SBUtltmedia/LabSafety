@@ -49,13 +49,13 @@ export class App {
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
-            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))), "label": "Cylinder-A" },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))), "label": "Cylinder-B" },
-            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }
+            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" },
+            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
@@ -120,9 +120,9 @@ export class App {
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
                 const clipboard = scene.getMeshByName("clipboard");
-                clipboard.addBehavior(flyToCamera);        
+                clipboard.addBehavior(flyToCamera);
             }
-            
+
             let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager);
             sceneManger.postSceneCylinder();
             addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager)
