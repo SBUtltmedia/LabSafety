@@ -22,7 +22,7 @@ import SOP from './SOP';
 import { SceneManager } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { sop } from "./Constants";
-import { WebXRDefaultExperience } from "@babylonjs/core";
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
 import '@babylonjs/core/Materials/Node/Blocks';
 import "@babylonjs/core/Loading/loadingScreen";
 
@@ -32,10 +32,10 @@ import '@babylonjs/core/Helpers/sceneHelpers';  // To enable creating the defaul
 import '@babylonjs/core/Collisions/collisionCoordinator';  // To enable collisions
 import '@babylonjs/core/Audio/audioSceneComponent';
 
-import { Observer } from '@babylonjs/core'
+//import { Observer } from '@babylonjs/core'
 import { GUIManager } from "./GUIManager";
 
-console.log = () => { }
+//console.log = () => { }
 
 export class App {
     handAnimation: any;
