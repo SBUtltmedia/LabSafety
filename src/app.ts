@@ -21,8 +21,8 @@ import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from './SOP';
 import { SceneManager } from "./PostSceneCylinderBehavior";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
-import { sop } from "./Constants";
-import { WebXRDefaultExperience } from "@babylonjs/core";
+import { rootPath, sop } from "./Constants";
+import { Sound, WebXRDefaultExperience } from "@babylonjs/core";
 import '@babylonjs/core/Materials/Node/Blocks';
 import "@babylonjs/core/Loading/loadingScreen";
 
@@ -34,8 +34,9 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 
 import { Observer } from '@babylonjs/core'
 import { GUIManager } from "./GUIManager";
+import { SoundManager } from "./SoundManager";
 
-console.log = () => { }
+// console.log = () => { }
 
 export class App {
     handAnimation: any;
@@ -43,34 +44,50 @@ export class App {
     models: any;
     cylinders: any;
     guiManager: GUIManager;
+    soundManager: SoundManager;
+    loadedSounds: Array<any>;
+
     constructor() {
         this.cylinders = []
         let cylinderName = "TLLGraduatedCylinderNewLabel.glb"
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
+            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))), "label": "Cylinder-A" },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))), "label": "Cylinder-B" },
-            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" },
-            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
+            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
 
+        let soundObjects = [{"soundName": "explosion", "fileName": `${rootPath}/sound/mi_explosion_03_hpx.mp3`}];
+        this.loadedSounds = [];
+
 
         this.createScene().then((scene: Scene) => {
-            this.guiManager = new GUIManager();
-            this.guiManager.welcomePrompt.setVisible(true);
-            let positions = {}
-            for (let i of ["A", "B", "C"]) {
-                positions[`pivot-Cylinder-${i}`] = Object.assign({}, scene.getMeshByName(`pivot-Cylinder-${i}`).position);
+            // this.guiManager = new GUIManager();
+            this.soundManager = new SoundManager(soundObjects, scene);
+            this.soundManager.loadSounds()
+                .then((sounds: Array<any>) => {
+                    this.loadedSounds = sounds;
+                    let positions = {}
+                    for (let i of ["A", "B", "C"]) {
+                        positions[`pivot-Cylinder-${i}`] = Object.assign({}, scene.getMeshByName(`pivot-Cylinder-${i}`).position);
+        
+                    }
+                    console.log("Loaded sounds: ", this.loadedSounds);  
+                    this.loadedSounds[0]["sound"].play()
+                    this.processScene(scene, this.cylinders, this.guiManager);
+                                
+                })
+            
+            // this.guiManager.welcomePrompt.setVisible(true);
 
-            }
-            this.processScene(scene, this.cylinders, this.guiManager);
 
         });
 
@@ -120,9 +137,9 @@ export class App {
             if (xrCamera) {
                 const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
                 const clipboard = scene.getMeshByName("clipboard");
-                clipboard.addBehavior(flyToCamera);
+                clipboard.addBehavior(flyToCamera);        
             }
-
+            
             let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager);
             sceneManger.postSceneCylinder();
             addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager)
