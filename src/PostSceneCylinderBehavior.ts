@@ -10,19 +10,20 @@ import { Animation } from '@babylonjs/core/Animations/animation';
 import { Nullable } from "@babylonjs/core/types";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Color4, Vector3 } from "@babylonjs/core/Maths/math";
-import { StandardMaterial } from "@babylonjs/core";
+import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
+import { Engine, StandardMaterial } from "@babylonjs/core";
 import { Interact } from "./Interact";
 import { Cylinder } from "./Cylinder";
 import { sop } from "./Constants";
 import { GUIManager } from "./GUIManager";
+import { SoundManager } from "./SoundManager";
 
 export class SceneManager extends Interact {
 
     particleSystem: ParticleSystem;
 
-    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
-        super(scene, cylinderInstances, guiManager);
+    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
+        super(scene, cylinderInstances, guiManager, soundManager);
     }
 
     resetCylinders() {
@@ -39,9 +40,11 @@ export class SceneManager extends Interact {
             }
             super.getCylinderInstanceFromMesh(cylinder).setOpacity(0.85);
             super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
+            if (i == 0) {
+                super.getCylinderInstanceFromMesh(cylinder).setColor(Color3.Red());
+                super.getCylinderInstanceFromMesh(cylinder).currentColor = Color3.Red();
+            }
         }
-
-        super.showFinishScreen();
 
     }
 
@@ -83,11 +86,9 @@ export class SceneManager extends Interact {
         let failBeaker: boolean = false
         let samePour: boolean = false;
         for (let i = 0; i < cylinderLetters.length; i++) {
-            let doneSOP = false;
+            
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
             let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
-
-            console.log("Dragging!")
 
             const gotSomething = cylinder.getBehaviorByName('PointerDrag');
 
@@ -105,12 +106,14 @@ export class SceneManager extends Interact {
             let rotationFlag = false;
 
             (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
+                Engine.audioEngine.unlock();
+                Engine.audioEngine.audioContext.resume();
+                let doneSOP = false;
                 let hitDetected = false;
                 resetRotation(cylinder);
                 const cylinderHitDetected = super.intersectCylinder(cylinder);
                 if (cylinderHitDetected) {
                     let cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
-                    console.log("Hit!");
                     hitDetected = true;
                     let to = cylinderHitDetected.name.split('-')[2];
                     let from = cylinder.name.split('-')[2];
@@ -120,13 +123,18 @@ export class SceneManager extends Interact {
                         if (sop.tasks[sop.currentState].next === 'complete') {
                             // for (let cylinderInstance of super.cylinderInstances) {
                             //     cylinderInstance.resetProperties();
-                            // }                                
+                            // }   
+                            doneSOP = true;
+                            console.log(cylinderHitInstance);
+                            super.playSuccess();
                             cylinderInstance.fadeAndRespawn();
                             sop.resetSOP();
                             this.resetCylinders();
-                            doneSOP = true;
+                            
+                            
                         } else {
                             sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                            super.playDing();
                         }
                     } else {
                         if (!failBeaker && !samePour) {
@@ -146,6 +154,8 @@ export class SceneManager extends Interact {
                             particleSystem.emitter = cylinderHitDetected.position;
                             this.particleSystem = particleSystem;
                             this.particleSystem.start();
+                            console.log("Playing explosion!");
+                            super.playExplosion();
                         }
                     }
 
@@ -161,12 +171,11 @@ export class SceneManager extends Interact {
                     }
                     if (!rotationFlag) {
                         rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
-                        super.addColors(cylinderInstance, cylinderHitInstance);
-
-                        if (doneSOP) {
-                            cylinderHitInstance.resetProperties();
-                            doneSOP = false;
-                        }
+                        let to = cylinderHitDetected.name.split('-')[2];
+                        let from = cylinder.name.split('-')[2];
+                        let fromAndTo = `${from}to${to}`;
+                        if (!doneSOP)
+                            super.addColors(cylinderInstance, cylinderHitInstance);
 
                     }
                 } else {

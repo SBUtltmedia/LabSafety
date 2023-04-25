@@ -1,9 +1,10 @@
-import { AbstractMesh, Color3, Mesh, Scene, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, Mesh, Scene, Sound, Vector3 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder"
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
 import { SceneManager } from "./PostSceneCylinderBehavior";
 import { GUIManager } from "./GUIManager";
+import { SoundManager } from "./SoundManager";
 
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
@@ -11,19 +12,19 @@ export abstract class Interact {
     scene: Scene;
     labels: Array<string>;
     guiManager: GUIManager;
+    soundManager: SoundManager;
 
-    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
+    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
         this.labels = ["A", "B", "C"];
         this.scene = scene;
         this.cylinderInstances = cylinderInstances;
         this.guiManager = guiManager;
+        this.soundManager = soundManager;
     }
 
     getCylinderInstanceFromMesh(cylinder) {
         let name = cylinder.name.split("-")[2];
-        console.log("Name: ", name);
         for (let instance of this.cylinderInstances) {
-            console.log("Instance name: ", instance.name);
             if (instance.name == name) {
                 return instance;
             }
@@ -61,12 +62,10 @@ export abstract class Interact {
         let target_x = targetCylinder.mesh.getAbsolutePosition()._x;
 
         if (target_x < current_x) { // left hit
-            console.log("Left hit!");
 
             sourceCylinder.mesh.rotation.y = Math.PI;
             targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
         } else {
-            console.log("Right hit!");
             sourceCylinder.mesh.rotation.y = 0;
             targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
         }
@@ -82,7 +81,6 @@ export abstract class Interact {
             let sourceCylinderMesh = getChildMeshByName(sourceCylinder.mesh, CYLINDER_MESH_NAME);
 
             if (target_x < current_x) {
-                console.log("Src pos: ", sourceCylinder.position.x);
                 sourceCylinderMesh.position.x = deltaX + offset;
                 sourceCylinderMesh.position.y = ySize - 0.2;
             } else {
@@ -103,8 +101,6 @@ export abstract class Interact {
         let sourceColor = sourceInstance.currentColor;
         let targetColor = targetInstance.currentColor;
 
-        console.log(sourceColor, targetColor);
-
         let newColor: Color3 = new Color3((sourceColor.r + targetColor.r) / 2, (sourceColor.g + targetColor.g) / 2, (sourceColor.b + targetColor.b) / 2);
         targetInstance.setColor(newColor);        
     }
@@ -112,4 +108,25 @@ export abstract class Interact {
     showFinishScreen() {
         this.guiManager.gameFinishPrompt.setVisible(true);
     }
+
+    playExplosion() {
+        console.log(this.soundManager.loadedSounds["explosion"]);
+        let sound: Sound = this.soundManager.loadedSounds["explosion"];
+        sound.stop();
+        sound.play();
+    }
+
+    playDing() {
+        let sound: Sound = this.soundManager.loadedSounds["ding"];
+        sound.stop();
+        sound.play();
+    }
+
+    playSuccess() {
+        let sound: Sound = this.soundManager.loadedSounds["success"];
+        console.log("Success: ", sound);
+        sound.stop();
+        sound.play();
+    }
+
 }

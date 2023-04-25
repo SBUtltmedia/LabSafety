@@ -300,6 +300,7 @@ export class Cylinder {
         cylinderLiquidMaterial.diffuseColor = color;
         cylinderLiquid.material = cylinderLiquidMaterial;
         this.currentColor = color;
+        console.log(this.currentColor);
     }
 
     setOpacity(opacity: number) {

@@ -36,7 +36,7 @@ import { Observer } from '@babylonjs/core'
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
-// console.log = () => { }
+console.log = () => { }
 
 export class App {
     handAnimation: any;
@@ -53,36 +53,45 @@ export class App {
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
-            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))), "label": "Cylinder-A" },
             { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))), "label": "Cylinder-B" },
-            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" }
+            { "fileName": cylinderName, "callback": (mesh: Mesh[]) => this.cylinders.push(new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))), "label": "Cylinder-C" },
+            { "fileName": "clipBoardWithPaperCompressedTextureNew.glb", "callback": (mesh: Mesh[]) => createClipboard(mesh[0]) },
             // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
         ].map(function (model) {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
 
-        let soundObjects = [{"soundName": "explosion", "fileName": `${rootPath}/sound/mi_explosion_03_hpx.mp3`}];
+        let soundObjects = [{"soundName": "explosion", "fileName": `${rootPath}/sound/mi_explosion_03_hpx.mp3`},
+                            {"soundName": "ding", "fileName": `${rootPath}/sound/ding-idea-40142.mp3`},
+                            {"soundName": "success", "fileName": `${rootPath}/sound/success.mp3`}];
         this.loadedSounds = [];
 
-
+        
         this.createScene().then((scene: Scene) => {
             // this.guiManager = new GUIManager();
             this.soundManager = new SoundManager(soundObjects, scene);
             this.soundManager.loadSounds()
                 .then((sounds: Array<any>) => {
+                    
+                    
+
                     this.loadedSounds = sounds;
                     let positions = {}
                     for (let i of ["A", "B", "C"]) {
                         positions[`pivot-Cylinder-${i}`] = Object.assign({}, scene.getMeshByName(`pivot-Cylinder-${i}`).position);
         
                     }
-                    console.log("Loaded sounds: ", this.loadedSounds);  
-                    this.loadedSounds[0]["sound"].play()
-                    this.processScene(scene, this.cylinders, this.guiManager);
+                    console.log("Loaded sounds: ", this.loadedSounds);
+                    for (let sound of this.loadedSounds) {
+                        // this.soundManager.loadedSounds[sound.soundName] = sound.sound;
+                        console.log(sound.sound);
+                    }
+                    
+                    this.processScene(scene, this.cylinders, this.guiManager, this.soundManager);
                                 
                 })
             
@@ -94,7 +103,7 @@ export class App {
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager) {
+    async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
@@ -129,8 +138,23 @@ export class App {
 
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
+        let displayPtr = false;
+
         xrCamera.pointerSelection.displayLaserPointer = false;
         xrCamera.pointerSelection.displaySelectionMesh = false;
+
+        window.addEventListener("keydown", (ev) => {
+            // Shift+Ctrl+Alt+I
+            if (ev.keyCode === 73) {
+                if (!displayPtr) {
+                    displayPtr = true;
+                } else {
+                    displayPtr = false;
+                }
+                xrCamera.pointerSelection.displayLaserPointer = displayPtr;
+                xrCamera.pointerSelection.displaySelectionMesh = displayPtr;                
+            }
+        });        
 
         addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
             console.log("add webxr");
@@ -140,9 +164,9 @@ export class App {
                 clipboard.addBehavior(flyToCamera);        
             }
             
-            let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager);
+            let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager, soundManager);
             sceneManger.postSceneCylinder();
-            addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager)
+            addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager, soundManager)
 
         });
 
@@ -177,6 +201,7 @@ export class App {
 
     createScene() {
         return new Promise((finishedAllModels,) => {
+            
             const canvas = document.getElementById('canvas') as HTMLCanvasElement
             const engine = new Engine(canvas, true, { stencil: true });
             const scene = new Scene(engine);
