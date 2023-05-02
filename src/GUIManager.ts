@@ -1,4 +1,5 @@
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Button } from "@babylonjs/gui"
+import { Camera, Scene } from "@babylonjs/core"
 
 class PromptWithButton {
     rect: Rectangle;
@@ -22,8 +23,9 @@ export class GUIManager {
     advancedTexture: AdvancedDynamicTexture;
     welcomePrompt: PromptWithButton;
     gameFinishPrompt: PromptWithButton;
-
-    constructor() {
+    camera: Camera;
+    constructor(scene: Scene) {
+        this.camera = scene.activeCamera;
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         this.welcomePrompt = this.createPromptWithButton("Welcome to lab! You can find the tasks for today by clicking on the clipboard.")
         this.gameFinishPrompt = this.createPromptWithButton("Task successfully completed!");
@@ -50,7 +52,7 @@ export class GUIManager {
         text1.paddingBottomInPixels = 40;
         text1.paddingLeftInPixels = 15;
         text1.paddingRightInPixels = 15;
-    
+
         rect1.addControl(text1);
 
         var button1 = Button.CreateSimpleButton("but1", "Click to dismiss");
@@ -63,7 +65,7 @@ export class GUIManager {
         let prompt = new PromptWithButton(rect1, text1, button1);
         prompt.setVisible(false);
 
-        prompt.button.onPointerUpObservable.add(function() {
+        prompt.button.onPointerUpObservable.add(function () {
             prompt.setVisible(false);
         });
         prompt.button.onPointerEnterObservable.add(() => {
@@ -71,8 +73,8 @@ export class GUIManager {
         })
         prompt.button.onPointerOutObservable.add(() => {
             button1.background = "white";
-        })    
-        advancedTexture.addControl(prompt.button);    
+        })
+        advancedTexture.addControl(prompt.button);
         rect1.addControl(button1);
 
         return prompt;

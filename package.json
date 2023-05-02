@@ -14,7 +14,8 @@
     "vue": "^3.2.41"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "^5.33.2",
+    "@babylonjs/core": "^6.0.0",
+    "@babylonjs/inspector": "^6.0.0",
     "@vitejs/plugin-vue": "^3.2.0",
     "typescript": "^4.6.4",
     "vite": "^3.2.3",
