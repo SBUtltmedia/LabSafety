@@ -1,5 +1,5 @@
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Button } from "@babylonjs/gui"
-import { Camera, Scene } from "@babylonjs/core"
+import { Camera, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core"
 
 class PromptWithButton {
     rect: Rectangle;
@@ -24,15 +24,23 @@ export class GUIManager {
     welcomePrompt: PromptWithButton;
     gameFinishPrompt: PromptWithButton;
     camera: Camera;
+    screen: Mesh;
     constructor(scene: Scene) {
         this.camera = scene.activeCamera;
-        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        this.welcomePrompt = this.createPromptWithButton("Welcome to lab! You can find the tasks for today by clicking on the clipboard.")
-        this.gameFinishPrompt = this.createPromptWithButton("Task successfully completed!");
+        this.screen = MeshBuilder.CreatePlane("Start", { size: .5 });
+        this.screen.parent = this.camera;
+        this.screen.position = this.camera.position.add(new Vector3(.7, -2, 2.5));
+        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
+        const button1 = Button.CreateSimpleButton("but1", "Click Me");
+        button1.width = 1;
+        button1.height = 0.4;
+        this.advancedTexture.addControl(button1);
+        //this.welcomePrompt = this.createPromptWithButton("Welcome to lab! You can find the tasks for today by clicking on the clipboard.")
+        //this.gameFinishPrompt = this.createPromptWithButton("Task successfully completed!");
     }
 
     createPromptWithButton(text: string) {
-        var advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        var advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
         var rect1 = new Rectangle();
         rect1.width = 0.25;
         rect1.height = 0.25;
