@@ -1,5 +1,5 @@
 import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+//import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
@@ -11,7 +11,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Light } from "@babylonjs/core/Lights/light";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
-// import { checkIfDebug } from "./utils";
+//import { checkIfDebug } from "./utils";
 import { Cylinder } from "./Cylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
@@ -213,7 +213,9 @@ export class App {
             });
             // checkIfDebug(scene);
             const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
+            //camera.cameraDirection = new Vector3(0.1, 0.1, 0.1);
             camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
+            camera.rotation = new Vector3(.4, 0, 0);
             camera.attachControl(canvas, true);
             camera.applyGravity = true;
             camera.minZ = 0.0;  // To prevent clipping through near meshes
