@@ -4,6 +4,7 @@ import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
 import { Interact } from "./Interact";
 import { SceneManager } from "./PostSceneCylinderBehavior";
+import { SoundManager } from "./SoundManager";
 
 export class Hand extends Interact {
     handedness: string;
@@ -15,8 +16,8 @@ export class Hand extends Interact {
     handMesh: Mesh | AbstractMesh;
     isVisible: boolean;
 
-    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager) {
-        super(scene, cylinderInstances, guiManager);
+    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
+        super(scene, cylinderInstances, guiManager, soundManager);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
@@ -54,10 +55,11 @@ export class Hand extends Interact {
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {           
-                let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager);
+                let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager, super.soundManager);
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }
+                super.playSuccess();
                 sop.resetSOP();
                 this.disappearAnimation(false);                
                 this.dropped(timeout);
@@ -67,10 +69,13 @@ export class Hand extends Interact {
                 }                
                 return true;
             } else {
+                super.playDing();
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
                 return false;
             }
-        }        
+        } else {
+            super.playExplosion();
+        }      
     }    
 
     disappearAnimation(disappear = true) {

@@ -36,7 +36,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
-// console.log = () => { }
+console.log = () => { }
 
 export class App {
     handAnimation: any;
@@ -65,7 +65,9 @@ export class App {
             return Object.assign({}, { fileName: "LabBench.glb", root: "./models/", callback: defaultCallBack, label: "NoLabel" }, model)
         })
 
-        let soundObjects = [{ "soundName": "explosion", "fileName": `${rootPath}/sound/mi_explosion_03_hpx.mp3` }];
+        let soundObjects = [{ "soundName": "explosion", "fileName": `${rootPath}/sound/mi_explosion_03_hpx.mp3` },
+        { "soundName": "ding", "fileName": `${rootPath}/sound/ding-idea-40142.mp3` },
+        { "soundName": "success", "fileName": `${rootPath}/sound/success.mp3` }];
         this.loadedSounds = [];
 
 
@@ -74,6 +76,9 @@ export class App {
             this.soundManager = new SoundManager(soundObjects, scene);
             this.soundManager.loadSounds()
                 .then((sounds: Array<any>) => {
+
+
+
                     this.loadedSounds = sounds;
                     let positions = {}
                     for (let i of ["A", "B", "C"]) {
@@ -81,8 +86,12 @@ export class App {
 
                     }
                     console.log("Loaded sounds: ", this.loadedSounds);
-                    this.loadedSounds[0]["sound"].play()
-                    this.processScene(scene, this.cylinders, this.guiManager);
+                    for (let sound of this.loadedSounds) {
+                        // this.soundManager.loadedSounds[sound.soundName] = sound.sound;
+                        console.log(sound.sound);
+                    }
+
+                    this.processScene(scene, this.cylinders, this.guiManager, this.soundManager);
 
                 })
 
@@ -94,7 +103,7 @@ export class App {
     }
     //Can be turn back on if Z axis gets messed up
 
-    async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager) {
+    async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
         let light: Light = scene.getLightByName('light1');
@@ -129,8 +138,23 @@ export class App {
 
         xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
+        let displayPtr = false;
+
         xrCamera.pointerSelection.displayLaserPointer = false;
         xrCamera.pointerSelection.displaySelectionMesh = false;
+
+        window.addEventListener("keydown", (ev) => {
+            // Shift+Ctrl+Alt+I
+            if (ev.keyCode === 73) {
+                if (!displayPtr) {
+                    displayPtr = true;
+                } else {
+                    displayPtr = false;
+                }
+                xrCamera.pointerSelection.displayLaserPointer = displayPtr;
+                xrCamera.pointerSelection.displaySelectionMesh = displayPtr;
+            }
+        });
 
         addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
             console.log("add webxr");
@@ -140,9 +164,9 @@ export class App {
                 clipboard.addBehavior(flyToCamera);
             }
 
-            let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager);
+            let sceneManger: SceneManager = new SceneManager(scene, cylinders, guiManager, soundManager);
             sceneManger.postSceneCylinder();
-            addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager)
+            addXRBehaviors(scene, xrCamera, handAnimations, cylinders, guiManager, soundManager)
 
         });
 
@@ -177,6 +201,7 @@ export class App {
 
     createScene() {
         return new Promise((finishedAllModels,) => {
+
             const canvas = document.getElementById('canvas') as HTMLCanvasElement
             const engine = new Engine(canvas, true, { stencil: true });
             const scene = new Scene(engine);

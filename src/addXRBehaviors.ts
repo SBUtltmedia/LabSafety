@@ -2,17 +2,18 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Scene } from "@babylonjs/core/scene";
-import { Color3, Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
+import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, resetPosition } from "./utils";
 import { Hand } from "./Hand";
 import { GUIManager } from "./GUIManager";
+import { SoundManager } from "./SoundManager";
 
-export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>, guiManager: GUIManager) { 
+export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) { 
 
-    let handRight: Hand = new Hand("right", scene, cylinders, guiManager);
-    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager);
+    let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager);
+    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager);
     let droppedFlag: boolean = false;
 
     let handTable = {
@@ -73,7 +74,9 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                     console.log("Grabbed Cylinder: ", grabbedCylinder);
 
                     if (item.value > 0.5 && !currentHandClass.motionController.grabbed) {
+                        
                         if (grabbedCylinder) {
+                            Engine.audioEngine.unlock();
                             droppedFlag = false;
                             currentHandClass.holdingMesh = grabbedCylinder;
                             currentHandClass.holdingInstance = getCylinderInstanceFromMesh(currentHandClass.holdingMesh);
@@ -112,11 +115,12 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);                                            
                                             let to = collidedCylinder.name.split('-')[2];
                                             let from = currentHandClass.holdingMesh.name.split('-')[2]; 
-                                            if (!rotationFlag)
+                                            if (!rotationFlag) {
                                                 currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
-                                            rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
-
-                                            droppedFlag = currentHandClass.updateSOPTask(from, to, grabSetInterval);
+                                                droppedFlag = currentHandClass.updateSOPTask(from, to, grabSetInterval);
+                                                rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
+                                            }
+                                                                    
                                             // rotationFlag = false;
                                         } else {
                                             if (currentHandClass.targetMeshInstance) {
