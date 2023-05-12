@@ -82,17 +82,19 @@ export class Cylinder {
             const tableBoundingBox = table.getBoundingInfo().boundingBox;
             const cylinderOpacity = getChildMeshByName(cylinderMesh, CYLINDER_MESH_NAME)!;
             const cylinderOpacityBoundingBox = cylinderOpacity.getBoundingInfo().boundingBox;
-            const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y + .00000001;
-            base.position.y = tableBoundingBox.maximumWorld.y + cylinderVerticalOffset;
+            const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y ;
+            console.log(cylinderVerticalOffset);
+            base.position.y = tableBoundingBox.maximumWorld.y + cylinderVerticalOffset/2 + 0.05;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
-            base.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
+            base.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;         
             //@ts-ignore
             this.position = { ...base.position };
         } else {
             base.position.x = -2 + i;
             base.position.y = 1.22;
             base.position.z = 0.5;
+            console.log("Else!")
         }
         base.checkCollisions = true;
         base.ellipsoid = new Vector3(0.02, 0.160, 0.02);

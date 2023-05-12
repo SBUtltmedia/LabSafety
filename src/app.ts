@@ -1,5 +1,5 @@
 import "@babylonjs/core/Debug/debugLayer";
-//import "@babylonjs/inspector";
+// import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
@@ -52,7 +52,7 @@ export class App {
         let cylinderName = "TLLGraduatedCylinderNewLabel.glb"
         this.models = [
             //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
-            { "fileName": "NewLaboratoryUNFINISHED.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
+            { "fileName": "LabWithTable.glb", "callback": (mesh: Mesh[]) => this.createRoom(mesh), "label": "floor" },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B") },
             { "fileName": "Placard_Label.glb", 'callback': (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C") },
@@ -72,7 +72,7 @@ export class App {
 
 
         this.createScene().then((scene: Scene) => {
-            this.guiManager = new GUIManager(scene);
+            // this.guiManager = new GUIManager(scene);
             this.soundManager = new SoundManager(soundObjects, scene);
             this.soundManager.loadSounds()
                 .then((sounds: Array<any>) => {
@@ -106,6 +106,8 @@ export class App {
     async processScene(scene: Scene, cylinders: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
 
         let camera = (scene.getCameraByName('camera') as UniversalCamera);
+
+
         let light: Light = scene.getLightByName('light1');
         let xrCamera: WebXRDefaultExperience;
         //light.intensity = 1;
@@ -192,7 +194,9 @@ export class App {
                     const cameraXPosition = tableBoundingBox.center.x;
                     scene = getCollidableMesh.getScene();
                     camera = (scene.getCameraByName('camera') as UniversalCamera);
-                    camera.position.x = cameraXPosition - 0.7;
+                    camera.position = new Vector3(tableBoundingBox.center.x * -1,tableBoundingBox.center.y * 2 + 0.5, -1.5);
+                    camera.rotation = new Vector3(Math.PI / 8, 0, 0);
+                    
                 }
             }
         }
@@ -215,7 +219,7 @@ export class App {
             const camera = new UniversalCamera('camera', new Vector3(0, 1.84, -1.134), scene);
             //camera.cameraDirection = new Vector3(0.1, 0.1, 0.1);
             camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
-            camera.rotation = new Vector3(.4, 0, 0);
+
             camera.attachControl(canvas, true);
             camera.applyGravity = true;
             camera.minZ = 0.0;  // To prevent clipping through near meshes
