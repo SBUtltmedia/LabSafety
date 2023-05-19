@@ -234,6 +234,10 @@ export class Cylinder {
     */
     fadeAndRespawn(timeUntilFade = TIME_UNTIL_FADE) {
         setTimeout(() => {
+            let ptrDrag = this.mesh.getBehaviorByName('PointerDrag');
+            if (ptrDrag)
+                (ptrDrag as PointerDragBehavior).releaseDrag();        
+    
             this.mesh.isPickable = false;
             let endFrame = 60;
             let getMeshLetter = this.mesh.name.split('-')[0];

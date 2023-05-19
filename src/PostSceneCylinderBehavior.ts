@@ -176,7 +176,7 @@ export class SceneManager extends Interact {
                         let fromAndTo = `${from}to${to}`;
                         if (!doneSOP)
                             super.addColors(cylinderInstance, cylinderHitInstance);
-
+                        
                     }
                 } else {
                     cylinderInstance.highlight(false);

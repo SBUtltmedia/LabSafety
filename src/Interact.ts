@@ -35,7 +35,7 @@ export abstract class Interact {
     intersectHandCylinder(handMesh) {
         for (let i of this.labels){
              let cylinder = this.scene.getMeshByName(`pivot-Cylinder-${i}`);
-             if (handMesh.intersectsMesh(cylinder, false)) {
+             if (handMesh.intersectsMesh(cylinder, false) && cylinder.isPickable) {
                  return cylinder;
              }
          }

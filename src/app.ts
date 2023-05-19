@@ -1,4 +1,4 @@
-import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/core/Debug/debugLayer";
 // import "@babylonjs/inspector";
 
 import { Scene } from '@babylonjs/core/scene';
@@ -36,7 +36,7 @@ import '@babylonjs/core/Audio/audioSceneComponent';
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
-console.log = () => { }
+// console.log = () => { }
 
 export class App {
     handAnimation: any;
