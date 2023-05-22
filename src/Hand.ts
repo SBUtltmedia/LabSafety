@@ -1,4 +1,4 @@
-import { Mesh, AbstractMesh, Scene, Animation } from "@babylonjs/core";
+import { Mesh, AbstractMesh, Scene, Animation, ParticleSystem } from "@babylonjs/core";
 import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
@@ -15,12 +15,15 @@ export class Hand extends Interact {
     motionController: MotionControllerWithGrab | null;
     handMesh: Mesh | AbstractMesh;
     isVisible: boolean;
+    failBeaker: boolean;
+    particleSystem: ParticleSystem;
 
     constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
         super(scene, cylinderInstances, guiManager, soundManager);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
+        this.failBeaker = false;
     }
 
     getMotionController() {
@@ -63,10 +66,17 @@ export class Hand extends Interact {
                 sop.resetSOP();
                 this.disappearAnimation(false);                
                 this.dropped(timeout);
+
+                if (this.particleSystem) {
+                    this.particleSystem.stop();
+                    console.log("Stopping particle system!");
+                };
+
                 sceneManager.resetCylinders();
                 for (let cylinderInstance of super.cylinderInstances) {
                     cylinderInstance.resetProperties();
                 }                
+
                 return true;
             } else {
                 super.playDing();
@@ -74,8 +84,12 @@ export class Hand extends Interact {
                 return false;
             }
         } else {
-            super.playExplosion();
-        }      
+            if (!this.failBeaker) {
+                super.playExplosion();
+                this.particleSystem = super.showEffects(this.targetMesh);
+            }
+        }
+        return false;      
     }    
 
     disappearAnimation(disappear = true) {

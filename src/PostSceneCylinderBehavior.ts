@@ -126,7 +126,9 @@ export class SceneManager extends Interact {
                             // }   
                             doneSOP = true;
                             console.log(cylinderHitInstance);
-                            super.playSuccess();
+                            // play the sound after the anumation is done
+                            setTimeout(() => {super.playSuccess();}, 300);
+
                             cylinderInstance.fadeAndRespawn();
                             sop.resetSOP();
                             this.resetCylinders();
@@ -138,24 +140,8 @@ export class SceneManager extends Interact {
                         }
                     } else {
                         if (!failBeaker && !samePour) {
+                            this.particleSystem = super.showEffects(cylinderHitDetected);
                             failBeaker = true;
-                            const particleSystem = new ParticleSystem("particles", 500, this.scene);
-                            particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
-                            particleSystem.minLifeTime = 0.5;
-                            particleSystem.maxLifeTime = 0.7;
-                            particleSystem.emitRate = 100;
-                            particleSystem.gravity = new Vector3(0, .5, 0);
-                            particleSystem.minSize = 0.01;
-                            particleSystem.maxSize = 0.07;
-                            particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-                            const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
-                            particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
-                            particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
-                            particleSystem.emitter = cylinderHitDetected.position;
-                            this.particleSystem = particleSystem;
-                            this.particleSystem.start();
-                            console.log("Playing explosion!");
-                            super.playExplosion();
                         }
                     }
 

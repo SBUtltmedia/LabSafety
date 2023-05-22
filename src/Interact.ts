@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, Mesh, Scene, Sound, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, Color4, Mesh, ParticleSystem, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder"
 import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
@@ -106,7 +106,7 @@ export abstract class Interact {
     }
 
     showFinishScreen() {
-        this.guiManager.gameFinishPrompt.setVisible(true);
+        // this.guiManager.gameFinishPrompt.setVisible(true);
     }
 
     playExplosion() {
@@ -127,6 +127,28 @@ export abstract class Interact {
         console.log("Success: ", sound);
         sound.stop();
         sound.play();
+    }
+
+    showEffects(cylinderHitDetected) {
+        const particleSystem = new ParticleSystem("particles", 500, this.scene);
+        particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
+        particleSystem.minLifeTime = 0.5;
+        particleSystem.maxLifeTime = 0.7;
+        particleSystem.emitRate = 100;
+        particleSystem.gravity = new Vector3(0, .5, 0);
+        particleSystem.minSize = 0.01;
+        particleSystem.maxSize = 0.07;
+        particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+        const cylinderLiquid: AbstractMesh = getChildMeshByName(cylinderHitDetected as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+        particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
+        particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+        particleSystem.emitter = cylinderHitDetected.position;
+        particleSystem.start();
+
+        // this.particleSystem = particleSystem;
+        this.playExplosion();
+
+        return particleSystem;
     }
 
 }
