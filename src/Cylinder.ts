@@ -13,6 +13,7 @@ import { Animation } from '@babylonjs/core/Animations/animation';
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 import { ParticleSystem, Texture } from "@babylonjs/core";
+import { Hand } from "./Hand";
 /**
  * 
  * @param cylinderMesh Cylinder Mesh needed that will be modified
@@ -233,7 +234,7 @@ export class Cylinder {
     * @summary Fade creates a interval to decrease the cylinder visibility every 50 ms, and then after a second increases cylinder
     *          visibility every 50 seconds
     */
-    fadeAndRespawn(timeUntilFade = TIME_UNTIL_FADE) {
+    fadeAndRespawn(timeUntilFade = TIME_UNTIL_FADE, handInstances: Hand[] = null) {
         setTimeout(() => {
             let ptrDrag = this.mesh.getBehaviorByName('PointerDrag');
             if (ptrDrag)
@@ -254,7 +255,8 @@ export class Cylinder {
             let animations = [{ name: 'Invisibility', startValue: cylinderLiquid.visibility }, { name: 'Visibility', startValue: 0 }]
 
             animations.forEach(animation => {
-                animation["init"] = new Animation(animation.name, 'visibility', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
+                animation["init"] = new Animation(animation.name, 'visibility', 120,
+                 Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
                 animation["init"].setKeys([{ frame: 0, value: animation.startValue }, { frame: endFrame, value: cylinderLiquid.visibility - animation.startValue }])
             });
 
@@ -285,6 +287,15 @@ export class Cylinder {
                 scene.beginDirectAnimation(childrenMeshes[childrenMeshes.length - 1], [animations[1]["init"]], 0, 60, false, undefined, () => {
                     this.highlight(false);
                     this.mesh.isPickable = true;
+
+                    if (handInstances) {
+                        for (let hand of handInstances) {
+                            if (hand) {
+                                hand.handMesh.visibility = 1;
+                                hand.dropped();
+                            }
+                        }
+                    }
                 })
 
             })
@@ -319,4 +330,25 @@ export class Cylinder {
         this.setOpacity(this.startOpacity);
         this.setColor(this.originalColor);
     }
+
+
+    showEffects(start = true) {
+        if (start) {
+            this.particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", this.scene);
+            this.particleSystem.minLifeTime = 0.5;
+            this.particleSystem.maxLifeTime = 0.7;
+            this.particleSystem.emitRate = 100;
+            this.particleSystem.gravity = new Vector3(0, .5, 0);
+            this.particleSystem.minSize = 0.01;
+            this.particleSystem.maxSize = 0.07;
+            this.particleSystem.createPointEmitter(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            const cylinderLiquid: AbstractMesh = getChildMeshByName(this.mesh as AbstractMesh, CYLINDER_LIQUID_MESH_NAME)!;
+            this.particleSystem.addColorGradient(1, Color4.FromColor3((cylinderLiquid.material as StandardMaterial).diffuseColor, 1));
+            this.particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+            this.particleSystem.emitter = this.mesh.position;
+            this.particleSystem.start();
+        } else {
+            this.particleSystem.stop();
+        }
+    }    
 }

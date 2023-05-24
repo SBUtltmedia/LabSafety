@@ -41,9 +41,12 @@ export class Hand extends Interact {
         this.motionController = motionController;
     }
 
-    dropped(grabInterval){
+    dropped(grabInterval = null){
         this.motionController.lastPosition = null;
-        clearInterval(grabInterval);
+
+        if (grabInterval)
+            clearInterval(grabInterval);
+
         this.motionController.grabbed = false;
         this.motionController.meshGrabbed = undefined;
         console.log(this.holdingMesh)
@@ -101,6 +104,7 @@ export class Hand extends Interact {
                 sceneManager.resetCylinders();
                 for (let cylinderInstance of this.cylinderInstances) {
                     cylinderInstance.resetProperties();
+                    cylinderInstance.showEffects(false);
                 }
                 return true;
             } else {
@@ -111,7 +115,7 @@ export class Hand extends Interact {
         } else {
             if (!this.failBeaker) {
                 super.playExplosion();
-                this.particleSystem = super.showEffects(this.targetMesh);
+                this.targetMeshInstance.showEffects(true);
             }
         }
         return false;      

@@ -36,6 +36,7 @@ export class SceneManager extends Interact {
                 const tableBoundingBox = table.getBoundingInfo().boundingBox;
                 cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
             }
+            super.getCylinderInstanceFromMesh(cylinder).showEffects(false);
             super.getCylinderInstanceFromMesh(cylinder).setOpacity(0.85);
             super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
             if (i == 0) {
@@ -139,7 +140,8 @@ export class SceneManager extends Interact {
                         }
                     } else {
                         if (!failBeaker && !samePour) {
-                            this.particleSystem = super.showEffects(cylinderHitDetected);
+                            cylinderHitInstance.showEffects(true);
+                            super.playExplosion();
                             failBeaker = true;
                         }
                     }
