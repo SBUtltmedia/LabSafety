@@ -1,4 +1,8 @@
-import { Mesh, AbstractMesh, Scene, Animation, ParticleSystem } from "@babylonjs/core";
+import { Mesh, AbstractMesh, Scene,
+        Animation, ParticleSystem, WebXRDefaultExperience,
+        Vector3, 
+        WebXRState} from "@babylonjs/core";
+
 import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
@@ -17,13 +21,16 @@ export class Hand extends Interact {
     isVisible: boolean;
     failBeaker: boolean;
     particleSystem: ParticleSystem;
+    cylinderInstancesHand: Cylinder[];
 
-    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
-        super(scene, cylinderInstances, guiManager, soundManager);
+    constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
+        console.log("Cylinders hand: ", cylinderInstances);
+        super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
         this.failBeaker = false;
+
     }
 
     getMotionController() {
@@ -47,10 +54,6 @@ export class Hand extends Interact {
             this.holdingInstance = null;
             this.motionController.meshGrabbed = null;
         }
-        
-        // if (!this.isVisible) {
-        //     this.disappearAnimation(false);
-        // }
     }
 
     updateSOPTask(from: string, to: string, timeout) {
@@ -58,11 +61,34 @@ export class Hand extends Interact {
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {           
-                let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager, super.soundManager);
+                console.log("GUI mgr", this.guiManager, "Sound mgr: ", this.soundManager);
+                let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager, this.soundManager, this.xrCamera);
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.fadeAndRespawn(100);
                 }
                 super.playSuccess();
+
+                console.log("Showing finish screen!");
+
+                if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
+                    super.showFinishScreen();
+                    let screen = this.scene.getMeshByName("Start");
+                    if (screen) {
+                        let camera = this.xrCamera.baseExperience.camera;
+                        screen.parent = camera
+                        screen.position = camera.position.add(new Vector3(-camera.position.x, -1.5, 1.15));
+
+                        this.xrCamera.pointerSelection.displayLaserPointer = true;
+                        this.xrCamera.pointerSelection.displaySelectionMesh = true;
+
+                        // screen.position.x = 0;
+                        // screen.position.y = 0;
+                        // screen.position.z = 1.65;
+
+                        screen.rotation = Vector3.Zero();
+                    }                    
+                }
+
                 sop.resetSOP();
                 this.disappearAnimation(false);                
                 this.dropped(timeout);
@@ -73,10 +99,9 @@ export class Hand extends Interact {
                 };
 
                 sceneManager.resetCylinders();
-                for (let cylinderInstance of super.cylinderInstances) {
+                for (let cylinderInstance of this.cylinderInstances) {
                     cylinderInstance.resetProperties();
-                }                
-
+                }
                 return true;
             } else {
                 super.playDing();

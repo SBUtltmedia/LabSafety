@@ -12,8 +12,8 @@ import { SoundManager } from "./SoundManager";
 
 export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, handAnimations:any, cylinders:Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) { 
 
-    let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager);
-    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager);
+    let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager, xrCamera);
+    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager, xrCamera);
     let droppedFlag: boolean = false;
 
     let handTable = {
@@ -117,8 +117,8 @@ export function addXRBehaviors(scene:Scene, xrCamera:WebXRDefaultExperience, han
                                             let from = currentHandClass.holdingMesh.name.split('-')[2]; 
                                             if (!rotationFlag) {
                                                 currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
-                                                droppedFlag = currentHandClass.updateSOPTask(from, to, grabSetInterval);
                                                 rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
+                                                droppedFlag = currentHandClass.updateSOPTask(from, to, grabSetInterval);
                                             }
                                                                     
                                             // rotationFlag = false;

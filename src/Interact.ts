@@ -1,8 +1,11 @@
-import { AbstractMesh, Color3, Color4, Mesh, ParticleSystem, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Color3, Color4,
+        ParticleSystem, Scene, Sound,
+        StandardMaterial, Texture, Vector3,
+        WebXRDefaultExperience } from "@babylonjs/core";
+
 import { Cylinder } from "./Cylinder"
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from "./Constants";
 import { getChildMeshByName } from "./utils";
-import { SceneManager } from "./PostSceneCylinderBehavior";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
@@ -13,13 +16,16 @@ export abstract class Interact {
     labels: Array<string>;
     guiManager: GUIManager;
     soundManager: SoundManager;
+    xrCamera: WebXRDefaultExperience;
 
-    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
+    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
+        console.log("Cylinders interact: ", cylinderInstances);
         this.labels = ["A", "B", "C"];
         this.scene = scene;
         this.cylinderInstances = cylinderInstances;
         this.guiManager = guiManager;
         this.soundManager = soundManager;
+        this.xrCamera = xrCamera;
     }
 
     getCylinderInstanceFromMesh(cylinder) {
@@ -107,6 +113,8 @@ export abstract class Interact {
 
     showFinishScreen() {
         // this.guiManager.gameFinishPrompt.setVisible(true);
+        console.log("XR this: ", this.xrCamera);
+        this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera);
     }
 
     playExplosion() {

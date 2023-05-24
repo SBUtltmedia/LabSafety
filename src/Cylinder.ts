@@ -97,7 +97,8 @@ export class Cylinder {
             console.log("Else!")
         }
         base.checkCollisions = true;
-        base.ellipsoid = new Vector3(0.02, 0.160, 0.02);
+        base.ellipsoid = new Vector3(0.02, 0.120, 0.02);
+        console.log(base.ellipsoid.length());
 
         this.mesh = base;
 

@@ -1,7 +1,6 @@
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from "./Constants";
+import { CYLINDER_MESH_NAME } from "./Constants";
 import HighlightBehavior from "./HighlightBehavior";
 import { getChildMeshByName, resetRotation } from "./utils";
-import SOP from './SOP';
 import { Scene } from "@babylonjs/core/scene";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -9,9 +8,8 @@ import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDra
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { Nullable } from "@babylonjs/core/types";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
-import { Engine, StandardMaterial } from "@babylonjs/core";
+import { Color3 } from "@babylonjs/core/Maths/math";
+import { Engine, WebXRDefaultExperience } from "@babylonjs/core";
 import { Interact } from "./Interact";
 import { Cylinder } from "./Cylinder";
 import { sop } from "./Constants";
@@ -22,8 +20,8 @@ export class SceneManager extends Interact {
 
     particleSystem: ParticleSystem;
 
-    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
-        super(scene, cylinderInstances, guiManager, soundManager);
+    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
+        super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
     }
 
     resetCylinders() {
@@ -132,6 +130,7 @@ export class SceneManager extends Interact {
                             cylinderInstance.fadeAndRespawn();
                             sop.resetSOP();
                             this.resetCylinders();
+                            super.showFinishScreen();
                             
                             
                         } else {
