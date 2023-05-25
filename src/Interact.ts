@@ -8,6 +8,7 @@ import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from "./Constants";
 import { getChildMeshByName } from "./utils";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
+import { Hand } from "./Hand";
 
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
@@ -59,7 +60,7 @@ export abstract class Interact {
         return null;
     }
 
-    highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean) {   
+    highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean, hand: Hand = null) {   
         //@ts-ignore
         sourceCylinder.highlight();
         targetCylinder.highlight();
@@ -94,7 +95,13 @@ export abstract class Interact {
                 sourceCylinderMesh.position.y = ySize - 0.2;
             }
 
-            sourceCylinder.rotateAroundZ();
+            if (hand) {
+                console.log("HANDDD")
+                sourceCylinder.rotateAroundZ(hand);
+            } else {
+                console.log("NO HAND!!!!")
+                sourceCylinder.rotateAroundZ();
+            }
         }
         return rotationFlag;
     }

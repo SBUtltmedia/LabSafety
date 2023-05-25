@@ -292,7 +292,6 @@ export class Cylinder {
                         for (let hand of handInstances) {
                             if (hand) {
                                 hand.handMesh.visibility = 1;
-                                hand.dropped();
                             }
                         }
                     }
@@ -302,10 +301,34 @@ export class Cylinder {
         }, timeUntilFade);
     }
 
-    rotateAroundZ() {
+    rotateAroundZ(hand: Hand = null) {
         let individualAnimation = this.mesh.getAnimationByName(`${this.name}-rotateAroundZ`);
-        this.toggleControllers();
-        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {this.toggleControllers()});        
+
+        let oldHandData;
+
+        if (hand) {
+            oldHandData = [hand.motionController.lastPosition, hand.motionController.grabbed,
+                hand.motionController.meshGrabbed, hand.holdingMesh, hand.holdingInstance,
+                hand.motionController.meshGrabbed];            
+
+            hand.droppedWithoutRespawn();
+            console.log("Dropped without respawn");
+        }
+        
+        if (this.toggleControllers)
+            this.toggleControllers();
+        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {
+            if (hand) {
+                hand.motionController.lastPosition = oldHandData[0]; 
+                hand.motionController.grabbed = oldHandData[1];
+                hand.motionController.meshGrabbed = oldHandData[2];
+                hand.holdingMesh = oldHandData[3];
+                hand.holdingInstance = oldHandData[4];
+                hand.motionController.meshGrabbed = oldHandData[5];
+            }
+            if(this.toggleControllers)
+                this.toggleControllers();
+        });        
     }
 
     resetAroundZ() {

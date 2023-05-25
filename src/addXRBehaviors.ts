@@ -48,17 +48,15 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                     currentHandClass.setMotionController(currentHand);
                 }
 
-
-
                 let ray = new Ray(Vector3.Zero(), Vector3.Zero(), 0.25);
 
                 const squeezeComponent = motionController.getComponentOfType('squeeze');
                 const triggerComponent = motionController.getComponentOfType('trigger');
 
-                [squeezeComponent, triggerComponent].forEach((component) => {
+                [squeezeComponent].forEach((component) => {
                     console.log(scene.getMeshByName("left"));
                     component.onButtonStateChangedObservable.add((item) => {
-                        if (currentAction && currentAction.type != item.type) { return }
+                        // if (currentAction && currentAction.type != item.type) { return }
                         currentAction = item;
 
                         console.log(currentAction);
@@ -123,10 +121,17 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 let from = currentHandClass.holdingMesh.name.split('-')[2];
                                                 if (!rotationFlag) {
                                                     currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
-                                                    rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance, rotationFlag);
                                                     isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
+                                                    if (!isHolding) {
+                                                        rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
+                                                                    currentHandClass.targetMeshInstance,
+                                                                    rotationFlag, currentHandClass);
+                                                    } else {
+                                                        rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
+                                                            currentHandClass.targetMeshInstance,
+                                                            rotationFlag);
+                                                    }
                                                 }
-
                                                 // rotationFlag = false;
                                             } else {
                                                 if (currentHandClass.targetMeshInstance) {

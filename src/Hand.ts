@@ -59,8 +59,21 @@ export class Hand extends Interact {
         }
     }
 
+    droppedWithoutRespawn(){
+        this.motionController.lastPosition = null;
+
+        this.motionController.grabbed = false;
+        this.motionController.meshGrabbed = undefined;
+        console.log(this.holdingMesh)
+    
+        if (this.holdingMesh) {
+            this.holdingMesh = null;
+            this.holdingInstance = null;
+            this.motionController.meshGrabbed = null;
+        }
+    }    
     updateSOPTask(from: string, to: string, timeout) {
-        console.log(this.scene)
+        console.log(this.scene);
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {           
@@ -107,6 +120,7 @@ export class Hand extends Interact {
                     cylinderInstance.showEffects(false);
                 }
                 return true;
+
             } else {
                 super.playDing();
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
@@ -120,6 +134,7 @@ export class Hand extends Interact {
         }
         return false;      
     }    
+  
 
     disappearAnimation(disappear = true) {
         console.log("DISAPPEAR: ", disappear);
