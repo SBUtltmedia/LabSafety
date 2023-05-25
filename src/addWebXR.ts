@@ -7,7 +7,7 @@ import { Cylinder } from "./Cylinder";
 export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinders: Array<Cylinder>) {
 
     let handAnimations;
-
+    let addHandModels;
      return new Promise((resolve)=> {
 
         // const MODEL_BASE_URL = "https://cdn.aframe.io/controllers/hands/";
@@ -46,8 +46,8 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             }
             
             // xrCamera.pointerSelection.detach();
-            
-            xrCamera.input.onControllerAddedObservable.add((webXrInputSource) => {
+                addHandModels= (webXrInputSource) => {
+                    console.log(webXrInputSource)
                 let handedness=webXrInputSource.inputSource.handedness;
                 console.log(models[handedness])
                 let controllerMesh = models[handedness].parent.parent;
@@ -65,7 +65,8 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 models[handedness].rotation.x = -Math.PI / 4;
                 controllerMesh.parent = webXrInputSource.grip || webXrInputSource.pointer;
 
-            });
+            }
+           // xrCamera.input.onControllerAddedObservable.add(addHandModel);
             
 
             xrCamera.baseExperience.onStateChangedObservable.add((state) => {
@@ -98,7 +99,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             
         })
         assetsManager.loadAsync().then(()=>{
-            resolve(handAnimations)
+            resolve(addHandModels)
         });
    })
    

@@ -39,8 +39,8 @@ export class Cylinder {
     particleSystem: ParticleSystem;
     currentColor: Color3;
     originalColor: Color3;
-    startOpacity: number
-
+    startOpacity: number;
+    toggleControllers :any;
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
@@ -304,7 +304,8 @@ export class Cylinder {
 
     rotateAroundZ() {
         let individualAnimation = this.mesh.getAnimationByName(`${this.name}-rotateAroundZ`);
-        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {});        
+        this.toggleControllers();
+        this.scene.beginDirectAnimation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME), [individualAnimation], 0, 60, false, undefined, () => {this.toggleControllers()});        
     }
 
     resetAroundZ() {

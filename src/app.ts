@@ -36,7 +36,7 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
-console.log = () => {};
+// console.log = () => {};
 
 export class App {
   handAnimation: any;
@@ -212,7 +212,7 @@ export class App {
       }
     });
 
-    addWebXR(scene, xrCamera, cylinders).then((handAnimations) => {
+    addWebXR(scene, xrCamera, cylinders).then((addHandModels) => {
       console.log("add webxr");
       if (xrCamera) {
         const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
@@ -235,14 +235,19 @@ export class App {
         xrCamera
       );
       sceneManger.postSceneCylinder();
-      addXRBehaviors(
+      var toggleControllers = addXRBehaviors(
         scene,
         xrCamera,
-        handAnimations,
+        addHandModels,
         cylinders,
         this.guiManager,
         this.soundManager
       );
+      toggleControllers();
+      for(let cylinder of  cylinders){
+        cylinder.toggleControllers =toggleControllers; 
+
+      }
     });
   }
 
