@@ -141,15 +141,7 @@ export class Cylinder {
             "LabelBack"
         )!;
 
-        cylinderLabel.rotation = new Vector3(Math.PI, Math.PI, Math.PI);
-        cylinderLabel2.rotation = new Vector3(Math.PI, Math.PI, Math.PI);
-
-        if (cylinderMesh.name.toUpperCase() === "A") {
-            // I dont know why text rotates upside down for cylidner A
-            cylinderLabel.rotation = new Vector3(Math.PI, Math.PI, 0);
-            cylinderLabel2.rotation = new Vector3(Math.PI, Math.PI, 0);
-        }
-
+  
         console.log("Label:", cylinderLabel2);
 
         //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
@@ -162,7 +154,7 @@ export class Cylinder {
             true,
             Texture.LINEAR_LINEAR_MIPNEAREST
         );
-        // texture.uAng = Math.PI;
+         texture.uAng = Math.PI;
         const material: StandardMaterial = new StandardMaterial("Mat", scene);
         material.diffuseTexture = texture;
         cylinderLabel.material = material;

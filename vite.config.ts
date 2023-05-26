@@ -7,7 +7,7 @@ export default defineConfig({
 
   plugins: [splitVendorChunkPlugin(),mkcert() ],
   server: {
-    port: 3443,
+    port: 4444,
     https: true,
     // Uncomment to allow access from network
     // (or use `npm run dev -- -- host=0.0.0.0`)

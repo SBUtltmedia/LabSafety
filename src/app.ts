@@ -34,6 +34,7 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 //import { Observer } from '@babylonjs/core'
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
+import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 
 console.log = () => {};
 
@@ -168,7 +169,7 @@ export class App {
         light.intensity += 0.1;
       }
     }, 60);
-    const wantedCollisions = ["WallsandFloor", "WallsAndFloor.001"];
+    const wantedCollisions = ["WallsandFloor", "Floor"];
     const floorMesh = [];
     for (let getStringMesh of wantedCollisions) {
       console.log(getStringMesh);
@@ -180,14 +181,20 @@ export class App {
       }
     }
     let xrOptions = {
-      floorMeshes: floorMesh,
+      floorMeshes: [floorMesh[1]],
       inputOptions: {
         doNotLoadControllerMeshes: true,
       },
     };
 
     xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+    const featuresManager = xrCamera.baseExperience.featuresManager;
 
+    featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable" /* or latest */, {
+      xrInput: xrCamera.input,
+      // add options here
+      floorMeshes: [floorMesh[1]],
+    });
     let displayPtr = false;
 
     xrCamera.pointerSelection.laserPointerDefaultColor = Color3.Green();
