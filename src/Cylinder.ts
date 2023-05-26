@@ -5,6 +5,7 @@ import {
     NUMBER_OF_CYLINDERS,
     TIME_UNTIL_FADE,
 } from "./Constants";
+
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -46,6 +47,8 @@ export class Cylinder {
     originalColor: Color3;
     startOpacity: number;
     toggleControllers: any;
+    startPos: Vector3;
+
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
@@ -62,11 +65,12 @@ export class Cylinder {
         this.highlightLayer.outerGlow = false;
 
         const table: AbstractMesh = scene.getMeshByName("Table")!;
-        let base: Mesh = MeshBuilder.CreateSphere(
+        let base: Mesh = MeshBuilder.CreateCylinder(
             `pivot-Cylinder-${name}`,
-            { segments: 2, diameterX: 0.15, diameterY: 0.33, diameterZ: 0.2 },
+            { diameterTop: 0.1, height: 0.33, diameterBottom: 0.1},
             cylinderMesh.getScene()
         );
+        base.position._y += 0.1;
         base.visibility = 0;
         cylinderMesh.name = name;
         cylinderMesh.parent = base;
@@ -99,7 +103,7 @@ export class Cylinder {
             const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y;
             console.log(cylinderVerticalOffset);
             base.position.y =
-                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.05;
+                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.1;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x =
                 ((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) /
@@ -118,8 +122,11 @@ export class Cylinder {
             console.log("Else!");
         }
         base.checkCollisions = true;
-        base.ellipsoid = new Vector3(0.02, 0.12, 0.02);
+        base.ellipsoid = new Vector3(0.02, 0.09, 0.02);
+        base.ellipsoid._y += 0.1;
         console.log(base.ellipsoid.length());
+
+        this.startPos = Object.assign({}, base.position);
 
         this.mesh = base;
 
@@ -262,10 +269,12 @@ export class Cylinder {
             }
         });
         pointerDragBehavior.onDragObservable.add((eventData) => {
-            this.mesh.moveWithCollisions(eventData.delta);
+            if (eventData.delta != Vector3.Zero())
+                this.mesh.moveWithCollisions(eventData.delta);
         });
-        pointerDragBehavior.onDragEndObservable.add(() => {
-            this.fadeAndRespawn();
+        pointerDragBehavior.onDragEndObservable.add((evenDelta: any) => {
+            if (Vector3.Distance(this.startPos, this.mesh.position) > 0)
+                this.fadeAndRespawn();
         });
         this.mesh.addBehavior(pointerDragBehavior);
         this.dragCollision = pointerDragBehavior;
