@@ -11,7 +11,6 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Light } from "@babylonjs/core/Lights/light";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { BoundingBox } from "@babylonjs/core/Culling/boundingBox";
-//import { checkIfDebug } from "./utils";
 import { Cylinder } from "./Cylinder";
 import { createClipboard } from "./LoadClipboard";
 import { defaultCallBack } from "./DefaultCallback";
@@ -49,7 +48,7 @@ export class App {
 
   constructor() {
     this.cylinders = [];
-    let cylinderName = "TLLGraduatedCylinderNewLabel.glb";
+    let cylinderName = "CylinderNewSmoothLabel.glb";
     this.models = [
       //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
       {
