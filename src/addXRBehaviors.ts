@@ -52,6 +52,18 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
 
                 const squeezeComponent = motionController.getComponentOfType('squeeze');
                 const triggerComponent = motionController.getComponentOfType('trigger');
+                const thumbstick = motionController.getComponentOfType('thumbstick');
+
+                thumbstick.onAxisValueChangedObservable.add(() => {
+                    xrCamera.baseExperience.camera.position.y = 1.5;
+                });
+
+                xrCamera.baseExperience.camera.onAfterCameraTeleport.add(() => {
+                    console.log("End teleport")
+                    xrCamera.baseExperience.camera.position.y = 1.5;
+                })              
+                
+                console.log("Motion controller: ", motionController);
 
                 [squeezeComponent].forEach((component) => {
                     console.log(scene.getMeshByName("left"));

@@ -1,5 +1,5 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -36,7 +36,7 @@ import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 
-console.log = () => {};
+// console.log = () => {};
 
 export class App {
   handAnimation: any;
@@ -53,7 +53,7 @@ export class App {
     this.models = [
       //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
       {
-        fileName: "LabWithTable.glb",
+        fileName: "room.glb",
         callback: (mesh: Mesh[]) => this.createRoom(mesh),
         label: "floor",
       },
@@ -169,6 +169,7 @@ export class App {
         light.intensity += 0.1;
       }
     }, 60);
+
     const wantedCollisions = ["WallsandFloor", "Floor"];
     const floorMesh = [];
     for (let getStringMesh of wantedCollisions) {
@@ -181,20 +182,30 @@ export class App {
       }
     }
     let xrOptions = {
-      floorMeshes: [floorMesh[1]],
+      floorMeshes: [scene.getMeshByName("Floor")],
       inputOptions: {
         doNotLoadControllerMeshes: true,
       },
     };
 
     xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
+
     const featuresManager = xrCamera.baseExperience.featuresManager;
 
-    featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable" /* or latest */, {
+    const teleportation = featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable", {
       xrInput: xrCamera.input,
-      // add options here
-      floorMeshes: [floorMesh[1]],
+      floorMeshes: [scene.getMeshByName("Floor")],
+      timeToTeleport: 5000,
+
     });
+
+    xrCamera.teleportation = teleportation;
+
+    xrCamera.teleportation.parabolicRayEnabled = true;
+    xrCamera.teleportation.parabolicCheckRadius = 10;
+
+
+
     let displayPtr = false;
 
     xrCamera.pointerSelection.laserPointerDefaultColor = Color3.Green();
@@ -260,7 +271,7 @@ export class App {
   createRoom(mesh: Mesh[]) {
     const wantedCollisions = [
       "WallsandFloor",
-      "WallsAndFloor.001",
+      "Floor",
       "Table",
       "Roof",
       "Countertop",

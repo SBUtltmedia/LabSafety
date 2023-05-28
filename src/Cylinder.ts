@@ -103,7 +103,7 @@ export class Cylinder {
             const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y;
             console.log(cylinderVerticalOffset);
             base.position.y =
-                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.1;
+                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.06;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x =
                 ((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) /
