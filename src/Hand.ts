@@ -42,6 +42,14 @@ export class Hand extends Interact {
     }
 
     dropped(grabInterval = null){
+
+        console.log(this.holdingInstance.mesh.position, this.holdingInstance.startPos);
+
+        if (Vector3.Distance(this.holdingInstance.mesh.position, this.holdingInstance.startPos) == 0) {
+            this.droppedWithoutRespawn();
+            return;
+        }
+
         this.motionController.lastPosition = null;
 
         if (grabInterval)

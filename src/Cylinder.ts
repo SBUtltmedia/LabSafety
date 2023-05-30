@@ -103,7 +103,7 @@ export class Cylinder {
             const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y;
             console.log(cylinderVerticalOffset);
             base.position.y =
-                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.06;
+                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.065;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x =
                 ((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) /
@@ -272,7 +272,7 @@ export class Cylinder {
             if (eventData.delta != Vector3.Zero())
                 this.mesh.moveWithCollisions(eventData.delta);
         });
-        pointerDragBehavior.onDragEndObservable.add((evenDelta: any) => {
+        pointerDragBehavior.onDragEndObservable.add(() => {
             if (Vector3.Distance(this.startPos, this.mesh.position) > 0)
                 this.fadeAndRespawn();
         });

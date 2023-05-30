@@ -35,7 +35,6 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
         return null;
     }
     let controllerObservable = controller => {
-        console.log(controller)
         addHandModels(controller);
         controller.onMotionControllerInitObservable.add(
             motionController => {
