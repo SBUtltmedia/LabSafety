@@ -65,35 +65,37 @@ export abstract class Interact {
         sourceCylinder.highlight();
         targetCylinder.highlight();
 
-        let current_x = sourceCylinder.mesh.getAbsolutePosition()._x;
-        let target_x = targetCylinder.mesh.getAbsolutePosition()._x;
+        let current = sourceCylinder.mesh.position;
+        let target = targetCylinder.mesh.position;
 
-        if (target_x < current_x) { // left hit
+        sourceCylinder.mesh.rotation.y = 0;
 
+        if (target.x < current.x) { // left hit
             sourceCylinder.mesh.rotation.y = Math.PI;
-            targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
-        } else {
-            sourceCylinder.mesh.rotation.y = 0;
-            targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
         }
+
+        targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
+
         if (!rotationFlag) {
             rotationFlag = true;
 
             let sizes = sourceCylinder.mesh.getHierarchyBoundingVectors();
             let ySize = sizes.max.y - sizes.min.y;
-            let offset = -0.09;
-            let xPos = target_x;
-            let deltaX = current_x - xPos;
+            let offsetX = 0.1;
+            let xPos = target.x;
+            let deltaX = current.x - xPos;
 
             let sourceCylinderMesh = getChildMeshByName(sourceCylinder.mesh, CYLINDER_MESH_NAME);
+            let targetCylinderMesh = getChildMeshByName(targetCylinder.mesh, CYLINDER_MESH_NAME);
 
-            if (target_x < current_x) {
-                sourceCylinderMesh.position.x = deltaX + offset;
-                sourceCylinderMesh.position.y = ySize - 0.2;
-            } else {
-                sourceCylinderMesh.position.x = deltaX - offset;
-                sourceCylinderMesh.position.y = ySize - 0.2;
+            if (target.x > current.x) { // right 
+                offsetX = -offsetX;
             }
+
+            sourceCylinderMesh.position.x = targetCylinderMesh.position.x + offsetX;
+            // sourceCylinderMesh.position.y = ySize - 0.2;
+            sourceCylinderMesh.position.y = targetCylinderMesh.position.y + ySize/2;
+
 
             if (hand) {
                 console.log("HANDDD")

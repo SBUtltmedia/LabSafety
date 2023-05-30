@@ -50,10 +50,16 @@ export class Cylinder {
     toggleControllers: any;
     startPos: Vector3;
     EllipsoidLines: CreateEllipsoidLines;
+    moveFlag: boolean;
+    pourLocations: Array<Vector3>
+    rotateEnd: boolean
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
+
+        this.moveFlag = true;
+        this.rotateEnd = true;
      
         this.currentColor = color;
         this.originalColor = color;
@@ -105,7 +111,7 @@ export class Cylinder {
             const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y;
             console.log(cylinderVerticalOffset);
             base.position.y =
-                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.067;
+                tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.0075;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
             base.position.x =
                 ((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) /
@@ -125,8 +131,11 @@ export class Cylinder {
         }
         base.checkCollisions = true;
         base.ellipsoid = new Vector3(0.02, 0.09, 0.02);
-        base.ellipsoid._y += 0.1;
-       // this.EllipsoidLines =new CreateEllipsoidLines(base);
+        // base.ellipsoid._y += 0.1;
+        base.ellipsoidOffset.y += 0.001;
+
+        // this.EllipsoidLines =new CreateEllipsoidLines(base);
+
         console.log(base.ellipsoid.length());
 
         this.startPos = Object.assign({}, base.position);
@@ -272,12 +281,21 @@ export class Cylinder {
             }
         });
         pointerDragBehavior.onDragObservable.add((eventData) => {
-            if (eventData.delta != Vector3.Zero())
+            if (eventData.delta != Vector3.Zero() && this.moveFlag && this.mesh.isPickable) {
                 this.mesh.moveWithCollisions(eventData.delta);
+            }
         });
         pointerDragBehavior.onDragEndObservable.add(() => {
-            if (Vector3.Distance(this.startPos, this.mesh.position) > 0)
-                this.fadeAndRespawn();
+            if (this.rotateEnd) {
+                if (Vector3.Distance(this.startPos, this.mesh.position) > 0.1) {
+                    // this.rotateEnd = false;
+                    this.fadeAndRespawn();
+                } else {
+                    this.mesh.position.x = this.position._x;
+                    this.mesh.position.y = this.position._y;
+                    this.mesh.position.z = this.position._z;
+                }
+            }
         });
         this.mesh.addBehavior(pointerDragBehavior);
         this.dragCollision = pointerDragBehavior;
@@ -296,12 +314,12 @@ export class Cylinder {
         timeUntilFade = TIME_UNTIL_FADE,
         handInstances: Hand[] = null
     ) {
+        this.mesh.isPickable = false;
         setTimeout(() => {
             let ptrDrag = this.mesh.getBehaviorByName("PointerDrag");
             if (ptrDrag) (ptrDrag as PointerDragBehavior).releaseDrag();
 
-            this.mesh.isPickable = false;
-            let endFrame = 60;
+            let endFrame = 30;
             let getMeshLetter = this.mesh.name.split("-")[0];
             let scene = this.mesh.getScene();
             let childrenMeshes = this.mesh.getChildMeshes();
@@ -355,6 +373,9 @@ export class Cylinder {
                     this.mesh.position.x = this.position._x;
                     this.mesh.position.y = this.position._y;
                     this.mesh.position.z = this.position._z;
+
+                    // this.mesh.position = Object.assign({}, this.position);
+
                     this.mesh.animations = cylinder.animations;
 
                     let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
@@ -404,6 +425,8 @@ export class Cylinder {
         );
 
         let oldHandData;
+        this.moveFlag = false;
+        this.rotateEnd = false;
 
         if (hand) {
             oldHandData = [
@@ -424,9 +447,9 @@ export class Cylinder {
             getChildMeshByName(this.mesh, CYLINDER_MESH_NAME),
             [individualAnimation],
             0,
-            60,
+            600,
             false,
-            undefined,
+            0.5,
             () => {
                 if (hand) {
                     hand.motionController.lastPosition = oldHandData[0];
@@ -437,6 +460,8 @@ export class Cylinder {
                     hand.motionController.meshGrabbed = oldHandData[5];
                 }
                 if (this.toggleControllers) this.toggleControllers();
+                this.moveFlag = true;
+                this.rotateEnd = true;
             }
         );
     }
@@ -445,6 +470,8 @@ export class Cylinder {
         let individualAnimation = this.mesh.getAnimationByName(
             `${this.name}-resetRotateAroundZ`
         );
+        this.moveFlag = false;
+        this.rotateEnd = false;
         this.scene.beginDirectAnimation(
             getChildMeshByName(this.mesh, CYLINDER_MESH_NAME),
             [individualAnimation],
@@ -452,7 +479,10 @@ export class Cylinder {
             60,
             false,
             undefined,
-            () => { }
+            () => { 
+                this.moveFlag = true;
+                this.rotateEnd = true;
+            }
         );
     }
 

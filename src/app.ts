@@ -1,5 +1,5 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -36,7 +36,7 @@ import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 
-console.log = () => {};
+// console.log = () => {};
 
 export class App {
   handAnimation: any;
@@ -295,7 +295,7 @@ export class App {
             tableBoundingBox.center.y * 2 + 0.5,
             -1.5
           );
-          camera.rotation = new Vector3(Math.PI / 8, 0, 0);
+          // camera.rotation = new Vector3(Math.PI / 8, 0, 0);
         }
       }
     }
@@ -316,7 +316,7 @@ export class App {
       // checkIfDebug(scene);
       const camera = new UniversalCamera(
         "camera",
-        new Vector3(0, 1.84, -1.134),
+        new Vector3(0, 1, -1.134),
         scene
       );
       //camera.cameraDirection = new Vector3(0.1, 0.1, 0.1);
