@@ -198,7 +198,7 @@ export class App {
       timeToTeleport: 5000,
 
     });
-
+//@ts-ignore
     xrCamera.teleportation = teleportation;
 
     xrCamera.teleportation.parabolicRayEnabled = true;

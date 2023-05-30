@@ -20,6 +20,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 import { ParticleSystem, Texture } from "@babylonjs/core";
 import { Hand } from "./Hand";
+import {CreateEllipsoidLines} from "./CreateEllipsoidLines";
 /**
  *
  * @param cylinderMesh Cylinder Mesh needed that will be modified
@@ -48,11 +49,12 @@ export class Cylinder {
     startOpacity: number;
     toggleControllers: any;
     startPos: Vector3;
+    EllipsoidLines: CreateEllipsoidLines;
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
         console.log(cylinderMesh);
         this.name = name;
-
+     
         this.currentColor = color;
         this.originalColor = color;
         this.startOpacity = 0.7;
@@ -124,6 +126,7 @@ export class Cylinder {
         base.checkCollisions = true;
         base.ellipsoid = new Vector3(0.02, 0.09, 0.02);
         base.ellipsoid._y += 0.1;
+       // this.EllipsoidLines =new CreateEllipsoidLines(base);
         console.log(base.ellipsoid.length());
 
         this.startPos = Object.assign({}, base.position);
