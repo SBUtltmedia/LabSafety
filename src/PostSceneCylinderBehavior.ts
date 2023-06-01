@@ -50,6 +50,8 @@ export class SceneManager extends Interact {
     postSceneCylinder() {
         // this.scene.onBeforeRenderObservable.add(() => {this.resetCylinders()});
         // this.resetCylinders();
+        let failBeaker: boolean = false
+        let samePour: boolean = false;        
         let cylinderLetters: Array<string> = ['A', 'B', 'C'];
         let allCylinders = [];
         for (let char of cylinderLetters) {
@@ -82,8 +84,7 @@ export class SceneManager extends Interact {
             sourceCylinder.animations.push(resetRotationAnimation);
             resetRotationAnimation.setKeys(resetFrames);
         }
-        let failBeaker: boolean = false
-        let samePour: boolean = false;
+
         for (let i = 0; i < cylinderLetters.length; i++) {
             
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
@@ -147,6 +148,7 @@ export class SceneManager extends Interact {
                                 cylinderHitInstance.showEffects(true);
                                 super.playExplosion();
                                 failBeaker = true;
+                                samePour = true;
                             }
                         }
 

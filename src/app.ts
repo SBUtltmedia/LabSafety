@@ -1,5 +1,5 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
 
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -36,7 +36,7 @@ import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 
-// console.log = () => {};
+console.log = () => {};
 
 export class App {
   handAnimation: any;
