@@ -33,7 +33,7 @@ export class GUIManager {
       console.log("Scene: ", this.scene);
     }
 
-    createPromptWithButton(text: string, xrCamera = null, buttonClickCallBack = null) {
+    createPromptWithButton(text: string, xrCamera = null, buttonClickCallBack = null, ...args) {
         this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
         this.screen.parent = this.camera;
         this.screen.position = this.camera.position.add(new Vector3(.7, -2, 2.5));
@@ -81,7 +81,9 @@ export class GUIManager {
             xrCamera.pointerSelection.displayLaserPointer = false;
             xrCamera.pointerSelection.displaySelectionMesh = false;
           }
-          buttonClickCallBack;
+          if (buttonClickCallBack) {
+            buttonClickCallBack(...args);
+          }
         });
         prompt.button.onPointerEnterObservable.add(() => {
             button1.background = "grey";

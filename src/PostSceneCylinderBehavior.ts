@@ -37,7 +37,7 @@ export class SceneManager extends Interact {
                 cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
             }
             super.getCylinderInstanceFromMesh(cylinder).showEffects(false);
-            super.getCylinderInstanceFromMesh(cylinder).setOpacity(0.85);
+            super.getCylinderInstanceFromMesh(cylinder).resetProperties();
             super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
             if (i == 0) {
                 super.getCylinderInstanceFromMesh(cylinder).setColor(Color3.Red());
@@ -50,8 +50,7 @@ export class SceneManager extends Interact {
     postSceneCylinder() {
         // this.scene.onBeforeRenderObservable.add(() => {this.resetCylinders()});
         // this.resetCylinders();
-        let failBeaker: boolean = false
-        let samePour: boolean = false;        
+    
         let cylinderLetters: Array<string> = ['A', 'B', 'C'];
         let allCylinders = [];
         for (let char of cylinderLetters) {
@@ -86,7 +85,7 @@ export class SceneManager extends Interact {
         }
 
         for (let i = 0; i < cylinderLetters.length; i++) {
-            
+
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
             let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
 
@@ -101,12 +100,16 @@ export class SceneManager extends Interact {
                 }
             }
 
+            let failBeaker: boolean = false
+            let samePour: boolean = false;            
+
             //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
             let rotationFlag = false;
 
             if (cylinder.isPickable) {
                 (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
+
                     Engine.audioEngine.unlock();
                     Engine.audioEngine.audioContext.resume();
 
@@ -128,10 +131,14 @@ export class SceneManager extends Interact {
                                // }   
                                 doneSOP = true;
                                 console.log(cylinderHitInstance);
-                                // play the sound after the anumation is done
+
+                                setTimeout(() => {
+                                    super.playSuccess();
+                                }, 500);
+
+                                // play the sound after the animation is done
                                 setTimeout(() => {
                                     cylinderInstance.fadeAndRespawn();
-                                    super.playSuccess();
                                 }, 1500);
                                 
                                 sop.resetSOP();
@@ -144,11 +151,17 @@ export class SceneManager extends Interact {
                                 super.playDing();
                             }
                         } else {
+                            console.log(failBeaker, samePour);
                             if (!failBeaker && !samePour) {
+                                console.log("Failure!!!");
                                 cylinderHitInstance.showEffects(true);
                                 super.playExplosion();
                                 failBeaker = true;
-                                samePour = true;
+                                super.showFailureScreen();
+                                sop.resetSOP();
+                                setTimeout(() => {
+                                    failBeaker = false;
+                                }, 3000);
                             }
                         }
 

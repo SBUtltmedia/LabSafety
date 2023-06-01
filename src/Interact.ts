@@ -4,7 +4,7 @@ import { AbstractMesh, Color3, Color4,
         WebXRDefaultExperience } from "@babylonjs/core";
 
 import { Cylinder } from "./Cylinder"
-import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME } from "./Constants";
+import { CYLINDER_LIQUID_MESH_NAME, CYLINDER_MESH_NAME, sop } from "./Constants";
 import { getChildMeshByName } from "./utils";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
@@ -125,6 +125,31 @@ export abstract class Interact {
         console.log("XR this: ", this.xrCamera);
         this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera);
     }
+
+
+
+    showFailureScreen() {       
+        for (let cylinder of this.cylinderInstances) {
+            cylinder.mesh.isPickable = false;
+        }
+
+        function setPickable(instances: Array<Cylinder>) {
+            for (let cylinder of instances) {
+                cylinder.mesh.isPickable = true;
+                cylinder.resetProperties();
+                cylinder.showEffects(false);
+    
+                setTimeout(() => {
+                    cylinder.setColor(cylinder.originalColor);
+                }, 1000);
+    
+            }    
+        }
+
+        console.log("Show failure screen");
+        
+        this.guiManager.createPromptWithButton("Task failed! The scene will now reset.", this.xrCamera, setPickable, this.cylinderInstances);
+    }    
 
     playExplosion() {
         console.log(this.soundManager.loadedSounds["explosion"]);

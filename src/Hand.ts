@@ -136,8 +136,29 @@ export class Hand extends Interact {
             }
         } else {
             if (!this.failBeaker) {
+                console.log("Fail VR")
+
+                if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
+                    super.showFailureScreen();
+                    let screen = this.scene.getMeshByName("Start");
+                    if (screen) {
+                        let camera = this.xrCamera.baseExperience.camera;
+                        screen.parent = camera
+                        screen.position = camera.position.add(new Vector3(-camera.position.x, -1.5, 1.15));
+
+                        this.xrCamera.pointerSelection.displayLaserPointer = true;
+                        this.xrCamera.pointerSelection.displaySelectionMesh = true;
+
+                        // screen.position.x = 0;
+                        // screen.position.y = 0;
+                        // screen.position.z = 1.65;
+
+                        screen.rotation = Vector3.Zero();
+                    }                    
+                }
                 super.playExplosion();
                 this.targetMeshInstance.showEffects(true);
+                sop.resetSOP();
             }
         }
         return false;      

@@ -295,7 +295,7 @@ export class App {
             tableBoundingBox.center.y * 2 + 0.5,
             -1.5
           );
-          // camera.rotation = new Vector3(Math.PI / 8, 0, 0);
+          camera.rotation = new Vector3(Math.PI / 8, 0, 0);
         }
       }
     }

@@ -62,8 +62,8 @@ export class Cylinder {
         this.moveFlag = true;
         this.rotateEnd = true;
      
-        this.currentColor = color;
-        this.originalColor = color;
+        this.currentColor = Object.assign({}, color);
+        this.originalColor = Object.assign({}, color);
         this.startOpacity = 0.7;
 
         const scene: Scene = cylinderMesh.getScene();
