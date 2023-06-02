@@ -13,6 +13,7 @@ import { Hand } from "./Hand";
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
     clipboard: AbstractMesh;
+    isRotating:boolean;
     scene: Scene;
     labels: Array<string>;
     guiManager: GUIManager;
@@ -27,6 +28,7 @@ export abstract class Interact {
         this.guiManager = guiManager;
         this.soundManager = soundManager;
         this.xrCamera = xrCamera;
+        this.isRotating=false;
     }
 
     getCylinderInstanceFromMesh(cylinder) {
@@ -60,7 +62,7 @@ export abstract class Interact {
         return null;
     }
 
-    highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, rotationFlag: boolean, hand: Hand = null) {   
+    highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, hand: Hand = null) {   
         //@ts-ignore
         sourceCylinder.highlight();
         targetCylinder.highlight();
@@ -76,8 +78,8 @@ export abstract class Interact {
 
         targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
 
-        if (!rotationFlag) {
-            rotationFlag = true;
+        if (!this.isRotating) {
+            this.isRotating = true;
 
             let sizes = sourceCylinder.mesh.getHierarchyBoundingVectors();
             let ySize = sizes.max.y - sizes.min.y;
@@ -96,16 +98,9 @@ export abstract class Interact {
             // sourceCylinderMesh.position.y = ySize - 0.2;
             sourceCylinderMesh.position.y = targetCylinderMesh.position.y + ySize/2;
 
-
-            if (hand) {
-                console.log("HANDDD")
-                sourceCylinder.rotateAroundZ(hand);
-            } else {
-                console.log("NO HAND!!!!")
-                sourceCylinder.rotateAroundZ();
-            }
+            sourceCylinder.rotateAroundZ(hand);
+           
         }
-        return rotationFlag;
     }
 
     moveWithCollisions(cylinderMesh: AbstractMesh, delta: Vector3) {
@@ -128,7 +123,8 @@ export abstract class Interact {
 
 
 
-    showFailureScreen() {       
+    showFailureScreen() {
+               
         for (let cylinder of this.cylinderInstances) {
             cylinder.mesh.isPickable = false;
         }

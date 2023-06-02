@@ -132,7 +132,7 @@ export class Hand extends Interact {
             } else {
                 super.playDing();
                 sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-                return false;
+                return undefined;
             }
         } else {
             if (!this.failBeaker) {
@@ -161,7 +161,7 @@ export class Hand extends Interact {
                 sop.resetSOP();
             }
         }
-        return false;      
+        return undefined;      
     }    
   
 

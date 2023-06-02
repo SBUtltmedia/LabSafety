@@ -93,19 +93,19 @@ export class SceneManager extends Interact {
 
             console.log(gotSomething);
 
-            let filteredMeshes = [];
-            for (let cylMesh of allCylinders) {
-                if (cylMesh != cylinder) {
-                    filteredMeshes.push(cylMesh);
-                }
-            }
+            let filteredMeshes =allCylinders.filter((cylMesh)=>cylMesh != cylinder);
+            // for (let cylMesh of allCylinders) {
+            //     if (cylMesh != cylinder) {
+            //         filteredMeshes.push(cylMesh);
+            //     }
+            // }
 
             let failBeaker: boolean = false
             let samePour: boolean = false;            
 
             //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-            let rotationFlag = false;
+            super.isRotating = false;
 
             if (cylinder.isPickable) {
                 (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
@@ -155,11 +155,16 @@ export class SceneManager extends Interact {
                             if (!failBeaker && !samePour) {
                                 console.log("Failure!!!");
                                 cylinderHitInstance.showEffects(true);
-                                super.playExplosion();
+                                setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
+                                
                                 failBeaker = true;
-                                super.showFailureScreen();
-                                sop.resetSOP();
+                                allCylinders.forEach((cylMesh)=>cylMesh.isPickable=false);
+                            
                                 setTimeout(() => {
+                                    
+                                 
+                                    super.showFailureScreen();
+                                    sop.resetSOP();
                                     failBeaker = false;
                                 }, 3000);
                             }
@@ -175,8 +180,8 @@ export class SceneManager extends Interact {
                             sourceCylinder.rotation.y = 0;
                             cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
                         }
-                        if (!rotationFlag) {
-                            rotationFlag = super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance, rotationFlag);
+                        if (!super.isRotating) {
+                        super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance);
                             let to = cylinderHitDetected.name.split('-')[2];
                             let from = cylinder.name.split('-')[2];
                             let fromAndTo = `${from}to${to}`;
@@ -192,10 +197,10 @@ export class SceneManager extends Interact {
                     if (hitDetected == false) {
                         cylinderInstance.highlight(false);
                         samePour = false;
-                        if (rotationFlag) {
+                        if (super.isRotating) {
                             sourceCylinder.position.x = 0;
                             sourceCylinder.position.y = 0;
-                            rotationFlag = false;
+                            super.isRotating = false;
                             cylinderInstance.resetAroundZ();
                         }
                     }
@@ -213,7 +218,7 @@ export class SceneManager extends Interact {
                         cylinderInstance.resetAroundZ();
                         sourceCylinder.position.x = 0;
                         sourceCylinder.position.y = 0;
-                        rotationFlag = false;
+                        super.isRotating = false;
                     }
                 }
             })

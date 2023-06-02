@@ -21,7 +21,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
         "left": handLeft
     };
 
-    let rotationFlag = false;
+
 
     function getCylinderInstanceFromMesh(cylinder) {
         let name = cylinder.name.split("-")[2];
@@ -130,18 +130,17 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);
                                                 let to = collidedCylinder.name.split('-')[2];
                                                 let from = currentHandClass.holdingMesh.name.split('-')[2];
-                                                if (!rotationFlag) {
+                                                if (!currentHandClass.isRotating) {
                                                     currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
                                                     isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
-                                                    if (!isHolding) {
-                                                        rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
+                                                    // if (!isHolding) {
+                                                       currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
                                                                     currentHandClass.targetMeshInstance,
-                                                                    rotationFlag, currentHandClass);
-                                                    } else {
-                                                        rotationFlag = currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
-                                                            currentHandClass.targetMeshInstance,
-                                                            rotationFlag);
-                                                    }
+                                                                currentHandClass);
+                                                    // } else {
+                                                    //     currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
+                                                    //         currentHandClass.targetMeshInstance);
+                                                    // }
                                                 }
                                                 // rotationFlag = false;
                                             } else {
@@ -150,10 +149,10 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 }
 
                                                 currentHandClass.holdingInstance.highlight(false);
-                                                if (rotationFlag) {
+                                                if (currentAction.isRotating) {
                                                     currentHandClass.holdingInstance.resetAroundZ();
                                                     resetPosition(getChildMeshByName(currentHandClass.holdingMesh, CYLINDER_MESH_NAME));
-                                                    rotationFlag = false;
+                                                    currentAction.isRotating = false;
                                                 }
                                             }
                                         }

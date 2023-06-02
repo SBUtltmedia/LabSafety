@@ -430,6 +430,14 @@ export class Cylinder {
     }
 
     rotateAroundZ(hand: Hand = null) {
+
+        if (hand) {
+            console.log("HANDDD")
+
+        } else {
+            console.log("NO HAND!!!!")
+          
+        }
         let individualAnimation = this.mesh.getAnimationByName(
             `${this.name}-rotateAroundZ`
         );
@@ -547,7 +555,7 @@ export class Cylinder {
         this.setColor(this.originalColor);
     }
 
-    showEffects(start = true) {
+    showEffects(start = false) {
         if (start) {
             this.particleSystem.particleTexture = new Texture(
                 "https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png",
