@@ -93,7 +93,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 }
             });
 
-            xrCamera.baseExperience.camera.onAfterCameraTeleport.add((targetPos) => {
+            xrCamera.baseExperience.camera.onAfterCameraTeleport.add(() => {
                 xrCamera.baseExperience.camera.position.y = 0.5;
             })
             

@@ -78,29 +78,25 @@ export abstract class Interact {
 
         targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
 
-        if (!this.isRotating) {
-            this.isRotating = true;
+        let sizes = sourceCylinder.mesh.getHierarchyBoundingVectors();
+        let ySize = sizes.max.y - sizes.min.y;
+        let offsetX = 0.1;
+        let xPos = target.x;
+        let deltaX = current.x - xPos;
 
-            let sizes = sourceCylinder.mesh.getHierarchyBoundingVectors();
-            let ySize = sizes.max.y - sizes.min.y;
-            let offsetX = 0.1;
-            let xPos = target.x;
-            let deltaX = current.x - xPos;
+        let sourceCylinderMesh = getChildMeshByName(sourceCylinder.mesh, CYLINDER_MESH_NAME);
+        let targetCylinderMesh = getChildMeshByName(targetCylinder.mesh, CYLINDER_MESH_NAME);
 
-            let sourceCylinderMesh = getChildMeshByName(sourceCylinder.mesh, CYLINDER_MESH_NAME);
-            let targetCylinderMesh = getChildMeshByName(targetCylinder.mesh, CYLINDER_MESH_NAME);
-
-            if (target.x > current.x) { // right 
-                offsetX = -offsetX;
-            }
-
-            sourceCylinderMesh.position.x = targetCylinderMesh.position.x + offsetX;
-            // sourceCylinderMesh.position.y = ySize - 0.2;
-            sourceCylinderMesh.position.y = targetCylinderMesh.position.y + ySize/2;
-
-            sourceCylinder.rotateAroundZ(hand);
-           
+        if (target.x > current.x) { // right 
+            offsetX = -offsetX;
         }
+
+        sourceCylinderMesh.position.x = targetCylinderMesh.position.x + offsetX;
+        // sourceCylinderMesh.position.y = ySize - 0.2;
+        sourceCylinderMesh.position.y = targetCylinderMesh.position.y + ySize/2;
+
+        sourceCylinder.rotateAroundZ(hand);
+           
     }
 
     moveWithCollisions(cylinderMesh: AbstractMesh, delta: Vector3) {
@@ -118,7 +114,27 @@ export abstract class Interact {
     showFinishScreen() {
         // this.guiManager.gameFinishPrompt.setVisible(true);
         console.log("XR this: ", this.xrCamera);
-        this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera);
+
+        for (let cylinder of this.cylinderInstances) {
+            cylinder.mesh.isPickable = false;
+            cylinder.moveFlag = false;
+        }        
+
+        function setPickable(instances: Array<Cylinder>) {
+            for (let cylinder of instances) {
+                cylinder.mesh.isPickable = true;
+                cylinder.moveFlag = true;
+                cylinder.resetProperties();
+                cylinder.showEffects(false);
+    
+                setTimeout(() => {
+                    cylinder.setColor(cylinder.originalColor);
+                }, 1000);
+    
+            }    
+        }
+
+        this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
     }
 
 
@@ -132,6 +148,7 @@ export abstract class Interact {
         function setPickable(instances: Array<Cylinder>) {
             for (let cylinder of instances) {
                 cylinder.mesh.isPickable = true;
+                cylinder.moveFlag = true;
                 cylinder.resetProperties();
                 cylinder.showEffects(false);
     

@@ -41,13 +41,12 @@ export class Hand extends Interact {
         this.motionController = motionController;
     }
 
-    dropped(grabInterval = null){
+    dropped(grabInterval = null, respawn = true){
 
         console.log(this.holdingInstance.mesh.position, this.holdingInstance.startPos);
 
         if (Vector3.Distance(this.holdingInstance.mesh.position, this.holdingInstance.startPos) == 0) {
-            this.droppedWithoutRespawn();
-            return;
+            respawn = false;
         }
 
         this.motionController.lastPosition = null;
@@ -60,39 +59,37 @@ export class Hand extends Interact {
         console.log(this.holdingMesh)
     
         if (this.holdingMesh) {
-            this.holdingInstance.fadeAndRespawn(100);
+            if (respawn) {
+                this.holdingInstance.fadeAndRespawn(100, null, this.holdingMesh.isPickable);
+            }
             this.holdingMesh = null;
             this.holdingInstance = null;
             this.motionController.meshGrabbed = null;
         }
     }
-
-    droppedWithoutRespawn(){
-        this.motionController.lastPosition = null;
-
-        this.motionController.grabbed = false;
-        this.motionController.meshGrabbed = undefined;
-        console.log(this.holdingMesh)
-    
-        if (this.holdingMesh) {
-            this.holdingMesh = null;
-            this.holdingInstance = null;
-            this.motionController.meshGrabbed = null;
-        }
-    }    
+   
     updateSOPTask(from: string, to: string, timeout) {
         console.log(this.scene);
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
-            if (sop.tasks[sop.currentState].next === 'complete') {           
-                console.log("GUI mgr", this.guiManager, "Sound mgr: ", this.soundManager);
+            if (sop.tasks[sop.currentState].next === 'complete') {
                 let sceneManager = new SceneManager(this.scene, this.cylinderInstances, this.guiManager, this.soundManager, this.xrCamera);
                 for (let cylinder of this.cylinderInstances) {
-                    cylinder.fadeAndRespawn(100);
+                    cylinder.moveFlag = false;
+                    cylinder.mesh.isPickable = false;
                 }
-                super.playSuccess();
+                setTimeout(() => {
+                    console.log("GUI mgr", this.guiManager, "Sound mgr: ", this.soundManager);
+                    for (let cylinder of this.cylinderInstances) {
+                        cylinder.fadeAndRespawn(100, null, false);
+                    }
+                    super.playSuccess();
+                    // this.dropped(timeout, false);
 
-                console.log("Showing finish screen!");
+                    console.log("Showing finish screen!");
+                    this.disappearAnimation(false);
+
+                // this.dropped(timeout);
 
                 if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
                     super.showFinishScreen();
@@ -105,26 +102,19 @@ export class Hand extends Interact {
                         this.xrCamera.pointerSelection.displayLaserPointer = true;
                         this.xrCamera.pointerSelection.displaySelectionMesh = true;
 
-                        // screen.position.x = 0;
-                        // screen.position.y = 0;
-                        // screen.position.z = 1.65;
-
                         screen.rotation = Vector3.Zero();
                     }                    
-                }
+                }}, 1000);
 
                 sop.resetSOP();
-                this.disappearAnimation(false);                
-                this.dropped(timeout);
+
 
                 if (this.particleSystem) {
                     this.particleSystem.stop();
                     console.log("Stopping particle system!");
                 };
 
-                sceneManager.resetCylinders();
                 for (let cylinderInstance of this.cylinderInstances) {
-                    cylinderInstance.resetProperties();
                     cylinderInstance.showEffects(false);
                 }
                 return true;
@@ -138,6 +128,7 @@ export class Hand extends Interact {
             if (!this.failBeaker) {
                 console.log("Fail VR")
 
+                setTimeout(() => {
                 if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
                     super.showFailureScreen();
                     let screen = this.scene.getMeshByName("Start");
@@ -158,6 +149,7 @@ export class Hand extends Interact {
                 }
                 super.playExplosion();
                 this.targetMeshInstance.showEffects(true);
+                }, 1000);
                 sop.resetSOP();
             }
         }

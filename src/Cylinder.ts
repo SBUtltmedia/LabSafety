@@ -317,7 +317,8 @@ export class Cylinder {
      */
     fadeAndRespawn(
         timeUntilFade = TIME_UNTIL_FADE,
-        handInstances: Hand[] = null
+        handInstances: Hand[] = null,
+        picakble = true
     ) {
         this.mesh.isPickable = false;
         setTimeout(() => {
@@ -355,7 +356,7 @@ export class Cylinder {
                     { frame: 0, value: animation.startValue },
                     {
                         frame: endFrame,
-                        value: cylinderLiquid.visibility - animation.startValue,
+                        value: animation.startValue === 0 ? this.startOpacity : 0
                     },
                 ]);
             });
@@ -411,7 +412,7 @@ export class Cylinder {
                         undefined,
                         () => {
                             this.highlight(false);
-                            this.mesh.isPickable = true;
+                            this.mesh.isPickable = picakble;
                             console.log("Resetting rotation!")
                             getChildMeshByName(this.mesh, "cylinder").visibility = this.startOpacity;
 
@@ -456,7 +457,7 @@ export class Cylinder {
                 hand.motionController.meshGrabbed,
             ];
 
-            hand.droppedWithoutRespawn();
+            hand.dropped(null, false);
             console.log("Dropped without respawn");
         }
 
@@ -502,7 +503,7 @@ export class Cylinder {
                 hand.motionController.meshGrabbed,
             ];
 
-            hand.droppedWithoutRespawn();
+            hand.dropped(null, false);
             console.log("Dropped without respawn");
         }
 

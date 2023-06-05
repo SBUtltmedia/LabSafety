@@ -141,7 +141,6 @@ export class App {
         this.processScene(
           scene,
           this.cylinders,
-          this.guiManager,
           this.soundManager
         );
       });
@@ -153,7 +152,6 @@ export class App {
   async processScene(
     scene: Scene,
     cylinders: Array<Cylinder>,
-    guiManager: GUIManager,
     soundManager: SoundManager
   ) {
     let camera = scene.getCameraByName("camera") as UniversalCamera;
