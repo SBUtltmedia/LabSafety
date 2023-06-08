@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "babylonjs": "^6.0.0",
-    "esbuild-darwin-64": "^0.15.18",
     "handlebars": "^4.7.7",
     "vue": "^3.2.41"
   },

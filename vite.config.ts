@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { splitVendorChunkPlugin } from 'vite'
 // https://vitejs.dev/config/
 import mkcert from 'vite-plugin-mkcert'
+
 export default defineConfig({
   base:"",
 

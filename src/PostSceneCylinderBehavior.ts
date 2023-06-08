@@ -58,32 +58,58 @@ export class SceneManager extends Interact {
         for (let char of cylinderLetters) {
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${char}`);
             allCylinders.push((cylinder as Mesh));
-            let rotationAnimation = new Animation(`${char}-rotateAroundZ`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            let rotationAnimationLeft = new Animation(`${char}-rotateAroundZleft`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-            const keyFrames = [];
+            let keyFrames = [];
             keyFrames.push({
                 frame: 0,
-                value: Math.PI * 2
+                value: 0
             });
             keyFrames.push({
                 frame: 60,
-                value: 4.62
+                value: Math.PI/2
             });
-            sourceCylinder.animations.push(rotationAnimation);
-            rotationAnimation.setKeys(keyFrames);
+            sourceCylinder.animations.push(rotationAnimationLeft);
+            rotationAnimationLeft.setKeys(keyFrames);
 
-            let resetRotationAnimation = new Animation(`${char}-resetRotateAroundZ`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            const resetFrames = [];
+            let rotationAnimationRight = new Animation(`${char}-rotateAroundZright`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            keyFrames = [];
+            keyFrames.push({
+                frame: 0,
+                value: 0
+            });
+            keyFrames.push({
+                frame: 60,
+                value: -Math.PI/2
+            });
+            sourceCylinder.animations.push(rotationAnimationRight);
+            rotationAnimationRight.setKeys(keyFrames);            
+
+            let resetRotationAnimationleft = new Animation(`${char}-resetRotateAroundZleft`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            let resetFrames = [];
             resetFrames.push({
                 frame: 0,
-                value: 4.62
+                value: Math.PI/2
             });
             resetFrames.push({
                 frame: 60,
-                value: Math.PI * 2
+                value: 0
             });
-            sourceCylinder.animations.push(resetRotationAnimation);
-            resetRotationAnimation.setKeys(resetFrames);
+            sourceCylinder.animations.push(resetRotationAnimationleft);
+            resetRotationAnimationleft.setKeys(resetFrames);
+
+            let resetRotationAnimationRight = new Animation(`${char}-resetRotateAroundZright`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            resetFrames = [];
+            resetFrames.push({
+                frame: 0,
+                value: -Math.PI/2
+            });
+            resetFrames.push({
+                frame: 60,
+                value: 0
+            });
+            sourceCylinder.animations.push(resetRotationAnimationRight);
+            resetRotationAnimationRight.setKeys(resetFrames);            
         }
 
         for (let i = 0; i < cylinderLetters.length; i++) {
@@ -108,6 +134,7 @@ export class SceneManager extends Interact {
             //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
             let rotationFlag = false;
+            let hit = "resetRotateAroundZleft";
 
             if (cylinder.isPickable) {
                 (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
@@ -177,16 +204,6 @@ export class SceneManager extends Interact {
                             }
                         }
 
-                        let current_x = cylinder.getAbsolutePosition()._x;
-                        let target_x = cylinderHitDetected.getAbsolutePosition()._x;
-
-                        if (target_x < current_x) { // left hit
-                            sourceCylinder.rotation.y = Math.PI;
-                            cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
-                        } else {
-                            sourceCylinder.rotation.y = 0;
-                            cylinderHitDetected.rotation.y = sourceCylinder.rotation.y;
-                        }
                         if (!rotationFlag) {
                             super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance);
                             rotationFlag = true;
@@ -202,31 +219,33 @@ export class SceneManager extends Interact {
                         resetRotation(cylinder);
                     }
 
-                    if (hitDetected == false) {
+                    if (hitDetected === false && cylinderInstance.rotateEnd) {
                         cylinderInstance.highlight(false);
                         samePour = false;
                         if (rotationFlag) {
-                            sourceCylinder.position.x = 0;
-                            sourceCylinder.position.y = 0;
+                            console.log("reset second click")
                             rotationFlag = false;
-                            cylinderInstance.resetAroundZ();
+                            // setTimeout(() => {
+                            // cylinderInstance.rotateAnimation(hit);
+                            // }, 750);
                         }
                     }
                 });
             }
             (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
                 const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
+                rotationFlag = false;
+
                 for (let singleMesh of filteredMeshes) {
-                    if (singleMesh == sourceCylinder) continue;
+                    if (singleMesh === sourceCylinder) continue;
 
                     cylinderInstance.highlight(false);
                     super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
 
                     if (sourceCylinder.intersectsMesh(singleMesh)) {
-                        cylinderInstance.resetAroundZ();
+                        cylinderInstance.rotateAnimation(hit);
                         sourceCylinder.position.x = 0;
                         sourceCylinder.position.y = 0;
-                        rotationFlag = false;
                     }
                 }
             })

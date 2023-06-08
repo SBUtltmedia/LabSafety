@@ -135,7 +135,7 @@ export class Cylinder {
         // base.ellipsoid._y += 0.1;
         base.ellipsoidOffset.y += 0.001;
 
-        // this.EllipsoidLines =new CreateEllipsoidLines(base);
+        this.EllipsoidLines =new CreateEllipsoidLines(base);
 
         console.log(base.ellipsoid.length());
 
@@ -278,6 +278,17 @@ export class Cylinder {
         pointerDragBehavior.moveAttached = false;
 
         pointerDragBehavior.onDragStartObservable.add(() => {
+            let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
+            
+            console.log(this.mesh.animations);
+
+            // let tempAnimation = Object.assign({}, this.mesh.animations[0]);
+            // this.mesh.animations[0] = null;
+            // this.mesh.animations[0] = tempAnimation;
+            // this.mesh.animations[0]
+            let children = getChildMeshByName(this.mesh, "cylinder");
+
+            this.scene.stopAllAnimations();
 
             if (thisInterval) {
                 clearTimeout(thisInterval);
@@ -378,8 +389,8 @@ export class Cylinder {
 
                     let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
                     resetRotation(this.mesh);
-                    resetRotation(childMesh);
-                    resetPosition(childMesh);                            
+                    // resetRotation(this.mesh);
+                    // resetPosition(childMesh);
 
                     //@ts-ignore
                     this.mesh.position.x = this.position._x;
@@ -388,8 +399,9 @@ export class Cylinder {
 
                     // this.mesh.position = Object.assign({}, this.position);
 
-                    scene.stopAnimation(cylinder, "resetRotateAroundZ")
-                    scene.stopAnimation(cylinder, "rotateAroundZ")
+                    // scene.stopAnimation(cylinder, "resetRotateAroundZ")
+                    // scene.stopAnimation(cylinder, "rotateAroundZ")
+
                     this.mesh.animations = cylinder.animations;
 
 
@@ -430,7 +442,10 @@ export class Cylinder {
         }, timeUntilFade);
     }
 
-    rotateAroundZ(hand: Hand = null) {
+    rotateAnimation(animName: string, hand: Hand = null) {
+        let oldPos = Object.assign({}, this.mesh.position);
+
+        this.mesh.checkCollisions = false;
 
         if (hand) {
             console.log("HANDDD")
@@ -440,7 +455,7 @@ export class Cylinder {
           
         }
         let individualAnimation = this.mesh.getAnimationByName(
-            `${this.name}-rotateAroundZ`
+            `${this.name}-${animName}`
         );
 
         let oldHandData;
@@ -448,88 +463,30 @@ export class Cylinder {
         this.rotateEnd = false;
 
         if (hand) {
-            oldHandData = [
-                hand.motionController.lastPosition,
-                hand.motionController.grabbed,
-                hand.motionController.meshGrabbed,
-                hand.holdingMesh,
-                hand.holdingInstance,
-                hand.motionController.meshGrabbed,
-            ];
-
-            hand.dropped(null, false);
-            console.log("Dropped without respawn");
+            hand.holdingMesh = null;
         }
 
         if (this.toggleControllers) this.toggleControllers();
 
         this.scene.beginDirectAnimation(
-            getChildMeshByName(this.mesh, CYLINDER_MESH_NAME),
+            this.mesh,
             [individualAnimation],
             0,
             600,
             false,
             0.5,
             () => {
-                if (hand) {
-                    hand.motionController.lastPosition = oldHandData[0];
-                    hand.motionController.grabbed = oldHandData[1];
-                    hand.motionController.meshGrabbed = oldHandData[2];
-                    hand.holdingMesh = oldHandData[3];
-                    hand.holdingInstance = oldHandData[4];
-                    hand.motionController.meshGrabbed = oldHandData[5];
-                }
                 if (this.toggleControllers) this.toggleControllers();
+                if (hand) {
+                   hand.holdingMesh = this.mesh;
+                   console.log(hand.holdingMesh);
+                }
                 this.moveFlag = true;
-                this.rotateEnd = true;
+                this.rotateEnd = true
+                this.mesh.checkCollisions = true;
             }
         );
     }
-
-    resetAroundZ(hand: Hand = null) {
-        let individualAnimation = this.mesh.getAnimationByName(
-            `${this.name}-resetRotateAroundZ`
-        );
-
-        let oldHandData;
-
-        if (hand) {
-            oldHandData = [
-                hand.motionController.lastPosition,
-                hand.motionController.grabbed,
-                hand.motionController.meshGrabbed,
-                hand.holdingMesh,
-                hand.holdingInstance,
-                hand.motionController.meshGrabbed,
-            ];
-
-            hand.dropped(null, false);
-            console.log("Dropped without respawn");
-        }
-
-        if (this.toggleControllers) this.toggleControllers();
-        
-        this.scene.beginDirectAnimation(
-            getChildMeshByName(this.mesh, CYLINDER_MESH_NAME),
-            [individualAnimation],
-            0,
-            600,
-            false,
-            1,
-            () => {
-                if (hand) {
-                    hand.motionController.lastPosition = oldHandData[0];
-                    hand.motionController.grabbed = oldHandData[1];
-                    hand.motionController.meshGrabbed = oldHandData[2];
-                    hand.holdingMesh = oldHandData[3];
-                    hand.holdingInstance = oldHandData[4];
-                    hand.motionController.meshGrabbed = oldHandData[5];
-                }
-                if (this.toggleControllers) this.toggleControllers();
-            }
-        );
-    }
-
 
     setColor(color: Color3) {
         const cylinderLiquid: AbstractMesh = getChildMeshByName(
@@ -554,6 +511,8 @@ export class Cylinder {
     resetProperties() {
         this.setOpacity(this.startOpacity);
         this.setColor(this.originalColor);
+        resetRotation(this.mesh);
+        resetRotation(getChildMeshByName(this.mesh, CYLINDER_MESH_NAME));
     }
 
     showEffects(start = false) {

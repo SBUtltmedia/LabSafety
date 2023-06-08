@@ -62,40 +62,59 @@ export abstract class Interact {
         return null;
     }
 
-    highlightAndRotateCylinders(sourceCylinder: Cylinder, targetCylinder: Cylinder, hand: Hand = null) {   
+    highlightAndRotateCylinders(sourceCylinderInstance: Cylinder, targetCylinderInstance: Cylinder, hand: Hand = null) {   
         //@ts-ignore
-        sourceCylinder.highlight();
-        targetCylinder.highlight();
+        sourceCylinderInstance.highlight();
+        targetCylinderInstance.highlight();
 
-        let current = sourceCylinder.mesh.position;
-        let target = targetCylinder.mesh.position;
+        let current = sourceCylinderInstance.mesh.position;
+        let target = targetCylinderInstance.mesh.position;
 
-        sourceCylinder.mesh.rotation.y = 0;
+        let animName = "rotateAroundZleft"
 
-        if (target.x < current.x) { // left hit
-            sourceCylinder.mesh.rotation.y = Math.PI;
-        }
 
-        targetCylinder.mesh.rotation.y = sourceCylinder.mesh.rotation.y;
 
-        let sizes = sourceCylinder.mesh.getHierarchyBoundingVectors();
+        // if (target_x < current_x) { // left hit
+        //     sourceCylinder.rotation.y = Math.PI;
+        // } else {
+        //     sourceCylinder.rotation.y = 0;
+        //     hit = "resetRotateAroundZright";
+        // }        
+
+        targetCylinderInstance.mesh.rotation.y = sourceCylinderInstance.mesh.rotation.y;
+
+        let sizes = sourceCylinderInstance.mesh.getHierarchyBoundingVectors();
         let ySize = sizes.max.y - sizes.min.y;
-        let offsetX = 0.1;
+        let offsetX = 0.2;
         let xPos = target.x;
         let deltaX = current.x - xPos;
 
-        let sourceCylinderMesh = getChildMeshByName(sourceCylinder.mesh, CYLINDER_MESH_NAME);
-        let targetCylinderMesh = getChildMeshByName(targetCylinder.mesh, CYLINDER_MESH_NAME);
+        let sourceCylinderMesh = getChildMeshByName(sourceCylinderInstance.mesh, CYLINDER_MESH_NAME);
+        let targetCylinderMesh = getChildMeshByName(targetCylinderInstance.mesh, CYLINDER_MESH_NAME);
 
-        if (target.x > current.x) { // right 
-            offsetX = -offsetX;
+
+        if (target.x < current.x) { // left hit
+            console.log("Left hit")
+            // sourceCylinderInstance.mesh.rotation.y = Math.PI;
+            sourceCylinderMesh.rotation.y = Math.PI;
+        } else {
+            // sourceCylinderInstance.mesh.rotation.y = 0;
+            sourceCylinderMesh.rotation.y = 0;
+            animName = "rotateAroundZright"
+            console.log("Right hit")
+            offsetX = -offsetX;            
         }
 
-        sourceCylinderMesh.position.x = targetCylinderMesh.position.x + offsetX;
-        // sourceCylinderMesh.position.y = ySize - 0.2;
-        sourceCylinderMesh.position.y = targetCylinderMesh.position.y + ySize/2;
+        targetCylinderMesh.rotation.y = sourceCylinderMesh.rotation.y;
 
-        sourceCylinder.rotateAroundZ(hand);
+        sourceCylinderInstance.mesh.position.x = targetCylinderInstance.mesh.position.x + offsetX;
+        sourceCylinderInstance.mesh.position.y = targetCylinderInstance.mesh.position.y + (ySize / 1.5);
+
+        console.log(sourceCylinderMesh.position);
+
+        // this.xrCamera.dispose();
+
+        sourceCylinderInstance.rotateAnimation(animName, hand);
            
     }
 

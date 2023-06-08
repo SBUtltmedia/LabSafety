@@ -5,7 +5,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
-import { getChildMeshByName, resetPosition } from "./utils";
+import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 import { Hand } from "./Hand";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
@@ -65,6 +65,9 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                 console.log("Motion controller: ", motionController);
 
                 [squeezeComponent].forEach((component) => {
+
+                    let hit = "resetRotateAroundZleft";
+
                     console.log(scene.getMeshByName("left"));
                     component.onButtonStateChangedObservable.add((item) => {
                         // if (currentAction && currentAction.type != item.type) { return }
@@ -120,11 +123,13 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                             currentHandClass.motionController.grabbed = false;
                                             currentHandClass.handMesh.visibility = 1;
                                             isHolding = true;
+                                            rotationFlag = false;
                                         }
+
 
                                         if (currentHandClass.holdingMesh) {
                                             let collidedCylinder = currentHandClass.intersectCylinder(currentHandClass.holdingMesh);
-
+                                            console.log(collidedCylinder);
                                             if (collidedCylinder) {
                                                 currentHandClass.targetMesh = collidedCylinder;
                                                 currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);
@@ -133,26 +138,27 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 if (!rotationFlag) {
                                                     currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
                                                     isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
-                                                    // if (!isHolding) {
-                                                       currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
+                                                    currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
                                                                     currentHandClass.targetMeshInstance,
                                                                 currentHandClass);
                                                     rotationFlag = true;
-                                                    // } else {
-                                                    //     currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance, 
-                                                    //         currentHandClass.targetMeshInstance);
-                                                    // }
+
                                                 }
-                                                // rotationFlag = false;
                                             } else {
                                                 if (currentHandClass.targetMeshInstance) {
                                                     currentHandClass.targetMeshInstance.highlight(false);
                                                 }
-
                                                 currentHandClass.holdingInstance.highlight(false);
-                                                if (rotationFlag) {
-                                                    currentHandClass.holdingInstance.resetAroundZ();
-                                                    resetPosition(getChildMeshByName(currentHandClass.holdingMesh, CYLINDER_MESH_NAME));
+                                                // currentHandClass.holdingMesh.checkCollisions = false;
+
+                                                // setTimeout(() => {
+                                                //     currentHandClass.holdingMesh.checkCollisions = true;
+                                                // })
+                                                if (rotationFlag && currentHandClass.holdingInstance.rotateEnd) {
+                                                    // setTimeout(() => {
+                                                    //     currentHandClass.holdingInstance.rotateAnimation(hit);
+                                                    // }, 100);
+                                                    // resetRotation(currentHandClass.holdingInstance);
                                                     rotationFlag = false;
                                                 }
                                             }
@@ -174,6 +180,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
 
                             currentHandClass.dropped(grabSetInterval);
                             currentHandClass.disappearAnimation(false);
+                            rotationFlag = false;
                         }
                     })
                 })

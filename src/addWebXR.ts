@@ -1,4 +1,4 @@
-import { Color3, Vector3, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
+import { Color3, PointerDragBehavior, Vector3, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Cylinder } from "./Cylinder";
@@ -71,6 +71,10 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
 
             xrCamera.baseExperience.onStateChangedObservable.add((state) => {
                 if (state === WebXRState.IN_XR) {
+                    
+                    // xrCamera.dispose(), 1000);
+
+
                     xrCamera.baseExperience.camera.position.y = 1.5;
                     xrCamera.baseExperience.camera.position.z = -0.5;
 
