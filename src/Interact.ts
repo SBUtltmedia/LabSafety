@@ -86,22 +86,22 @@ export abstract class Interact {
 
         if (target.x < current.x) { // left hit
             console.log("Left hit")
-            sourceCylinderInstance.mesh.rotation.y = Math.PI;
+            // sourceCylinderInstance.mesh.rotation.y = Math.PI;
+            sourceCylinderMesh.rotation.y = Math.PI;
         } else {
-            sourceCylinderInstance.mesh.rotation.y = 0;
+            // sourceCylinderInstance.mesh.rotation.y = 0;
+            sourceCylinderMesh.rotation.y = 0;
             animName = "rotateAroundZright"
             console.log("Right hit")
             offsetX = -offsetX;            
         }
 
-        console.log(sourceCylinderInstance.mesh.rotation.y);
-
-
-        targetCylinderInstance.mesh.rotation.y = sourceCylinderInstance.mesh.rotation.y
+        targetCylinderMesh.rotation.y = sourceCylinderMesh.rotation.y;
 
         sourceCylinderInstance.mesh.position.x = targetCylinderInstance.mesh.position.x + offsetX;
         sourceCylinderInstance.mesh.position.y = targetCylinderInstance.mesh.position.y + (ySize / 1.5);
 
+        console.log(sourceCylinderMesh.position);
 
         sourceCylinderInstance.rotateAnimation(animName, hand);
            

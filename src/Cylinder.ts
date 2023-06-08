@@ -20,7 +20,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 import { ParticleSystem, Texture } from "@babylonjs/core";
 import { Hand } from "./Hand";
-import {CreateEllipsoidLines} from "./CreateEllipsoidLines";
+import { CreateEllipsoidLines } from "./CreateEllipsoidLines";
 /**
  *
  * @param cylinderMesh Cylinder Mesh needed that will be modified
@@ -61,7 +61,7 @@ export class Cylinder {
 
         this.moveFlag = true;
         this.rotateEnd = true;
-     
+
         this.currentColor = Object.assign({}, color);
         this.originalColor = Object.assign({}, color);
         this.startOpacity = 0.7;
@@ -76,7 +76,7 @@ export class Cylinder {
         const table: AbstractMesh = scene.getMeshByName("Table")!;
         let base: Mesh = MeshBuilder.CreateCylinder(
             `pivot-Cylinder-${name}`,
-            { diameterTop: 0.1, height: 0.33, diameterBottom: 0.1},
+            { diameterTop: 0.1, height: 0.33, diameterBottom: 0.1 },
             cylinderMesh.getScene()
         );
         base.position._y += 0.1;
@@ -135,7 +135,7 @@ export class Cylinder {
         // base.ellipsoid._y += 0.1;
         // base.ellipsoidOffset.y += 0.001;
 
-        this.EllipsoidLines =new CreateEllipsoidLines(base);
+        // this.EllipsoidLines =new CreateEllipsoidLines(base);
 
         console.log(base.ellipsoid.length());
 
@@ -162,7 +162,7 @@ export class Cylinder {
             "LabelBack"
         )!;
 
-  
+
         console.log("Label:", cylinderLabel2);
 
         //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
@@ -175,7 +175,7 @@ export class Cylinder {
             true,
             Texture.LINEAR_LINEAR_MIPNEAREST
         );
-         texture.uAng = Math.PI;
+        texture.uAng = Math.PI;
         const material: StandardMaterial = new StandardMaterial("Mat", scene);
         material.diffuseTexture = texture;
         cylinderLabel.material = material;
@@ -277,23 +277,6 @@ export class Cylinder {
         //pointerDragBehavior.dragButtons = [0,1,2]
         pointerDragBehavior.moveAttached = false;
 
-        pointerDragBehavior.onDragStartObservable.add(() => {
-            let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
-            
-            console.log(this.mesh.animations);
-
-            // let tempAnimation = Object.assign({}, this.mesh.animations[0]);
-            // this.mesh.animations[0] = null;
-            // this.mesh.animations[0] = tempAnimation;
-            // this.mesh.animations[0]
-            let children = getChildMeshByName(this.mesh, "cylinder");
-
-            this.scene.stopAllAnimations();
-
-            if (thisInterval) {
-                clearTimeout(thisInterval);
-            }
-        });
         pointerDragBehavior.onDragObservable.add((eventData) => {
 
             if (eventData.delta != Vector3.Zero() && this.moveFlag && this.mesh.isPickable) {
@@ -301,7 +284,7 @@ export class Cylinder {
             }
         });
         pointerDragBehavior.onDragEndObservable.add(() => {
-            
+
 
             if (Vector3.Distance(this.startPos, this.mesh.position) > 0.1) {
                 // this.rotateEnd = false;
@@ -452,7 +435,7 @@ export class Cylinder {
 
         } else {
             console.log("NO HAND!!!!")
-          
+
         }
         let individualAnimation = this.mesh.getAnimationByName(
             `${this.name}-${animName}`
@@ -484,7 +467,7 @@ export class Cylinder {
                     if (hand) {
                         hand.holdingMesh = this.mesh;
                         console.log(hand.holdingMesh);
-                     }                    
+                    }
                 }
                 this.mesh.checkCollisions = true;
             }

@@ -218,8 +218,6 @@ export class SceneManager extends Interact {
                             }
                             
                         }
-                    } else {
-                        resetRotation(sourceCylinder);
                     }
 
                     if (hitDetected === false && cylinderInstance.rotateEnd) {
