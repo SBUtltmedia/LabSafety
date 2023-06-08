@@ -131,9 +131,9 @@ export class Cylinder {
             console.log("Else!");
         }
         base.checkCollisions = true;
-        base.ellipsoid = new Vector3(0.02, 0.09, 0.02);
+        base.ellipsoid = new Vector3(0.02, 0.05, 0.02);
         // base.ellipsoid._y += 0.1;
-        base.ellipsoidOffset.y += 0.001;
+        // base.ellipsoidOffset.y += 0.001;
 
         this.EllipsoidLines =new CreateEllipsoidLines(base);
 
@@ -389,8 +389,8 @@ export class Cylinder {
 
                     let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
                     resetRotation(this.mesh);
+                    resetRotation(childMesh);
                     // resetRotation(this.mesh);
-                    // resetPosition(childMesh);
 
                     //@ts-ignore
                     this.mesh.position.x = this.position._x;
@@ -442,7 +442,7 @@ export class Cylinder {
         }, timeUntilFade);
     }
 
-    rotateAnimation(animName: string, hand: Hand = null) {
+    rotateAnimation(animName: string, hand: Hand = null, ableToMove: boolean = false) {
         let oldPos = Object.assign({}, this.mesh.position);
 
         this.mesh.checkCollisions = false;
@@ -458,12 +458,12 @@ export class Cylinder {
             `${this.name}-${animName}`
         );
 
-        let oldHandData;
-        this.moveFlag = false;
-        this.rotateEnd = false;
-
-        if (hand) {
-            hand.holdingMesh = null;
+        if (!ableToMove) {
+            this.moveFlag = false;
+            this.rotateEnd = false;
+            if (hand) {
+                hand.holdingMesh = null;
+            }
         }
 
         if (this.toggleControllers) this.toggleControllers();
@@ -477,12 +477,15 @@ export class Cylinder {
             0.5,
             () => {
                 if (this.toggleControllers) this.toggleControllers();
-                if (hand) {
-                   hand.holdingMesh = this.mesh;
-                   console.log(hand.holdingMesh);
+
+                if (!ableToMove) {
+                    this.moveFlag = true;
+                    this.rotateEnd = true;
+                    if (hand) {
+                        hand.holdingMesh = this.mesh;
+                        console.log(hand.holdingMesh);
+                     }                    
                 }
-                this.moveFlag = true;
-                this.rotateEnd = true
                 this.mesh.checkCollisions = true;
             }
         );

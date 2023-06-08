@@ -115,7 +115,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                         }
 
                                         //@ts-ignore
-                                        if (!currentHandClass.intersectHandCylinder(scene.getMeshByName(currentHandClass.motionController.handID)) && currentHandClass.holdingMesh) {
+                                        if (!currentHandClass.intersectHandCylinder(scene.getMeshByName(currentHandClass.motionController.handID)) && currentHandClass.holdingMesh && currentHandClass.holdingInstance.rotateEnd) {
                                             if (currentHandClass.targetMeshInstance) {
                                                 currentHandClass.targetMeshInstance.highlight(false);
                                             }
@@ -129,7 +129,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
 
                                         if (currentHandClass.holdingMesh) {
                                             let collidedCylinder = currentHandClass.intersectCylinder(currentHandClass.holdingMesh);
-                                            console.log(collidedCylinder);
+                                            console.log(currentHandClass.holdingMesh.checkCollisions);
                                             if (collidedCylinder) {
                                                 currentHandClass.targetMesh = collidedCylinder;
                                                 currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);
@@ -163,7 +163,8 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 }
                                             }
                                         }
-                                        if (!isHolding) {
+                                        if (!isHolding && currentHandClass.holdingInstance && currentHandClass.holdingInstance.rotateEnd) {
+                                            console.log("Here")
                                             currentAction = null;
                                             currentHandClass.motionController.lastPosition = Object.assign({}, ray.origin);
                                             currentHand.lastPosition = Object.assign({}, ray.origin);
@@ -171,7 +172,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                     }, 10)
                                 }
                             }
-                        } else if ((!item.value || !grabbedCylinder) && currentHandClass.holdingMesh) {
+                        } else if ((!item.value || !grabbedCylinder) && currentHandClass.holdingMesh && currentHandClass.holdingInstance.rotateEnd) {
                             currentAction = null;
                             currentHandClass.holdingInstance.highlight(false);
                             currentHandClass.motionController.grabbed = false;

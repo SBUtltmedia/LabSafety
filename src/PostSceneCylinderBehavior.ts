@@ -213,10 +213,13 @@ export class SceneManager extends Interact {
                             if (!doneSOP)
                                 super.addColors(cylinderInstance, cylinderHitInstance);
                             
+                            if (cylinderHitDetected.position.x > cylinder.position.x) {
+                                hit = "resetRotateAroundZright";
+                            }
+                            
                         }
                     } else {
-                        cylinderInstance.highlight(false);
-                        resetRotation(cylinder);
+                        resetRotation(sourceCylinder);
                     }
 
                     if (hitDetected === false && cylinderInstance.rotateEnd) {
@@ -225,9 +228,7 @@ export class SceneManager extends Interact {
                         if (rotationFlag) {
                             console.log("reset second click")
                             rotationFlag = false;
-                            // setTimeout(() => {
-                            // cylinderInstance.rotateAnimation(hit);
-                            // }, 750);
+                            cylinderInstance.rotateAnimation(hit, null, true);
                         }
                     }
                 });

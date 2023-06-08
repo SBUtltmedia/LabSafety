@@ -72,15 +72,6 @@ export abstract class Interact {
 
         let animName = "rotateAroundZleft"
 
-
-
-        // if (target_x < current_x) { // left hit
-        //     sourceCylinder.rotation.y = Math.PI;
-        // } else {
-        //     sourceCylinder.rotation.y = 0;
-        //     hit = "resetRotateAroundZright";
-        // }        
-
         targetCylinderInstance.mesh.rotation.y = sourceCylinderInstance.mesh.rotation.y;
 
         let sizes = sourceCylinderInstance.mesh.getHierarchyBoundingVectors();
@@ -95,24 +86,22 @@ export abstract class Interact {
 
         if (target.x < current.x) { // left hit
             console.log("Left hit")
-            // sourceCylinderInstance.mesh.rotation.y = Math.PI;
-            sourceCylinderMesh.rotation.y = Math.PI;
+            sourceCylinderInstance.mesh.rotation.y = Math.PI;
         } else {
-            // sourceCylinderInstance.mesh.rotation.y = 0;
-            sourceCylinderMesh.rotation.y = 0;
+            sourceCylinderInstance.mesh.rotation.y = 0;
             animName = "rotateAroundZright"
             console.log("Right hit")
             offsetX = -offsetX;            
         }
 
-        targetCylinderMesh.rotation.y = sourceCylinderMesh.rotation.y;
+        console.log(sourceCylinderInstance.mesh.rotation.y);
+
+
+        targetCylinderInstance.mesh.rotation.y = sourceCylinderInstance.mesh.rotation.y
 
         sourceCylinderInstance.mesh.position.x = targetCylinderInstance.mesh.position.x + offsetX;
         sourceCylinderInstance.mesh.position.y = targetCylinderInstance.mesh.position.y + (ySize / 1.5);
 
-        console.log(sourceCylinderMesh.position);
-
-        // this.xrCamera.dispose();
 
         sourceCylinderInstance.rotateAnimation(animName, hand);
            
