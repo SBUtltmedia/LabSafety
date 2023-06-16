@@ -1,5 +1,5 @@
 import { CYLINDER_MESH_NAME } from "./Constants";
-import HighlightBehavior from "./HighlightBehavior";
+// import HighlightBehavior from "./HandDragBehavior";
 import { getChildMeshByName, resetRotation } from "./utils";
 import { Scene } from "@babylonjs/core/scene";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
@@ -112,6 +112,8 @@ export class SceneManager extends Interact {
             resetRotationAnimationRight.setKeys(resetFrames);            
         }
 
+        let prevHit;
+
         for (let i = 0; i < cylinderLetters.length; i++) {
 
             const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
@@ -136,6 +138,8 @@ export class SceneManager extends Interact {
             let rotationFlag = false;
             let hit = "resetRotateAroundZleft";
 
+            let rotateTimeout;
+
             if (cylinder.isPickable) {
                 (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
 
@@ -145,94 +149,117 @@ export class SceneManager extends Interact {
                     let doneSOP = false;
                     let hitDetected = false;
                     resetRotation(cylinder);
+                    let cylinderHitInstance;
                     const cylinderHitDetected = super.intersectCylinder(cylinder);
-                    if (cylinderHitDetected) {
-                        let cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
+
+                    if (cylinderHitDetected) {                        
+                        cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
+                        prevHit = cylinderHitInstance;
+
+                        super.highlightCylinders(cylinderInstance, cylinderHitInstance);
+
                         hitDetected = true;
+
                         let to = cylinderHitDetected.name.split('-')[2];
                         let from = cylinder.name.split('-')[2];
                         let fromAndTo = `${from}to${to}`
-                        if (sop.tasks[sop.currentState].label === fromAndTo) {
-                            samePour = true;
-                            if (sop.tasks[sop.currentState].next === 'complete') {
-                                // for (let cylinderInstance of super.cylinderInstances) {
-                                //     cylinderInstance.resetProperties();
-                               // }   
-                                doneSOP = true;
-                                console.log(cylinderHitInstance);
-
-                                setTimeout(() => {
-                                    super.playSuccess();
-                                }, 500);
-
-                                // play the sound after the animation is done
-                                setTimeout(() => {
-                                    cylinderInstance.fadeAndRespawn();
-                                }, 1500);
-                                
-                                sop.resetSOP();
-                                this.resetCylinders();
-                                super.showFinishScreen();
-                                
-                                
-                            } else {
-                                sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-                                super.playDing();
-                            }
-                        } else {
-                            console.log(failBeaker, samePour);
-                            if (!failBeaker && !samePour) {
-                                console.log("Failure!!!");
-                                for (let cylinder of this.instances) {
-                                    cylinder.mesh.isPickable = false;
-                                    cylinder.moveFlag = false;
-                                }
-
-                                cylinderHitInstance.showEffects(true);
-                                super.playExplosion();
-
-                                setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
-                                
-                                failBeaker = true;
-                            
-                                setTimeout(() => {
-                                    (gotSomething as PointerDragBehavior).releaseDrag();
-                                    super.showFailureScreen();
-                                    sop.resetSOP();
-                                    failBeaker = false;
-                                }, 1500);
-                            }
-                        }
 
                         if (!rotationFlag) {
-                            super.highlightAndRotateCylinders(cylinderInstance, cylinderHitInstance);
                             rotationFlag = true;
-                            let to = cylinderHitDetected.name.split('-')[2];
-                            let from = cylinder.name.split('-')[2];
-                            let fromAndTo = `${from}to${to}`;
-                            if (!doneSOP)
-                                super.addColors(cylinderInstance, cylinderHitInstance);
-                            
-                            if (cylinderHitDetected.position.x > cylinder.position.x) {
-                                hit = "resetRotateAroundZright";
-                            }
-                            
+                            rotateTimeout = setTimeout(() => {
+                                super.RotateCylinders(cylinderInstance, cylinderHitInstance);
+                                let to = cylinderHitDetected.name.split('-')[2];
+                                let from = cylinder.name.split('-')[2];
+                                let fromAndTo = `${from}to${to}`;
+
+                                if (sop.tasks[sop.currentState].label === fromAndTo) {
+                                    samePour = true;
+                                    if (sop.tasks[sop.currentState].next === 'complete') {
+                                        // for (let cylinderInstance of super.cylinderInstances) {
+                                        //     cylinderInstance.resetProperties();
+                                       // }   
+                                        doneSOP = true;
+                                        console.log(cylinderHitInstance);
+        
+                                        setTimeout(() => {
+                                            super.playSuccess();
+                                        }, 500);
+        
+                                        // play the sound after the animation is done
+                                        setTimeout(() => {
+                                            cylinderInstance.fadeAndRespawn();
+                                        }, 1500);
+                                        
+                                        sop.resetSOP();
+                                        this.resetCylinders();
+                                        super.showFinishScreen();
+                                        
+                                        
+                                    } else {
+                                        sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+                                        super.playDing();
+                                    }
+                                } else {
+                                    console.log(failBeaker, samePour);
+                                    if (!failBeaker && !samePour) {
+                                        console.log("Failure!!!");
+                                        for (let cylinder of this.instances) {
+                                            cylinder.mesh.isPickable = false;
+                                            cylinder.moveFlag = false;
+                                        }
+        
+                                        cylinderHitInstance.showEffects(true);
+                                        super.playExplosion();
+        
+                                        setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
+                                        
+                                        failBeaker = true;
+                                    
+                                        setTimeout(() => {
+                                            (gotSomething as PointerDragBehavior).releaseDrag();
+                                            super.showFailureScreen();
+                                            sop.resetSOP();
+                                            failBeaker = false;
+                                        }, 1500);
+                                    }
+                                }
+
+                                if (!doneSOP)
+                                    super.addColors(cylinderInstance, cylinderHitInstance);
+                                
+                                if (cylinderHitDetected.position.x > cylinder.position.x) {
+                                    hit = "resetRotateAroundZright";
+                                }
+                            }, 700);
                         }
                     }
 
                     if (hitDetected === false && cylinderInstance.rotateEnd) {
                         cylinderInstance.highlight(false);
-                        samePour = false;
-                        if (rotationFlag) {
-                            console.log("reset second click")
+                        if (prevHit) {
+                            console.log(prevHit);
+                            prevHit.highlight(false);
+                            prevHit = undefined;
+                            // prevHit = null;
+                        }
+                            
+                        if (rotateTimeout) {
+                            clearTimeout(rotateTimeout);
+                            rotateTimeout = null;
+                            samePour = false;
                             rotationFlag = false;
-                            cylinderInstance.rotateAnimation(hit, null, true);
+                        } else {
+                            samePour = false;
+                            if (rotationFlag) {
+                                console.log("reset second click")
+                                rotationFlag = false;
+                                cylinderInstance.rotateAnimation(hit, null, true);
+                            }
                         }
                     }
                 });
             }
             (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
-                const highlightingTheDrag = getChildMeshByName(cylinder, CYLINDER_MESH_NAME).getBehaviorByName('Highlight') as Nullable<HighlightBehavior>;
                 rotationFlag = false;
 
                 for (let singleMesh of filteredMeshes) {

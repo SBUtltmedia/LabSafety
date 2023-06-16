@@ -123,6 +123,11 @@ export class App {
 
     this.createScene().then((scene: Scene) => {
       this.soundManager = new SoundManager(soundObjects, scene);
+
+      console.log(scene.getActiveMeshes());
+
+      this.soundManager.enableAudio();
+
       this.soundManager.loadSounds().then((sounds: Array<any>) => {
         this.loadedSounds = sounds;
         let positions = {};
@@ -201,8 +206,6 @@ export class App {
 
     xrCamera.teleportation.parabolicRayEnabled = true;
     xrCamera.teleportation.parabolicCheckRadius = 10;
-
-
 
     let displayPtr = false;
 

@@ -75,6 +75,8 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                     }
                 })});
 
+                console.log();
+
                 [squeezeComponent].forEach((component) => {
 
                     let hit = "resetRotateAroundZleft";
@@ -103,7 +105,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                         console.log("Grabbed Cylinder: ", grabbedCylinder);
 
                         let prevPos;
-
+                        let rotateTimeout;
 
                         if (item.value > 0.5 && !currentHandClass.motionController.grabbed) {
 
@@ -140,14 +142,19 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                             rotationFlag = false;
                                         }
 
+
                                         if (currentHandClass.holdingMesh) {
                                             let hitDetected = false;
                                             let collidedCylinder = currentHandClass.intersectCylinder(currentHandClass.holdingMesh);
+
+                                            console.log(collidedCylinder);
 
                                             if (collidedCylinder) {
                                                 hitDetected = true;
                                                 currentHandClass.targetMesh = collidedCylinder;
                                                 currentHandClass.targetMeshInstance = getCylinderInstanceFromMesh(collidedCylinder);
+
+                                                currentHandClass.highlightCylinders(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
 
                                                 if (currentHandClass.targetMesh.position.x > currentHandClass.holdingMesh.position.x) {
                                                     hit = "resetRotateAroundZright";
@@ -156,25 +163,42 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                                                 let to = collidedCylinder.name.split('-')[2];
                                                 let from = currentHandClass.holdingMesh.name.split('-')[2];
                                                 if (!rotationFlag) {
-                                                    currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
-                                                    isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
-                                                    prevPos = Object.assign({}, currentHandClass.holdingMesh.position);
-                                                    currentHandClass.highlightAndRotateCylinders(currentHandClass.holdingInstance,
-                                                        currentHandClass.targetMeshInstance,
-                                                        currentHandClass);
                                                     rotationFlag = true;
-                                                }
-                                            }
+                                                    rotateTimeout = setTimeout(() => {
+                                                        currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
+                                                        isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
 
-                                            if (hitDetected === false && currentHandClass.holdingInstance.rotateEnd && prevPos && Math.abs(prevPos._x - currentHandClass.holdingMesh.position.x) > 0.2) {
-                                                console.log("Here!");
-                                                if (currentHandClass.targetMeshInstance) {
-                                                    currentHandClass.targetMeshInstance.highlight(false);
+                                                        if (currentHandClass.holdingMesh) {
+                                                            prevPos = Object.assign({}, currentHandClass.holdingMesh.position);
+                                                        }
+
+                                                        currentHandClass.RotateCylinders(currentHandClass.holdingInstance,
+                                                            currentHandClass.targetMeshInstance,
+                                                            currentHandClass);
+                                                    }, 1000);
+                                                    console.log(rotateTimeout);
                                                 }
-                                                currentHandClass.holdingInstance.highlight(false);
-                                                if (rotationFlag) {
-                                                    currentHandClass.holdingInstance.rotateAnimation(hit, currentHandClass, true);
+                                            } else {
+                                                hitDetected = false;
+                                                console.log(rotateTimeout);
+                                                if (rotateTimeout) {
+                                                    console.log("Clearing timeout");
+                                                    clearTimeout(rotateTimeout);
+                                                    if (currentHandClass.targetMeshInstance) {
+                                                        currentHandClass.targetMeshInstance.highlight(false);
+                                                    }
+                                                    currentHandClass.holdingInstance.highlight(false);
                                                     rotationFlag = false;
+
+                                                    if (currentHandClass.holdingMesh.rotation.z != 0 && prevPos && Math.abs(prevPos._x - currentHandClass.holdingMesh.position.x) > 0.2) {
+                                                        console.log("Here!");
+                                                        if (currentHandClass.targetMeshInstance) {
+                                                            currentHandClass.targetMeshInstance.highlight(false);
+                                                        }
+                                                        currentHandClass.holdingInstance.highlight(false);
+                                                        currentHandClass.holdingInstance.rotateAnimation(hit, currentHandClass, true);
+                                                        rotationFlag = false;
+                                                    }                                                    
                                                 }
                                             }
                                         }
