@@ -126,7 +126,7 @@ export class App {
 
       console.log(scene.getActiveMeshes());
 
-      this.soundManager.enableAudio();
+      // this.soundManager.enableAudio();
 
       this.soundManager.loadSounds().then((sounds: Array<any>) => {
         this.loadedSounds = sounds;
