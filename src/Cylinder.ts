@@ -56,7 +56,7 @@ export class Cylinder {
     startRotation: Vector3;
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
-        console.log(cylinderMesh);
+
         this.name = name;
 
         this.moveFlag = true;
@@ -110,7 +110,7 @@ export class Cylinder {
             const cylinderOpacityBoundingBox =
                 cylinderOpacity.getBoundingInfo().boundingBox;
             const cylinderVerticalOffset = cylinderOpacityBoundingBox.maximum.y;
-            console.log(cylinderVerticalOffset);
+
             base.position.y =
                 tableBoundingBox.maximumWorld.y + cylinderVerticalOffset / 2 + 0.0075;
             //const spanOfTable = (((tableBoundingBox.maximumWorld.x - tableBoundingBox.minimumWorld.x) / NUMBER_OF_CYLINDERS) * i) + tableBoundingBox.minimumWorld.x - .3;
@@ -128,7 +128,7 @@ export class Cylinder {
             base.position.x = -2 + i;
             base.position.y = 1.22;
             base.position.z = 0.5;
-            console.log("Else!");
+
         }
         base.checkCollisions = true;
         base.ellipsoid = new Vector3(0.02, 0.05, 0.02);
@@ -137,7 +137,7 @@ export class Cylinder {
 
         // this.EllipsoidLines =new CreateEllipsoidLines(base);
 
-        console.log(base.ellipsoid.length());
+
 
         this.startPos = Object.assign({}, base.position);
 
@@ -163,7 +163,7 @@ export class Cylinder {
         )!;
 
 
-        console.log("Label:", cylinderLabel2);
+
 
         //const cylinderLabelMaterial = new StandardMaterial('liquid-material');
         //cylinderLabelMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
@@ -201,7 +201,7 @@ export class Cylinder {
 
         this.mesh.animations = cylinder.animations;
 
-        console.log("Children: ", this.mesh.getChildMeshes());
+
 
         const particleSystem = new ParticleSystem("particles", 500, this.scene);
         particleSystem.particleTexture = new Texture(
@@ -254,7 +254,7 @@ export class Cylinder {
         let beaker = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
 
         if (isOn) {
-            console.log("Adding mesh");
+
             if (!this.highlightLayer.hasMesh(beaker)) {
                 //@ts-ignore
                 this.highlightLayer.addMesh(beaker, Color3.Green());
@@ -331,7 +331,7 @@ export class Cylinder {
                 CYLINDER_LIQUID_MESH_NAME
             )!;
 
-            console.log("Visibility: ", cylinderLiquid.visibility);
+
 
             let animations = [
                 { name: "Invisibility", startValue: cylinderLiquid.visibility },
@@ -368,7 +368,7 @@ export class Cylinder {
                 false,
                 undefined,
                 () => {
-                    console.log(this.mesh, this.position);
+
 
                     let childMesh = getChildMeshByName(this.mesh, CYLINDER_MESH_NAME);
                     resetRotation(this.mesh);
@@ -408,7 +408,7 @@ export class Cylinder {
                         () => {
                             this.highlight(false);
                             this.mesh.isPickable = picakble;
-                            console.log("Resetting rotation!")
+
                             getChildMeshByName(this.mesh, "cylinder").visibility = this.startOpacity;
 
                             if (handInstances) {
@@ -431,10 +431,10 @@ export class Cylinder {
         this.mesh.checkCollisions = false;
 
         if (hand) {
-            console.log("HANDDD")
+
 
         } else {
-            console.log("NO HAND!!!!")
+
 
         }
         let individualAnimation = this.mesh.getAnimationByName(
@@ -466,7 +466,7 @@ export class Cylinder {
                     this.rotateEnd = true;
                     if (hand) {
                         hand.holdingMesh = this.mesh;
-                        console.log(hand.holdingMesh);
+
                     }
                 }
                 this.mesh.checkCollisions = true;
@@ -483,7 +483,7 @@ export class Cylinder {
         cylinderLiquidMaterial.diffuseColor = color;
         cylinderLiquid.material = cylinderLiquidMaterial;
         this.currentColor = color;
-        console.log(this.currentColor);
+
     }
 
     setOpacity(opacity: number) {

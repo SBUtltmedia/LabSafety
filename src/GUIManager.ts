@@ -30,7 +30,7 @@ export class GUIManager {
     constructor(scene: Scene) {
       this.scene = scene;
       this.camera = scene.activeCamera;
-      console.log("Scene: ", this.scene);
+
     }
 
     createPromptWithButton(text: string, xrCamera = null, buttonClickCallBack = null, ...args) {
@@ -75,9 +75,9 @@ export class GUIManager {
         prompt.button.onPointerUpObservable.add(function () {
           container.dispose();
           mesh.dispose();
-          console.log("XR cam: ", xrCamera);
+
           if (xrCamera) {
-            console.log("Hiding Pointer!");
+
             xrCamera.pointerSelection.displayLaserPointer = false;
             xrCamera.pointerSelection.displaySelectionMesh = false;
           }

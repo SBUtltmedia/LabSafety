@@ -35,8 +35,10 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
+import { XR } from "./XR";
+import { MeshBuilder } from "@babylonjs/core";
 
-// console.log = () => {};
+// monsole.log = () => {};
 
 export class App {
   handAnimation: any;
@@ -51,7 +53,7 @@ export class App {
     this.cylinders = [];
     let cylinderName = "CylinderNewSmoothLabel.glb";
     this.models = [
-      //{ "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
+      // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
       {
         fileName: "room.glb",
         callback: (mesh: Mesh[]) => this.createRoom(mesh),
@@ -124,9 +126,6 @@ export class App {
     this.createScene().then((scene: Scene) => {
       this.soundManager = new SoundManager(soundObjects, scene);
 
-
-      console.log(scene.getActiveMeshes());
-
       this.soundManager.enableAudio();
 
       this.soundManager.loadSounds().then((sounds: Array<any>) => {
@@ -138,10 +137,10 @@ export class App {
             scene.getMeshByName(`pivot-Cylinder-${i}`).position
           );
         }
-        console.log("Loaded sounds: ", this.loadedSounds);
+
         for (let sound of this.loadedSounds) {
           // this.soundManager.loadedSounds[sound.soundName] = sound.sound;
-          console.log(sound.sound);
+
         }
 
         this.processScene(
@@ -174,17 +173,6 @@ export class App {
       }
     }, 60);
 
-    const wantedCollisions = ["WallsandFloor", "Floor"];
-    const floorMesh = [];
-    for (let getStringMesh of wantedCollisions) {
-      console.log(getStringMesh);
-      const getCollidableMesh: Mesh = scene.getMeshByName(
-        getStringMesh
-      ) as Mesh;
-      if (getCollidableMesh) {
-        floorMesh.push(getCollidableMesh);
-      }
-    }
     let xrOptions = {
       floorMeshes: [scene.getMeshByName("Floor")],
       inputOptions: {
@@ -192,21 +180,24 @@ export class App {
       },
     };
 
+    // console.log(scene.getMeshByName("Floor").position);
+
     xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
-    const featuresManager = xrCamera.baseExperience.featuresManager;
+    // const featuresManager = xrCamera.baseExperience.featuresManager;
 
-    const teleportation = featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable", {
-      xrInput: xrCamera.input,
-      floorMeshes: [scene.getMeshByName("Floor")],
-      timeToTeleport: 5000,
+    // const teleportation = featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable", {
+    //   xrInput: xrCamera.input,
+    //   floorMeshes: [scene.getMeshByName("Floor")],
+    //   timeToTeleport: 5000,
 
-    });
+    // });
+
 //@ts-ignore
-    xrCamera.teleportation = teleportation;
+    // xrCamera.teleportation = teleportation;
 
-    xrCamera.teleportation.parabolicRayEnabled = true;
-    xrCamera.teleportation.parabolicCheckRadius = 10;
+    // xrCamera.teleportation.parabolicRayEnabled = true;
+    // xrCamera.teleportation.parabolicCheckRadius = 10;
 
     let displayPtr = false;
 
@@ -231,8 +222,10 @@ export class App {
       }
     });
 
-    addWebXR(scene, xrCamera, cylinders).then((addHandModels) => {
-      console.log("add webxr");
+    let xr: XR = new XR(scene, xrCamera, null, cylinders, this.guiManager, this.soundManager);
+
+    xr.addWebXr().then((addHandModels) => {
+
       if (xrCamera) {
         const flyToCamera = new FlyToCameraBehavior(xrCamera.baseExperience);
         const clipboard = scene.getMeshByName("clipboard");
@@ -244,7 +237,7 @@ export class App {
         xrCamera
       );
 
-      console.log("Cylinders app: ", cylinders);
+      xr.addHandModels = addHandModels;
 
       let sceneManger: SceneManager = new SceneManager(
         scene,
@@ -254,14 +247,7 @@ export class App {
         xrCamera
       );
       sceneManger.postSceneCylinder();
-      var toggleControllers = addXRBehaviors(
-        scene,
-        xrCamera,
-        addHandModels,
-        cylinders,
-        this.guiManager,
-        this.soundManager
-      );
+      var toggleControllers = xr.addWebXrBehaviors();
       toggleControllers();
       for(let cylinder of  cylinders){
         cylinder.toggleControllers =toggleControllers;
@@ -283,8 +269,6 @@ export class App {
       const getCollidableMesh: Mesh = mesh.find(
         (mesh) => mesh.name === getStringMesh
       )!;
-
-      console.log(getCollidableMesh);
 
       if (getCollidableMesh) {
         getCollidableMesh.checkCollisions = true;

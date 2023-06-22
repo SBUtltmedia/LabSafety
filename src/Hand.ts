@@ -24,7 +24,7 @@ export class Hand extends Interact {
     cylinderInstancesHand: Cylinder[];
 
     constructor(handedness: string, scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
-        console.log("Cylinders hand: ", cylinderInstances);
+
         super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
@@ -43,7 +43,7 @@ export class Hand extends Interact {
 
     dropped(grabInterval = null, respawn = true){
 
-        console.log(this.holdingInstance.mesh.position, this.holdingInstance.startPos);
+
 
         if (Vector3.Distance(this.holdingInstance.mesh.position, this.holdingInstance.startPos) == 0) {
             respawn = false;
@@ -56,7 +56,7 @@ export class Hand extends Interact {
 
         this.motionController.grabbed = false;
         this.motionController.meshGrabbed = undefined;
-        console.log(this.holdingMesh)
+
     
         if (this.holdingMesh) {
             if (respawn) {
@@ -69,7 +69,7 @@ export class Hand extends Interact {
     }
    
     updateSOPTask(from: string, to: string, timeout) {
-        console.log(this.scene);
+
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === 'complete') {
@@ -79,14 +79,14 @@ export class Hand extends Interact {
                     cylinder.mesh.isPickable = false;
                 }
                 setTimeout(() => {
-                    console.log("GUI mgr", this.guiManager, "Sound mgr: ", this.soundManager);
+
                     for (let cylinder of this.cylinderInstances) {
                         cylinder.fadeAndRespawn(100, null, false);
                     }
                     super.playSuccess();
                     // this.dropped(timeout, false);
 
-                    console.log("Showing finish screen!");
+
                     this.disappearAnimation(false);
 
                 // this.dropped(timeout);
@@ -111,7 +111,7 @@ export class Hand extends Interact {
 
                 if (this.particleSystem) {
                     this.particleSystem.stop();
-                    console.log("Stopping particle system!");
+
                 };
 
                 for (let cylinderInstance of this.cylinderInstances) {
@@ -126,7 +126,7 @@ export class Hand extends Interact {
             }
         } else {
             if (!this.failBeaker) {
-                console.log("Fail VR")
+
 
                 setTimeout(() => {
                 if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
@@ -158,14 +158,14 @@ export class Hand extends Interact {
   
 
     disappearAnimation(disappear = true) {
-        console.log("DISAPPEAR: ", disappear);
+
         let endFrame = 60;
         let animations = [{ name: 'Invisibility', startValue: 1 }, { name: 'Visibility', startValue: 0 }]
         animations.forEach(animation => {
             animation["init"] = new Animation(animation.name, `visibility`, 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT) 
             animation["init"].setKeys([{ frame: 0, value: animation.startValue }, { frame: endFrame, value: 1 - animation.startValue }])
         });        
-        console.log(this.handMesh);
+
         if (disappear) {
             this.isVisible = false;
             // this.handMesh.visibility = 0.5;

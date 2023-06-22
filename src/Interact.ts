@@ -23,7 +23,7 @@ export abstract class Interact {
     xrCamera: WebXRDefaultExperience;
 
     constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
-        console.log("Cylinders interact: ", cylinderInstances);
+
         this.labels = ["A", "B", "C"];
         this.scene = scene;
         this.cylinderInstances = cylinderInstances;
@@ -89,14 +89,14 @@ export abstract class Interact {
 
 
             if (target.x < current.x) { // left hit
-                console.log("Left hit")
+
                 // sourceCylinderInstance.mesh.rotation.y = Math.PI;
                 sourceCylinderMesh.rotation.y = Math.PI;
             } else {
                 // sourceCylinderInstance.mesh.rotation.y = 0;
                 sourceCylinderMesh.rotation.y = 0;
                 animName = "rotateAroundZright"
-                console.log("Right hit")
+
                 offsetX = -offsetX;
             }
 
@@ -105,7 +105,7 @@ export abstract class Interact {
             sourceCylinderInstance.mesh.position.x = targetCylinderInstance.mesh.position.x + offsetX;
             sourceCylinderInstance.mesh.position.y = targetCylinderInstance.mesh.position.y + (ySize / 1.5);
 
-            console.log(sourceCylinderMesh.position);
+
 
             sourceCylinderInstance.rotateAnimation(animName, hand);
 
@@ -125,7 +125,7 @@ export abstract class Interact {
 
     showFinishScreen() {
         // this.guiManager.gameFinishPrompt.setVisible(true);
-        console.log("XR this: ", this.xrCamera);
+
 
         for (let cylinder of this.cylinderInstances) {
             cylinder.mesh.isPickable = false;
@@ -171,13 +171,13 @@ export abstract class Interact {
             }
         }
 
-        console.log("Show failure screen");
+
 
         this.guiManager.createPromptWithButton("Task failed! The scene will now reset.", this.xrCamera, setPickable, this.cylinderInstances);
     }
 
     playExplosion() {
-        console.log(this.soundManager.loadedSounds["explosion"]);
+
         let sound: Sound = this.soundManager.loadedSounds["explosion"];
         sound.stop();
         sound.play();
@@ -191,7 +191,7 @@ export abstract class Interact {
 
     playSuccess() {
         let sound: Sound = this.soundManager.loadedSounds["success"];
-        console.log("Success: ", sound);
+
         sound.stop();
         sound.play();
     }

@@ -121,7 +121,7 @@ export class SceneManager extends Interact {
 
             const gotSomething = cylinder.getBehaviorByName('PointerDrag');
 
-            console.log(gotSomething);
+
 
             let filteredMeshes = [];
             for (let cylMesh of allCylinders) {
@@ -143,8 +143,8 @@ export class SceneManager extends Interact {
             if (cylinder.isPickable) {
                 (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
 
-                    Engine.audioEngine.unlock();
-                    Engine.audioEngine.audioContext.resume();
+                    // Engine.audioEngine.unlock();
+                    // Engine.audioEngine.audioContext.resume();
 
                     let doneSOP = false;
                     let hitDetected = false;
@@ -179,7 +179,7 @@ export class SceneManager extends Interact {
                                         //     cylinderInstance.resetProperties();
                                        // }   
                                         doneSOP = true;
-                                        console.log(cylinderHitInstance);
+
         
                                         setTimeout(() => {
                                             super.playSuccess();
@@ -200,9 +200,9 @@ export class SceneManager extends Interact {
                                         super.playDing();
                                     }
                                 } else {
-                                    console.log(failBeaker, samePour);
+
                                     if (!failBeaker && !samePour) {
-                                        console.log("Failure!!!");
+
                                         for (let cylinder of this.instances) {
                                             cylinder.mesh.isPickable = false;
                                             cylinder.moveFlag = false;
@@ -237,7 +237,7 @@ export class SceneManager extends Interact {
                     if (hitDetected === false && cylinderInstance.rotateEnd) {
                         cylinderInstance.highlight(false);
                         if (prevHit) {
-                            console.log(prevHit);
+
                             prevHit.highlight(false);
                             prevHit = undefined;
                             // prevHit = null;
@@ -251,7 +251,7 @@ export class SceneManager extends Interact {
                         } else {
                             samePour = false;
                             if (rotationFlag) {
-                                console.log("reset second click")
+
                                 rotationFlag = false;
                                 cylinderInstance.rotateAnimation(hit, null, true);
                             }

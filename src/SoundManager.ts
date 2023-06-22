@@ -71,7 +71,7 @@ export class SoundManager {
                         this.loadedSounds[sound.soundName] = sound.sound;
                     }
                     resolve(allSounds);
-                    console.log("Sounds loaded!!", this.loadedSounds);
+
                 }
                 
             })

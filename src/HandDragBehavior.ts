@@ -17,7 +17,7 @@
 //         this.prevPos = [];
 
 //         setTimeout(() => {
-//             console.log()
+
 //         })
 //     }
 

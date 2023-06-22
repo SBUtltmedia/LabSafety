@@ -10,7 +10,9 @@ import { Hand } from "./Hand";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 
-export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, addHandModels: any, cylinders: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager) {
+export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, 
+    addHandModels: any, cylinders: Array<Cylinder>, 
+    guiManager: GUIManager, soundManager: SoundManager) {
 
     let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager, xrCamera);
     let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager, xrCamera);
@@ -54,12 +56,12 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
                 const thumbstick = motionController.getComponentOfType('thumbstick');
 
                 thumbstick.onAxisValueChangedObservable.add(() => {
-                    xrCamera.baseExperience.camera.position.y = 1.5;
+                    xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
                 });
 
                 xrCamera.baseExperience.camera.onAfterCameraTeleport.add(() => {
                     console.log("End teleport")
-                    xrCamera.baseExperience.camera.position.y = 1.5;
+                    xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
                 })
 
                 console.log("Motion controller: ", motionController);
@@ -122,6 +124,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, a
 
                                 if (getNewPosition != getOldPostion) {
                                     currentHandClass.disappearAnimation(true);
+                                    
                                     grabSetInterval = setInterval(() => {
                                         let getOldPostion = currentHandClass.motionController.lastPosition;
                                         // console.log(getOldPostion, getNewPosition);                                    

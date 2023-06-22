@@ -11,24 +11,24 @@ export function defaultCallBack(result) {
     gizmo.attachedMesh = bb;
 
     gizmo.onScaleBoxDragObservable.add(() => {
-        console.log("scaleDrag")
+
     });
     gizmo.onScaleBoxDragEndObservable.add(() => {
         const attachedMesh = gizmo.attachedMesh;
         if (attachedMesh) {
             const bounds = attachedMesh.getHierarchyBoundingVectors(true);
-            console.log('size x:', bounds.max.x - bounds.min.x);
-            console.log('size y:', bounds.max.y - bounds.min.y);
-            console.log('size z:', bounds.max.z - bounds.min.z);
+
+
+
 
         }
-        console.log("scaleEnd")
+
     });
     gizmo.onRotationSphereDragObservable.add(() => {
-        console.log("rotDrag")
+
     });
     gizmo.onRotationSphereDragEndObservable.add(() => {
-        console.log("rotEnd")
+
     });
 
     //});

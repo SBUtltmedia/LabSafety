@@ -34,7 +34,7 @@ export function createClipboard(clipboard: Mesh) {
 
     function fragmentFromString(stringHTML: string) {
 
-        console.log("data: ", data);
+
 
         let temp = document.createElement('template');
         temp.innerHTML = stringHTML;
@@ -64,17 +64,17 @@ export function createClipboard(clipboard: Mesh) {
         texture.hasAlpha = true;
         let planeText = getChildMeshByName(clipboard, "Plane");
         planeText.material = material;
-        console.log("Material set")
+
     }
 
     fetch(`${rootPath}images/sopTemplate.svg`)
         .then(r => r.text())
         .then(text => {
-            console.log("fetched!")
+
             let svgFrag = fragmentFromString(text); // returns DOM object
-            // console.log(svgFrag);
+
             let procedureEL = svgFrag.getElementById("procedure-list")!;
-            console.log(procedureEL)
+
             // let newOL = document.createElement("ol");
             // let newLI = document.createElement("li");
             // // newLI.innerHTML = "Heyyo";
