@@ -1,5 +1,5 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -36,7 +36,7 @@ import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 
-console.log = () => {};
+// console.log = () => {};
 
 export class App {
   handAnimation: any;
@@ -124,9 +124,10 @@ export class App {
     this.createScene().then((scene: Scene) => {
       this.soundManager = new SoundManager(soundObjects, scene);
 
+
       console.log(scene.getActiveMeshes());
 
-      // this.soundManager.enableAudio();
+      this.soundManager.enableAudio();
 
       this.soundManager.loadSounds().then((sounds: Array<any>) => {
         this.loadedSounds = sounds;
@@ -149,7 +150,6 @@ export class App {
           this.soundManager
         );
       });
-      // this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!");
     });
   }
   //Can be turn back on if Z axis gets messed up
@@ -159,6 +159,7 @@ export class App {
     cylinders: Array<Cylinder>,
     soundManager: SoundManager
   ) {
+
     let camera = scene.getCameraByName("camera") as UniversalCamera;
 
     let light: Light = scene.getLightByName("light1");
@@ -263,8 +264,7 @@ export class App {
       );
       toggleControllers();
       for(let cylinder of  cylinders){
-        cylinder.toggleControllers =toggleControllers; 
-
+        cylinder.toggleControllers =toggleControllers;
       }
     });
   }
@@ -283,6 +283,9 @@ export class App {
       const getCollidableMesh: Mesh = mesh.find(
         (mesh) => mesh.name === getStringMesh
       )!;
+
+      console.log(getCollidableMesh);
+
       if (getCollidableMesh) {
         getCollidableMesh.checkCollisions = true;
         if (getCollidableMesh.name === "Table") {

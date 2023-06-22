@@ -21,6 +21,7 @@ export class SoundManager {
         this.soundPointer = 0;
         this.soundList = soundList;
         this.loadedSounds = {};
+        Engine.audioEngine.lock();
     }
 
     enableAudio() {
@@ -58,7 +59,7 @@ export class SoundManager {
                     soundObject.fileName,
                     this.scene,
                     () => {
-                        Engine.audioEngine.unlock();
+                        // Engine.audioEngine.unlock();
                     },
                     {
 

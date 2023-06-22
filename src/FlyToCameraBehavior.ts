@@ -14,7 +14,7 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     active: boolean = false;  // The mesh is not currently being animated and the last animation to occur was toward the camera (in the positive direction)
     camera!: Camera;
     mesh!: AbstractMesh;
-    offset: number = 0.3;
+    offset: number = 0.4;
     animations: Animation[];
     returnPosition!: Vector3;
     returnRotation!: Vector3;
@@ -86,6 +86,9 @@ export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
                 scene.beginDirectAnimation(this.mesh, this.animations, from, to, false, undefined, () => {
                     this.flying = false;
                     this.active = !this.active;
+
+                    // this.mesh.parent = scene.activeCamera;
+
                 });
 
             }

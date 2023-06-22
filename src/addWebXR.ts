@@ -1,4 +1,4 @@
-import { Color3, PointerDragBehavior, Vector3, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
+import { Color3, PointerDragBehavior, StandardMaterial, Vector3, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Cylinder } from "./Cylinder";
@@ -20,6 +20,11 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
 
         let model_names = ["left", "right"];
 
+        let color_names = {
+            "left": new Color3(1, 0, 0),
+            "right": new Color3(0, 0, 1)
+        };
+
         const assetsManager = new AssetsManager(scene);
         model_names.forEach((name) => {
             assetsManager.addMeshTask(`load ${name} hand`, "", MODEL_BASE_URL, `${name}${glbSuffix}.glb`);
@@ -35,7 +40,6 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             handAnimations = task["loadedAnimationGroups"];
             for (let i = 0; i <  handAnimations.length; i++) {
                 handAnimations[i].name = `${model_names[idx]}_${handAnimations[i].name}`;
-
             }        
             idx++;
 
@@ -63,7 +67,15 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 models[handedness].rotation.y = Math.PI*sign;
                 models[handedness].rotation.z = -Math.PI/2;
                 models[handedness].rotation.x = -Math.PI / 4;
+
+                const handMaterial = new StandardMaterial("liquid-material");
+                handMaterial.diffuseColor = color_names[handedness];
+                models[handedness].material = handMaterial;
+
+
+
                 controllerMesh.parent = webXrInputSource.grip || webXrInputSource.pointer;
+
 
             }
            // xrCamera.input.onControllerAddedObservable.add(addHandModel);
@@ -75,7 +87,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                     // xrCamera.dispose(), 1000);
 
 
-                    xrCamera.baseExperience.camera.position.y = 1.5;
+                    // xrCamera.baseExperience.camera.position.y = 1.5;
                     xrCamera.baseExperience.camera.position.z = -0.5;
 
                     let screen = scene.getMeshByName("Start");
@@ -103,7 +115,17 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             
         })
         assetsManager.loadAsync().then(()=>{
-            resolve(addHandModels)
+            resolve(addHandModels);
+            let vrButton = document.getElementsByClassName("babylonVRicon")[0];
+
+            vrButton.addEventListener("click", (e) => {
+              console.log("hi", e);
+              var context = new AudioContext();
+              context.resume().then(() => {
+                console.log('Playback resumed successfully');
+              });        
+            });
+
         });
    })
    
