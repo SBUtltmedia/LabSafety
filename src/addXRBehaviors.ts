@@ -27,9 +27,9 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
     function getCylinderInstanceFromMesh(cylinder) {
         let name = cylinder.name.split("-")[2];
-        //console.log("Name: ", name);
+        //// console.log("Name: ", name);
         for (let instance of cylinders) {
-            // console.log("Instance name: ", instance.name);
+            // // console.log("Instance name: ", instance.name);
             if (instance.name == name) {
                 return instance;
             }
@@ -60,7 +60,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                 });
 
                 xrCamera.baseExperience.camera.onAfterCameraTeleport.add(() => {
-                    console.log("End teleport")
+                    // console.log("End teleport")
                     xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
                 })
 
@@ -77,18 +77,18 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                     }
                 })});
 
-                console.log();
+                // console.log();
 
                 [squeezeComponent].forEach((component) => {
 
                     let hit = "resetRotateAroundZleft";
 
-                    console.log(scene.getMeshByName("left"));
+                    // console.log(scene.getMeshByName("left"));
                     component.onButtonStateChangedObservable.add((item) => {
                         // if (currentAction && currentAction.type != item.type) { return }
                         currentAction = item;
 
-                        console.log(currentAction);
+                        // console.log(currentAction);
                         // @ts-ignore
                         let grabSetInterval;
                         let animationMap = { "left": "Fist", "right": "Grip" }
@@ -104,7 +104,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                         // @ts-ignore
                         let grabbedCylinder = currentHandClass.intersectHandCylinder(scene.getMeshByName(currentHand.handID));
 
-                        console.log("Grabbed Cylinder: ", grabbedCylinder);
+                        // // console.log("Grabbed Cylinder: ", grabbedCylinder);
 
                         let prevPos;
                         let rotateTimeout;
@@ -127,7 +127,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                     
                                     grabSetInterval = setInterval(() => {
                                         let getOldPostion = currentHandClass.motionController.lastPosition;
-                                        // console.log(getOldPostion, getNewPosition);                                    
+                                        // // console.log(getOldPostion, getNewPosition);                                    
                                         controller.getWorldPointerRayToRef(ray);
                                         if (getOldPostion && currentHandClass.holdingMesh) {
                                             currentHandClass.moveWithCollisions(currentHandClass.holdingMesh, getNewPosition.subtract(getOldPostion));
@@ -150,7 +150,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                             let hitDetected = false;
                                             let collidedCylinder = currentHandClass.intersectCylinder(currentHandClass.holdingMesh);
 
-                                            console.log(collidedCylinder);
+                                            // console.log(collidedCylinder);
 
                                             if (collidedCylinder) {
                                                 hitDetected = true;
@@ -179,13 +179,13 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                                             currentHandClass.targetMeshInstance,
                                                             currentHandClass);
                                                     }, 1000);
-                                                    console.log(rotateTimeout);
+                                                    // console.log(rotateTimeout);
                                                 }
                                             } else {
                                                 hitDetected = false;
-                                                console.log(rotateTimeout);
+                                                // console.log(rotateTimeout);
                                                 if (rotateTimeout) {
-                                                    console.log("Clearing timeout");
+                                                    // console.log("Clearing timeout");
                                                     clearTimeout(rotateTimeout);
                                                     if (currentHandClass.targetMeshInstance) {
                                                         currentHandClass.targetMeshInstance.highlight(false);
@@ -194,7 +194,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                                     rotationFlag = false;
 
                                                     if (currentHandClass.holdingMesh.rotation.z != 0 && prevPos && Math.abs(prevPos._x - currentHandClass.holdingMesh.position.x) > 0.2) {
-                                                        console.log("Here!");
+                                                        // console.log("Here!");
                                                         if (currentHandClass.targetMeshInstance) {
                                                             currentHandClass.targetMeshInstance.highlight(false);
                                                         }
@@ -207,7 +207,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                         }
 
                                         if (!isHolding && currentHandClass.holdingInstance && currentHandClass.holdingInstance.rotateEnd) {
-                                            // console.log("Here")
+                                            // // console.log("Here")
                                             currentAction = null;
                                             currentHandClass.motionController.lastPosition = Object.assign({}, ray.origin);
                                             currentHand.lastPosition = Object.assign({}, ray.origin);
@@ -238,11 +238,11 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
         let controller = xrCamera.input.onControllerAddedObservable;
         if (controller.hasObservers()) {
             controller.clear()
-            console.log("removed")
+            // console.log("removed")
         }
         else {
             controller.add(controllerObservable)
-            console.log("added")
+            // console.log("added")
         }
 
     }

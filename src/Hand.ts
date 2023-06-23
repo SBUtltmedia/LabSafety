@@ -130,8 +130,6 @@ export class Hand extends Interact {
             }
         } else {
             if (!this.failBeaker) {
-
-
                 setTimeout(() => {
                 if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
                     super.showFailureScreen();
@@ -147,6 +145,8 @@ export class Hand extends Interact {
                         screen.position.x = 0;
                         screen.position.y = 0;
                         screen.position.z = 0.95;
+
+                        console.log(screen);
 
                         screen.rotation = Vector3.Zero();
                     }                    

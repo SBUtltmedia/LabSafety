@@ -222,7 +222,7 @@ export class App {
       }
     });
 
-    let xr: XR = new XR(scene, xrCamera, null, cylinders, this.guiManager, this.soundManager);
+    let xr: XR = new XR(scene, xrCamera, null, cylinders, null, this.soundManager);
 
     xr.addWebXr().then((addHandModels) => {
 
@@ -236,6 +236,8 @@ export class App {
         "Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!",
         xrCamera
       );
+
+      xr.guiManager = this.guiManager;
 
       xr.addHandModels = addHandModels;
 
