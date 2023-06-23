@@ -7,7 +7,7 @@ import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
 import { Interact } from "./Interact";
-import { SceneManager } from "./PostSceneCylinderBehavior";
+import { SceneManager } from "./SceneManager";
 import { SoundManager } from "./SoundManager";
 
 export class Hand extends Interact {

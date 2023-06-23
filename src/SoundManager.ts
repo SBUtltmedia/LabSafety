@@ -21,31 +21,31 @@ export class SoundManager {
         this.soundPointer = 0;
         this.soundList = soundList;
         this.loadedSounds = {};
-        Engine.audioEngine.lock();
+       // Engine.audioEngine.lock();
     }
 
     enableAudio() {
         Engine.audioEngine.useCustomUnlockedButton = true;
 
         var button = undefined;
-        Engine.audioEngine.onAudioLockedObservable.add(() => {
-            if (button) {
-                return;
-            }
+        // Engine.audioEngine.onAudioLockedObservable.add(() => {
+        //     if (button) {
+        //         return;
+        //     }
             
-            button = document.createElement("button");
-            button.innerText = "CLICK ON ME !!!";
-            button.style.position = "absolute";
-            button.style.top = "100px";
-            button.style.right = "200px";
-            button.style.zIndex = "99999";
-            document.body.append(button);
+        //     button = document.createElement("button");
+        //     button.innerText = "CLICK ON ME !!!";
+        //     button.style.position = "absolute";
+        //     button.style.top = "100px";
+        //     button.style.right = "200px";
+        //     button.style.zIndex = "99999";
+        //     document.body.append(button);
                 
-            button.onclick = () => {
-                Engine.audioEngine.unlock(); 
-                button.remove();
-            };
-        });        
+        //     button.onclick = () => {
+        //         Engine.audioEngine.unlock(); 
+        //         button.remove();
+        //     };
+        // });        
     }
 
     async loadSounds() {

@@ -74,9 +74,10 @@ export class Cylinder {
         this.highlightLayer.outerGlow = false;
 
         const table: AbstractMesh = scene.getMeshByName("Table")!;
+        let diameter=.1;
         let base: Mesh = MeshBuilder.CreateCylinder(
             `pivot-Cylinder-${name}`,
-            { diameterTop: 0.1, height: 0.33, diameterBottom: 0.1 },
+            { diameterTop: diameter, height: 0.33, diameterBottom:diameter },
             cylinderMesh.getScene()
         );
         base.position._y += 0.1;

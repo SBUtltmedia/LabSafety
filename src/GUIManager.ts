@@ -36,7 +36,7 @@ export class GUIManager {
     createPromptWithButton(text: string, xrCamera = null, buttonClickCallBack = null, ...args) {
         this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
         this.screen.parent = this.camera;
-        this.screen.position = this.camera.position.add(new Vector3(.7, -2, 2.5));
+        this.screen.position = this.camera.position.add(new Vector3(0, -1.5, 2));
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
 
         let container = new Container("container");
@@ -72,18 +72,29 @@ export class GUIManager {
 
         let mesh = (this.scene as Scene).getMeshByName("Start");
 
-        prompt.button.onPointerUpObservable.add(function () {
+        let canvas = document.getElementsByTagName("canvas")[0]
+        canvas.addEventListener("pointerdown", function() {
+          pointerUp()
+        });
+
+
+        function pointerUp(){
+
           container.dispose();
           mesh.dispose();
-
+          if (buttonClickCallBack) {
+            buttonClickCallBack(...args);
+          }
           if (xrCamera) {
 
             xrCamera.pointerSelection.displayLaserPointer = false;
             xrCamera.pointerSelection.displaySelectionMesh = false;
           }
-          if (buttonClickCallBack) {
-            buttonClickCallBack(...args);
-          }
+        }
+
+        prompt.button.onPointerUpObservable.add(function () {
+          pointerUp()
+       
         });
         prompt.button.onPointerEnterObservable.add(() => {
             button1.background = "grey";

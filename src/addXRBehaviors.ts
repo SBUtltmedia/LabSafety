@@ -178,7 +178,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                                         currentHandClass.RotateCylinders(currentHandClass.holdingInstance,
                                                             currentHandClass.targetMeshInstance,
                                                             currentHandClass);
-                                                    }, 1000);
+                                                    }, 800);
                                                     // console.log(rotateTimeout);
                                                 }
                                             } else {

@@ -18,7 +18,7 @@ import { createPlacard } from "./CreatePlarcard";
 import { addWebXR } from "./addWebXR";
 import { addXRBehaviors } from "./addXRBehaviors";
 import SOP from "./SOP";
-import { SceneManager } from "./PostSceneCylinderBehavior";
+import { SceneManager } from "./SceneManager";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { rootPath } from "./Constants";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
@@ -282,7 +282,7 @@ export class App {
           camera = scene.getCameraByName("camera") as UniversalCamera;
           camera.position = new Vector3(
             tableBoundingBox.center.x * -1,
-            tableBoundingBox.center.y * 2 + 0.5,
+            tableBoundingBox.center.y * 2 + 1.75,
             -1.5
           );
           camera.rotation = new Vector3(Math.PI / 8, 0, 0);
