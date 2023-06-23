@@ -99,6 +99,10 @@ export class Hand extends Interact {
                         screen.parent = camera
                         screen.position = camera.position.add(new Vector3(-camera.position.x, -1.5, 1.15));
 
+                        screen.position.x = 0;
+                        screen.position.y = 0;
+                        screen.position.z = 0.95;                        
+
                         this.xrCamera.pointerSelection.displayLaserPointer = true;
                         this.xrCamera.pointerSelection.displaySelectionMesh = true;
 
@@ -140,9 +144,9 @@ export class Hand extends Interact {
                         this.xrCamera.pointerSelection.displayLaserPointer = true;
                         this.xrCamera.pointerSelection.displaySelectionMesh = true;
 
-                        // screen.position.x = 0;
-                        // screen.position.y = 0;
-                        // screen.position.z = 1.65;
+                        screen.position.x = 0;
+                        screen.position.y = 0;
+                        screen.position.z = 0.95;
 
                         screen.rotation = Vector3.Zero();
                     }                    

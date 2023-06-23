@@ -96,9 +96,9 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                         xrCamera.pointerSelection.displayLaserPointer = true;
                         xrCamera.pointerSelection.displaySelectionMesh = true;
 
-                        // screen.position.x = 0;
-                        // screen.position.y = 0;
-                        // screen.position.z = 1.65;
+                        screen.position.x = 0;
+                        screen.position.y = 0;
+                        screen.position.z = 0.95;
 
                         screen.rotation = Vector3.Zero();
                     }
