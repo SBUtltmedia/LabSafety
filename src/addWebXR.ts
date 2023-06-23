@@ -84,10 +84,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             xrCamera.baseExperience.onStateChangedObservable.add((state) => {
                 if (state === WebXRState.IN_XR) {
                     
-                    // xrCamera.dispose(), 1000);
-
-
-                    // xrCamera.baseExperience.camera.position.y = 1.5;
+                    xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
                     xrCamera.baseExperience.camera.position.z = -0.5;
 
                     let screen = scene.getMeshByName("Start");
