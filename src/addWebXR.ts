@@ -98,7 +98,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
 
                         screen.position.x = 0;
                         screen.position.y = 0;
-                        screen.position.z = 0.95;
+                        screen.position.z = 0.7;
 
                         screen.rotation = Vector3.Zero();
                     }
@@ -107,7 +107,7 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             });
 
             xrCamera.baseExperience.camera.onAfterCameraTeleport.add(() => {
-                xrCamera.baseExperience.camera.position.y = 0.5;
+                xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
             })
             
         })

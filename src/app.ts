@@ -184,6 +184,8 @@ export class App {
 
     xrCamera = await scene.createDefaultXRExperienceAsync(xrOptions);
 
+    xrCamera.baseExperience.camera.position.z -= 0.5
+
     // const featuresManager = xrCamera.baseExperience.featuresManager;
 
     // const teleportation = featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable", {
@@ -281,7 +283,7 @@ export class App {
           scene = getCollidableMesh.getScene();
           camera = scene.getCameraByName("camera") as UniversalCamera;
           camera.position = new Vector3(
-            tableBoundingBox.center.x * -1,
+            tableBoundingBox.center.x - 0.5,
             tableBoundingBox.center.y * 2 + 1.75,
             -1.5
           );

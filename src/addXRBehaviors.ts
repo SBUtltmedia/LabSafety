@@ -2,7 +2,7 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Scene } from "@babylonjs/core/scene";
-import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience } from "@babylonjs/core";
+import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
@@ -68,12 +68,14 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
                 [triggerComponent].forEach((component) => {
                     component.onButtonStateChangedObservable.add((item) => {
-                    if (item.value > 0.3 && currentHand.handID === "right") {
-                        xrCamera.pointerSelection.displayLaserPointer = true;
-                        xrCamera.pointerSelection.displaySelectionMesh = true;                        
-                    } else {
-                        xrCamera.pointerSelection.displayLaserPointer = false;
-                        xrCamera.pointerSelection.displaySelectionMesh = false;
+                    if (!scene.getMeshByName("Start")) {
+                        if (item.value > 0.3 && currentHand.handID === "right") {
+                            xrCamera.pointerSelection.displayLaserPointer = true;
+                            xrCamera.pointerSelection.displaySelectionMesh = true;                        
+                        } else {
+                            xrCamera.pointerSelection.displayLaserPointer = false;
+                            xrCamera.pointerSelection.displaySelectionMesh = false;
+                        }
                     }
                 })});
 

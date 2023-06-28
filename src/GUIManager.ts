@@ -1,5 +1,7 @@
 import { AdvancedDynamicTexture, Rectangle, TextBlock, Button, Container } from "@babylonjs/gui"
-import { Camera, Mesh, MeshBuilder, Scene, Vector3 } from "@babylonjs/core"
+import { Camera, Mesh, MeshBuilder, Scene, Vector3, WebXRState } from "@babylonjs/core"
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
+
 
 class PromptWithButton {
     rect: Rectangle;
@@ -33,10 +35,12 @@ export class GUIManager {
 
     }
 
-    createPromptWithButton(text: string, xrCamera = null, buttonClickCallBack = null, ...args) {
+    createPromptWithButton(text: string, xrCamera: WebXRDefaultExperience = null, buttonClickCallBack = null, ...args) {
         this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
         this.screen.parent = this.camera;
-        this.screen.position = this.camera.position.add(new Vector3(0, -1.5, 2));
+
+        // need to add a vector because the origin of the camera is at top left
+        this.screen.position = this.camera.position.add(new Vector3(0.6, -1.5, 2.75));
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
 
         let container = new Container("container");
@@ -74,8 +78,12 @@ export class GUIManager {
 
         let canvas = document.getElementsByTagName("canvas")[0]
         canvas.addEventListener("pointerdown", function() {
-          pointerUp()
+          xrCamera.baseExperience.onStateChangedObservable.add((state) => {
+            if (state === WebXRState.IN_XR) {
+              pointerUp()
+            }
         });
+      });
 
 
         function pointerUp(){
