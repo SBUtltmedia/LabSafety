@@ -93,7 +93,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                         // console.log(currentAction);
                         // @ts-ignore
                         let grabSetInterval;
-                        let animationMap = { "left": "Fist", "right": "Grip" }
+                        let animationMap = { "left": "Fist", "right": "Fist" }
 
                         // @ts-ignore
                         let currentAnimation = scene.animationGroups.find((animation, idx) => {

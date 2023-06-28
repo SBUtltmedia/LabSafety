@@ -14,4 +14,20 @@ export default defineConfig({
     // (or use `npm run dev -- -- host=0.0.0.0`)
     //host: '0.0.0.0',
   },
+  optimizeDeps: { // 👈 optimizedeps
+    esbuildOptions: {
+      target: "esnext", 
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis'
+      },
+      supported: { 
+        bigint: true 
+      },
+    }
+  }, 
+
+  build: {
+    target: ["esnext"], // 👈 build.target
+  },  
 })

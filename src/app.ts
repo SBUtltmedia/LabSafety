@@ -1,5 +1,5 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
 
 import { Scene } from "@babylonjs/core/scene";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -36,7 +36,9 @@ import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { WebXRFeatureName } from "@babylonjs/core/XR/webXRFeaturesManager";
 import { XR } from "./XR";
-import { MeshBuilder } from "@babylonjs/core";
+import { ActionManager, AmmoJSPlugin, ExecuteCodeAction, HingeConstraint, HingeJoint, MeshBuilder, PhysicsAggregate, PhysicsImpostor, PhysicsShapeType, PointerDragBehavior, StandardMaterial, TransformNode, Animation } from "@babylonjs/core";
+import { HavokPlugin } from "@babylonjs/core";
+import HavokPhysics from "@babylonjs/havok";
 
 // monsole.log = () => {};
 
@@ -99,6 +101,10 @@ export class App {
         fileName: "clipBoardWithPaperCompressedTextureNew.glb",
         callback: (mesh: Mesh[]) => createClipboard(mesh[0]),
       },
+      // {
+      //   fileName: "fireAlarm.glb",
+      //   callback: (mesh: Mesh[]) => createFireAlarm(mesh[0]),
+      // }
       // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
     ].map(function (model) {
       return Object.assign(
@@ -120,7 +126,7 @@ export class App {
       },
       { soundName: "ding", fileName: `${rootPath}/sound/ding-idea-40142.mp3` },
       { soundName: "success", fileName: `${rootPath}/sound/success.mp3` },
-    ];
+    ];  
     this.loadedSounds = [];
 
     this.createScene().then((scene: Scene) => {
@@ -159,6 +165,86 @@ export class App {
     soundManager: SoundManager
   ) {
 
+    // HavokPhysics().then((havok) => {
+    //   scene.enablePhysics(new Vector3(0,0, 0), new HavokPlugin(true, havok));
+
+    //   // var cylinder = MeshBuilder.CreateCylinder("cylinder", {diameter:4, height: 12}, scene);
+    //   // var greenMat = new StandardMaterial("green", scene);
+    //   // greenMat.diffuseColor = Color3.Green();
+    //   // cylinder.material = greenMat;
+      
+    //   //
+    //   let hinge = new TransformNode("hinge");
+    //   var box = MeshBuilder.CreateBox("Box1", {height: .16, width:.8, depth:.4}, scene);
+    //   box.position = new Vector3(0, 0.1, 0.5);
+    //   var blueMat = new StandardMaterial("blue", scene);
+    //   blueMat.diffuseColor = Color3.Blue();
+    //   box.material = blueMat;
+
+    //   var box2 = MeshBuilder.CreateBox("Box2", {height: .16, width:.8, depth:.4}, scene);
+    //   box.position = new Vector3(0, -0.1, 0.5);
+    //   var blueMat = new StandardMaterial("blue", scene);
+    //   blueMat.diffuseColor = Color3.Blue();
+    //   box.material = blueMat;         
+
+    //   box.parent = hinge;
+    //   box2.parent = hinge;
+
+    //   hinge.position.y = 1;
+
+    //   box.addBehavior(new PointerDragBehavior())
+    //   let agg1 = new PhysicsAggregate(
+    //     box,
+    //     PhysicsShapeType.BOX,
+    //     { mass: 0, restitution: 1 },
+    //     scene
+    //   );
+    // let agg2 = new PhysicsAggregate(
+    //     box2,
+    //     PhysicsShapeType.BOX,
+    //     { mass: 0, restitution: 1 },
+    //     scene
+    // );
+  
+    // let joint = new HingeConstraint(
+    //     new Vector3(0, 0, -0.5),
+    //     new Vector3(0, 0, 0.5),
+    //     undefined,
+    //     undefined,
+    //     scene
+    // );
+    // agg1.body.addConstraint(agg2.body, joint);    
+      
+    //   //Add Joint
+    //   var joint1 = new HingeJoint({  
+    //       mainPivot: new Vector3(0, 0, 0),
+    //       connectedPivot: new Vector3(-6, 0, 0),
+    //       mainAxis: new Vector3(0, 1, 0),
+    //       connectedAxis: new Vector3(0, 1, 0),
+    //       nativeParams: {
+    //       }
+    //   }); 
+      
+    //   let pointerDragBehavior = new PointerDragBehavior({
+    //     dragPlaneNormal: new Vector3(0, 0, 1), //What limits our axis
+    // });
+    // pointerDragBehavior.useObjectOrientationForDragging = false;
+    // //pointerDragBehavior.startAndReleaseDragOnPointerEvents = false
+    // //pointerDragBehavior.dragButtons = [0,1,2]
+    // pointerDragBehavior.moveAttached = false;
+
+    // pointerDragBehavior.onDragObservable.add((eventData) => {
+
+    //     if (eventData.delta != Vector3.Zero() && box2.isPickable) {
+    //         box2.moveWithCollisions(eventData.delta);
+    //     }
+    // });
+    
+    // box2.addBehavior(pointerDragBehavior);
+    // box2.isPickable = true;
+    // });
+  
+
     let camera = scene.getCameraByName("camera") as UniversalCamera;
 
     let light: Light = scene.getLightByName("light1");
@@ -172,6 +258,13 @@ export class App {
         light.intensity += 0.1;
       }
     }, 60);
+
+   
+
+    // box.physicsImpostor = new PhysicsImpostor(box, PhysicsImpostor.BoxImpostor, { mass: 2 }, scene);
+    // cylinder.physicsImpostor = new PhysicsImpostor(cylinder, PhysicsImpostor.CylinderImpostor, { mass: 0}, scene);
+
+ 
 
     let xrOptions = {
       floorMeshes: [scene.getMeshByName("Floor")],
@@ -294,11 +387,43 @@ export class App {
     //Set the speed here so we have the room loaded before the user can move around.
   }
 
+  createFireAlarm(mesh: Mesh[]) {
+    const root = mesh.find(mesh => mesh.name === '__root__')!;
+      
+    root.rotationQuaternion = null
+    root.rotation.y= .5*Math.PI
+    const frameRate=10
+    const xSlide = new Animation("xSlide", "rotation.z", frameRate, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+    const lever = mesh.find(mesh => mesh.name === 'LeverRedone'); 
+    lever.rotationQuaternion = null
+    let scene: Scene
+    scene = mesh[0].getScene();
+   
+    lever.actionManager = new ActionManager(scene);
+    lever.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, function () {
+        scene.beginAnimation(  lever, 0, 2 * frameRate, true);
+    }));
+
+    xSlide.setKeys([{
+        frame: 0,
+        value: 0
+    },{
+        frame: frameRate,
+        value:- .5* Math.PI
+    }]);
+
+    lever.animations.push(xSlide);
+
+
+      // console.log(result)
+  }
+
   createScene() {
     return new Promise((finishedAllModels) => {
       const canvas = document.getElementById("canvas") as HTMLCanvasElement;
       const engine = new Engine(canvas, true, { stencil: true });
       const scene = new Scene(engine);
+            
       // scene.debugLayer.show();
       //scene.gravity.y = -0.01
       scene.collisionsEnabled = true;
