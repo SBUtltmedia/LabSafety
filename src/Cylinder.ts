@@ -54,6 +54,7 @@ export class Cylinder {
     pourLocations: Array<Vector3>
     rotateEnd: boolean
     startRotation: Vector3;
+    dropped: boolean;
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
 
@@ -61,6 +62,7 @@ export class Cylinder {
 
         this.moveFlag = true;
         this.rotateEnd = true;
+        this.dropped = false;
 
         this.currentColor = Object.assign({}, color);
         this.originalColor = Object.assign({}, color);
@@ -285,12 +287,18 @@ export class Cylinder {
             }
         });
         pointerDragBehavior.onDragEndObservable.add(() => {
-
-
             if (Vector3.Distance(this.startPos, this.mesh.position) > 0.1) {
-                // this.rotateEnd = false;
-                this.scene.stopAllAnimations();
-                this.fadeAndRespawn();
+                // !rotateEnd because should only fade and respawn after the animation is done
+                // rotateEnded is true at first, set to false when animation starts and true again when animation ends
+                if (!this.rotateEnd) {
+                    setTimeout(() => {
+                        this.scene.stopAllAnimations();
+                        this.fadeAndRespawn();
+                    }, 1000)
+                } else {
+                    this.scene.stopAllAnimations();
+                    this.fadeAndRespawn();
+                }
             } else {
                 this.mesh.position.x = this.position._x;
                 this.mesh.position.y = this.position._y;
@@ -431,13 +439,6 @@ export class Cylinder {
 
         this.mesh.checkCollisions = false;
 
-        if (hand) {
-
-
-        } else {
-
-
-        }
         let individualAnimation = this.mesh.getAnimationByName(
             `${this.name}-${animName}`
         );
