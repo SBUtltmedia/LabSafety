@@ -39,6 +39,7 @@ import { XR } from "./XR";
 import { ActionManager, AmmoJSPlugin, ExecuteCodeAction, HingeConstraint, HingeJoint, MeshBuilder, PhysicsAggregate, PhysicsImpostor, PhysicsShapeType, PointerDragBehavior, StandardMaterial, TransformNode, Animation } from "@babylonjs/core";
 import { HavokPlugin } from "@babylonjs/core";
 import HavokPhysics from "@babylonjs/havok";
+import { FireCabinet } from "./FireCabinet";
 
 // monsole.log = () => {};
 
@@ -264,6 +265,8 @@ export class App {
     // box.physicsImpostor = new PhysicsImpostor(box, PhysicsImpostor.BoxImpostor, { mass: 2 }, scene);
     // cylinder.physicsImpostor = new PhysicsImpostor(cylinder, PhysicsImpostor.CylinderImpostor, { mass: 0}, scene);
 
+    // let fireCabinet: FireCabinet = new FireCabinet(scene);
+    // fireCabinet.rotateAroundY();
  
 
     let xrOptions = {
