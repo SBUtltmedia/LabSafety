@@ -209,7 +209,9 @@ export class SceneManager extends Interact {
                                         }
         
                                         cylinderHitInstance.showEffects(true);
+                                        setTimeout(() => {
                                         super.playExplosion();
+                                        }, 800);
         
                                         setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
                                         
