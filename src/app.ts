@@ -265,7 +265,7 @@ export class App {
     // box.physicsImpostor = new PhysicsImpostor(box, PhysicsImpostor.BoxImpostor, { mass: 2 }, scene);
     // cylinder.physicsImpostor = new PhysicsImpostor(cylinder, PhysicsImpostor.CylinderImpostor, { mass: 0}, scene);
 
-    // let fireCabinet: FireCabinet = new FireCabinet(scene);
+    let fireCabinet: FireCabinet = new FireCabinet(scene);
     // fireCabinet.rotateAroundY();
  
 
