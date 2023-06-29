@@ -217,16 +217,28 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                     }, 10)
                                 }
                             }
-                        } else if ((!item.value || !grabbedCylinder) && currentHandClass.holdingMesh && currentHandClass.holdingInstance.rotateEnd) {
-                            currentAction = null;
-                            currentHandClass.holdingInstance.highlight(false);
-                            currentHandClass.motionController.grabbed = false;
-                            if (currentHandClass.targetMeshInstance)
-                                currentHandClass.targetMeshInstance.highlight(false);
+                        } else if ((!item.value || !grabbedCylinder) && currentHandClass.holdingInstance) {
+                            function dropCylinder() {
+                                currentHandClass.holdingMesh = currentHandClass.holdingInstance.mesh;
+                                currentAction = null;
+                                currentHandClass.holdingInstance.highlight(false);
+                                currentHandClass.motionController.grabbed = false;
+                                if (currentHandClass.targetMeshInstance)
+                                    currentHandClass.targetMeshInstance.highlight(false);
 
-                            currentHandClass.dropped(grabSetInterval);
-                            currentHandClass.disappearAnimation(false);
-                            rotationFlag = false;
+                                currentHandClass.dropped(grabSetInterval);
+                                currentHandClass.disappearAnimation(false);
+                                rotationFlag = false;
+                            }
+
+                            if (currentHandClass.holdingInstance.rotateEnd) {
+                                dropCylinder();
+                            } else {
+                                // wait until the animation is done and then let go of the test tube
+                                setTimeout(() => {
+                                    dropCylinder();
+                                }, 800);
+                            }
                         }
                     })
                 })
@@ -240,11 +252,9 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
         let controller = xrCamera.input.onControllerAddedObservable;
         if (controller.hasObservers()) {
             controller.clear()
-            // console.log("removed")
         }
         else {
             controller.add(controllerObservable)
-            // console.log("added")
         }
 
     }

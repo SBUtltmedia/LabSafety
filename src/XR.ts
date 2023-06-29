@@ -1,6 +1,6 @@
 import { addXRBehaviors } from "./addXRBehaviors";
 import { addWebXR } from "./addWebXR";
-import { Scene, WebXRDefaultExperience } from "babylonjs";
+import { Scene, WebXRDefaultExperience } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
