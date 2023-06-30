@@ -51,6 +51,7 @@ export class App {
   guiManager: GUIManager;
   soundManager: SoundManager;
   loadedSounds: Array<any>;
+  fireCabinet: FireCabinet;
 
   constructor() {
     this.cylinders = [];
@@ -58,7 +59,7 @@ export class App {
     this.models = [
       // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
       {
-        fileName: "room.glb",
+        fileName: "roomCabinet.glb",
         callback: (mesh: Mesh[]) => this.createRoom(mesh),
         label: "floor",
       },
@@ -265,7 +266,7 @@ export class App {
     // box.physicsImpostor = new PhysicsImpostor(box, PhysicsImpostor.BoxImpostor, { mass: 2 }, scene);
     // cylinder.physicsImpostor = new PhysicsImpostor(cylinder, PhysicsImpostor.CylinderImpostor, { mass: 0}, scene);
 
-    let fireCabinet: FireCabinet = new FireCabinet(scene);
+    
     // fireCabinet.rotateAroundY();
  
 
@@ -356,6 +357,7 @@ export class App {
   }
 
   createRoom(mesh: Mesh[]) {
+    this.fireCabinet = new FireCabinet(mesh);    
     const wantedCollisions = [
       "WallsandFloor",
       "Floor",
@@ -369,7 +371,7 @@ export class App {
       const getCollidableMesh: Mesh = mesh.find(
         (mesh) => mesh.name === getStringMesh
       )!;
-
+        
       if (getCollidableMesh) {
         getCollidableMesh.checkCollisions = true;
         if (getCollidableMesh.name === "Table") {
@@ -501,3 +503,4 @@ export class App {
 }
 
 new App();
+

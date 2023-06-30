@@ -10,48 +10,63 @@ import {
     PointerEventTypes,
     Matrix,
     VertexBuffer,
+    AbstractMesh,
 } from "@babylonjs/core";
 
 export class FireCabinet {
-    doorMesh: Mesh;
+    doorMesh: AbstractMesh;
     scene: Scene;
     onPointerDownObserver: Observer<PointerInfo>;
     animations: Animation[];
     animating: boolean;
     state: boolean; // true = closed, false = opened
 
-    constructor(scene: Scene) {
-        this.doorMesh = MeshBuilder.CreateBox("firedoor", {
-            size: 0.2,
-            width: 0.05,
-        });
-        this.scene = scene;
+    constructor(cabinetMeshes: Mesh[]) {
+        // this.doorMesh = MeshBuilder.CreateBox("firedoor", {
+        //     size: 0.2,
+        //     width: 0.05,
+        // });
 
-        let camera: Camera = scene.activeCamera;
+        console.log(cabinetMeshes[0]);
 
-        this.doorMesh.position = camera.position.add(new Vector3(0, -0.5, 1.75));
-        this.doorMesh.rotation.y = -Math.PI / 2;
+        this.scene = cabinetMeshes[0].getScene();
 
-        let hingeMesh = MeshBuilder.CreateBox("hinge", {
-            width: 0.05,
-            height: 0.2,
-            depth: 0.05,
-        });
-        hingeMesh.position = camera.position.add(new Vector3(0, -0.5, 1.75));
+        console.log(this.scene);
 
-        this.doorMesh.setParent(hingeMesh);
+        let cabinet = cabinetMeshes.find((curMesh) => curMesh.name === "Cabinet");
+
+        this.doorMesh = cabinetMeshes.find((curMesh) => 
+            curMesh.name === "Door"
+        );
+
+        this.doorMesh.rotationQuaternion = null
+
+        let camera: Camera = this.scene.activeCamera;
+
+        // cabinetMeshes[0].position = camera.position.add(new Vector3(0, -0.5, 1.75));
+        
+        this.doorMesh.rotation.y = Math.PI / 2;
+
+        // // let hingeMesh = MeshBuilder.CreateBox("hinge", {
+        // //     width: 0.05,
+        // //     height: 0.2,
+        // //     depth: 0.05,
+        // // });
+        // let hingeMesh = scene.getMeshByName("")
+        // hingeMesh.position = camera.position.add(new Vector3(0, -0.5, 1.75));
+
+        // this.doorMesh.setParent(hingeMesh);
 
         // change the center of the box to its side
+        // var vertices = this.doorMesh.getVerticesData(VertexBuffer.PositionKind);
+        // var vertexCount = vertices.length / 3;
 
-        var vertices = this.doorMesh.getVerticesData(VertexBuffer.PositionKind);
-        var vertexCount = vertices.length / 3;
+        // for (var i = 0; i < vertexCount; i++) {
+        //     var vertexIndex = i * 3;
+        //     vertices[vertexIndex + 2] -= 0.1; // Shift x-coordinate
+        // }
 
-        for (var i = 0; i < vertexCount; i++) {
-            var vertexIndex = i * 3;
-            vertices[vertexIndex + 2] -= 0.1; // Shift x-coordinate
-        }
-
-        this.doorMesh.setVerticesData(VertexBuffer.PositionKind, vertices);
+        // this.doorMesh.setVerticesData(VertexBuffer.PositionKind, vertices);
 
         this.animations = [];
 
@@ -67,7 +82,7 @@ export class FireCabinet {
 
         keyFrames.push({
             frame: 0,
-            value: -Math.PI / 2,
+            value: Math.PI / 2,
         });
         keyFrames.push({
             frame: 60,
@@ -94,7 +109,7 @@ export class FireCabinet {
         });
         keyFrames.push({
             frame: 60,
-            value: -Math.PI / 2,
+            value: Math.PI / 2,
         });
 
         this.doorMesh.animations.push(resetAnimation);
@@ -102,7 +117,7 @@ export class FireCabinet {
         this.animations.push(resetAnimation);
 
         // @ts-ignore
-        this.onPointerDownObserver = scene.onPointerObservable.add(
+        this.onPointerDownObserver = this.scene.onPointerObservable.add(
             this.rotateAroundY
         );
 
@@ -141,9 +156,8 @@ export class FireCabinet {
                     0,
                     60,
                     false,
-                    0.5,
+                    1.5,
                     () => {
-                        console.log("Animation done!");
                         this.animating = false;
                         this.state = !this.state;
                     }
