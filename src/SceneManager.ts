@@ -1,282 +1,175 @@
-import { CYLINDER_MESH_NAME } from "./Constants";
-// import HighlightBehavior from "./HandDragBehavior";
-import { getChildMeshByName, resetRotation } from "./utils";
-import { Scene } from "@babylonjs/core/scene";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { Animation } from '@babylonjs/core/Animations/animation';
-import { Nullable } from "@babylonjs/core/types";
-import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
-import { Engine, WebXRDefaultExperience } from "@babylonjs/core";
-import { Interact } from "./Interact";
+import { Mesh, Color3, ActionManager, BoundingBox,
+     ExecuteCodeAction, Scene, UniversalCamera, 
+     Vector3, Animation } from "@babylonjs/core";
+
+import { createPlacard } from "./CreatePlarcard";
 import { Cylinder } from "./Cylinder";
-import { sop } from "./Constants";
+import { defaultCallBack } from "./DefaultCallback";
+import { FireCabinet } from "./FireCabinet";
 import { GUIManager } from "./GUIManager";
+import { createClipboard } from "./LoadClipboard";
+import SOP from "./SOP";
 import { SoundManager } from "./SoundManager";
+import { rootPath } from "./Constants";
+import { CustomScene } from "./CustomScene";
 
-export class SceneManager extends Interact {
+export class SceneManager {
 
-    particleSystem: ParticleSystem;
-    instances: Array<Cylinder>
+    currentScene: CustomScene;
 
-    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
-        super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
-        this.instances = cylinderInstances;
+    constructor() {
     }
 
-    resetCylinders() {
-        if (this.particleSystem) {
-            this.particleSystem.stop();
-        }
-        let cylinderLetters = ['A', 'B', 'C'];
-        for (let i = 0; i < cylinderLetters.length; i++) {
-            const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-            const table: AbstractMesh = this.scene.getMeshByName('Table')!;
-            if (table && cylinder) {
-                const tableBoundingBox = table.getBoundingInfo().boundingBox;
-                cylinder.position.z = (tableBoundingBox.centerWorld.z + tableBoundingBox.minimumWorld.z) / 2;
-            }
-            super.getCylinderInstanceFromMesh(cylinder).showEffects(false);
-            super.getCylinderInstanceFromMesh(cylinder).resetProperties();
-            super.getCylinderInstanceFromMesh(cylinder).setColor(super.getCylinderInstanceFromMesh(cylinder).originalColor);
-            if (i == 0) {
-                super.getCylinderInstanceFromMesh(cylinder).setColor(Color3.Red());
-                super.getCylinderInstanceFromMesh(cylinder).currentColor = Color3.Red();
-            }
-        }
-
+    disposeCurrentScene() {
+        this.currentScene.disposeScene();
     }
 
-    postSceneCylinder() {
-        // this.scene.onBeforeRenderObservable.add(() => {this.resetCylinders()});
-        // this.resetCylinders();
-    
-        let cylinderLetters: Array<string> = ['A', 'B', 'C'];
-        let allCylinders = [];
-        for (let char of cylinderLetters) {
-            const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${char}`);
-            allCylinders.push((cylinder as Mesh));
-            let rotationAnimationLeft = new Animation(`${char}-rotateAroundZleft`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-            let keyFrames = [];
-            keyFrames.push({
-                frame: 0,
-                value: 0
-            });
-            keyFrames.push({
-                frame: 60,
-                value: Math.PI/2
-            });
-            sourceCylinder.animations.push(rotationAnimationLeft);
-            rotationAnimationLeft.setKeys(keyFrames);
+    createSceneOne() {
+        let fireCabinet: FireCabinet
+        let cylinders = [];
+        let cylinderName = "CylinderNewSmoothLabel.glb";
+        let models = [
+            // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
+            {
+              fileName: "roomCabinet.glb",
+              callback: (mesh: Mesh[]) => createRoom(mesh),
+              label: "floor",
+            },
+            {
+              fileName: "Placard_Label.glb",
+              callback: (mesh: Mesh[]) => createPlacard(mesh, 1, "Placard-A"),
+            },
+            {
+              fileName: "Placard_Label.glb",
+              callback: (mesh: Mesh[]) => createPlacard(mesh, 2, "Placard-B"),
+            },
+            {
+              fileName: "Placard_Label.glb",
+              callback: (mesh: Mesh[]) => createPlacard(mesh, 3, "Placard-C"),
+            },
+            {
+              fileName: cylinderName,
+              callback: (mesh: Mesh[]) =>
+                cylinders.push(
+                  new Cylinder(mesh[0], 1, "A", new Color3(1, 0, 0))
+                ),
+              label: "Cylinder-A",
+            },
+            {
+              fileName: cylinderName,
+              callback: (mesh: Mesh[]) =>
+                cylinders.push(
+                  new Cylinder(mesh[0], 2, "B", new Color3(0, 1, 0))
+                ),
+              label: "Cylinder-B",
+            },
+            {
+              fileName: cylinderName,
+              callback: (mesh: Mesh[]) =>
+                cylinders.push(
+                  new Cylinder(mesh[0], 3, "C", new Color3(0, 0, 1))
+                ),
+              label: "Cylinder-C",
+            },
+            {
+              fileName: "clipBoardWithPaperCompressedTextureNew.glb",
+              callback: (mesh: Mesh[]) => createClipboard(mesh[0]),
+            },
+            // {
+            //   fileName: "fireAlarm.glb",
+            //   callback: (mesh: Mesh[]) => createFireAlarm(mesh[0]),
+            // }
+            // "root":"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/" }
+          ].map(function (model) {
+            return Object.assign(
+              {},
+              {
+                fileName: "LabBench.glb",
+                root: "./models/",
+                callback: defaultCallBack,
+                label: "NoLabel",
+              },
+              model
+            );
+        });
 
-            let rotationAnimationRight = new Animation(`${char}-rotateAroundZright`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            keyFrames = [];
-            keyFrames.push({
-                frame: 0,
-                value: 0
-            });
-            keyFrames.push({
-                frame: 60,
-                value: -Math.PI/2
-            });
-            sourceCylinder.animations.push(rotationAnimationRight);
-            rotationAnimationRight.setKeys(keyFrames);            
+        let soundObjects = [
+            {
+                soundName: "explosion",
+                fileName: `${rootPath}/sound/mi_explosion_03_hpx.mp3`,
+            },
+            { soundName: "ding", fileName: `${rootPath}/sound/ding-idea-40142.mp3` },
+            { soundName: "success", fileName: `${rootPath}/sound/success.mp3` },
+        ];
 
-            let resetRotationAnimationleft = new Animation(`${char}-resetRotateAroundZleft`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            let resetFrames = [];
-            resetFrames.push({
-                frame: 0,
-                value: Math.PI/2
-            });
-            resetFrames.push({
-                frame: 60,
-                value: 0
-            });
-            sourceCylinder.animations.push(resetRotationAnimationleft);
-            resetRotationAnimationleft.setKeys(resetFrames);
+        this.currentScene = new CustomScene(models, cylinders, soundObjects);
+        this.currentScene.renderScene();
+        
 
-            let resetRotationAnimationRight = new Animation(`${char}-resetRotateAroundZright`, 'rotation.z', 120, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            resetFrames = [];
-            resetFrames.push({
-                frame: 0,
-                value: -Math.PI/2
-            });
-            resetFrames.push({
-                frame: 60,
-                value: 0
-            });
-            sourceCylinder.animations.push(resetRotationAnimationRight);
-            resetRotationAnimationRight.setKeys(resetFrames);            
-        }
-
-        let prevHit;
-
-        for (let i = 0; i < cylinderLetters.length; i++) {
-
-            const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-            let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
-
-            const gotSomething = cylinder.getBehaviorByName('PointerDrag');
-
-
-
-            let filteredMeshes = [];
-            for (let cylMesh of allCylinders) {
-                if (cylMesh != cylinder) {
-                    filteredMeshes.push(cylMesh);
+        function createRoom(mesh: Mesh[]) {
+            fireCabinet = new FireCabinet(mesh);    
+            const wantedCollisions = [
+              "WallsandFloor",
+              "Floor",
+              "Table",
+              "Roof",
+              "Countertop",
+              "Walls",
+            ];
+            let scene: Scene, camera: UniversalCamera;
+            for (let getStringMesh of wantedCollisions) {
+              const getCollidableMesh: Mesh = mesh.find(
+                (mesh) => mesh.name === getStringMesh
+              )!;
+                
+              if (getCollidableMesh) {
+                getCollidableMesh.checkCollisions = true;
+                if (getCollidableMesh.name === "Table") {
+                  const tableBoundingBox: BoundingBox =
+                    getCollidableMesh.getBoundingInfo().boundingBox;
+                  const cameraXPosition = tableBoundingBox.center.x;
+                  scene = getCollidableMesh.getScene();
+                  camera = scene.getCameraByName("camera") as UniversalCamera;
+                  camera.position = new Vector3(
+                    tableBoundingBox.center.x - 0.5,
+                    tableBoundingBox.center.y * 2 + 1.75,
+                    -1.5
+                  );
+                  camera.rotation = new Vector3(Math.PI / 8, 0, 0);
                 }
+              }
             }
-
-            let failBeaker: boolean = false
-            let samePour: boolean = false;            
-
-            //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
-            let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-            let rotationFlag = false;
-            let hit = "resetRotateAroundZleft";
-
-            let rotateTimeout;
-
-            if (cylinder.isPickable) {
-                (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
-
-                    // Engine.audioEngine.unlock();
-                    // Engine.audioEngine.audioContext.resume();
-
-                    let doneSOP = false;
-                    let hitDetected = false;
-                    resetRotation(cylinder);
-                    let cylinderHitInstance;
-                    const cylinderHitDetected = super.intersectCylinder(cylinder);
-
-                    if (cylinderHitDetected) {                        
-                        cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
-                        prevHit = cylinderHitInstance;
-
-                        super.highlightCylinders(cylinderInstance, cylinderHitInstance);
-
-                        hitDetected = true;
-
-                        let to = cylinderHitDetected.name.split('-')[2];
-                        let from = cylinder.name.split('-')[2];
-                        let fromAndTo = `${from}to${to}`
-
-                        if (!rotationFlag) {
-                            rotationFlag = true;
-                            rotateTimeout = setTimeout(() => {
-                                super.RotateCylinders(cylinderInstance, cylinderHitInstance);
-                                let to = cylinderHitDetected.name.split('-')[2];
-                                let from = cylinder.name.split('-')[2];
-                                let fromAndTo = `${from}to${to}`;
-
-                                if (sop.tasks[sop.currentState].label === fromAndTo) {
-                                    samePour = true;
-                                    if (sop.tasks[sop.currentState].next === 'complete') {
-                                        // for (let cylinderInstance of super.cylinderInstances) {
-                                        //     cylinderInstance.resetProperties();
-                                       // }   
-                                        doneSOP = true;
-
-        
-                                        setTimeout(() => {
-                                            super.playSuccess();
-                                        }, 500);
-        
-                                        // play the sound after the animation is done
-                                        setTimeout(() => {
-                                            cylinderInstance.fadeAndRespawn();
-                                        }, 1500);
-                                        
-                                        sop.resetSOP();
-                                        this.resetCylinders();
-                                        super.showFinishScreen();
-                                        
-                                        
-                                    } else {
-                                        sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-                                        super.playDing();
-                                    }
-                                } else {
-
-                                    if (!failBeaker && !samePour) {
-
-                                        for (let cylinder of this.instances) {
-                                            cylinder.mesh.isPickable = false;
-                                            cylinder.moveFlag = false;
-                                        }
-        
-                                        cylinderHitInstance.showEffects(true);
-                                        setTimeout(() => {
-                                        super.playExplosion();
-                                        }, 800);
-        
-                                        setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
-                                        
-                                        failBeaker = true;
-                                    
-                                        setTimeout(() => {
-                                            (gotSomething as PointerDragBehavior).releaseDrag();
-                                            super.showFailureScreen();
-                                            sop.resetSOP();
-                                            failBeaker = false;
-                                        }, 1500);
-                                    }
-                                }
-
-                                if (!doneSOP)
-                                    super.addColors(cylinderInstance, cylinderHitInstance);
-                                
-                                if (cylinderHitDetected.position.x > cylinder.position.x) {
-                                    hit = "resetRotateAroundZright";
-                                }
-                            }, 700);
-                        }
-                    }
-
-                    if (hitDetected === false && cylinderInstance.rotateEnd) {
-                        cylinderInstance.highlight(false);
-                        if (prevHit) {
-
-                            prevHit.highlight(false);
-                            prevHit = undefined;
-                            // prevHit = null;
-                        }
-                            
-                        if (rotateTimeout) {
-                            clearTimeout(rotateTimeout);
-                            rotateTimeout = null;
-                            samePour = false;
-                            rotationFlag = false;
-                        } else {
-                            samePour = false;
-                            if (rotationFlag) {
-
-                                rotationFlag = false;
-                                cylinderInstance.rotateAnimation(hit, null, true);
-                            }
-                        }
-                    }
-                });
-            }
-            (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
-                rotationFlag = false;
-
-                for (let singleMesh of filteredMeshes) {
-                    if (singleMesh === sourceCylinder) continue;
-
-                    cylinderInstance.highlight(false);
-                    super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
-
-                    if (sourceCylinder.intersectsMesh(singleMesh)) {
-                        cylinderInstance.rotateAnimation(hit);
-                        sourceCylinder.position.x = 0;
-                        sourceCylinder.position.y = 0;
-                    }
-                }
-            })
+            //Set the speed here so we have the room loaded before the user can move around.
         }
+        
+        function createFireAlarm(mesh: Mesh[]) {
+            const root = mesh.find(mesh => mesh.name === '__root__')!;
+              
+            root.rotationQuaternion = null
+            root.rotation.y= .5*Math.PI
+            const frameRate=10
+            const xSlide = new Animation("xSlide", "rotation.z", frameRate, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            const lever = mesh.find(mesh => mesh.name === 'LeverRedone'); 
+            lever.rotationQuaternion = null
+            let scene: Scene
+            scene = mesh[0].getScene();
+           
+            lever.actionManager = new ActionManager(scene);
+            lever.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, function () {
+                scene.beginAnimation(  lever, 0, 2 * frameRate, true);
+            }));
+        
+            xSlide.setKeys([{
+                frame: 0,
+                value: 0
+            },{
+                frame: frameRate,
+                value:- .5* Math.PI
+            }]);
+        
+            lever.animations.push(xSlide);
+
+        }        
     }
+
 }

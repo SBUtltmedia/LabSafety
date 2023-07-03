@@ -13,7 +13,7 @@ import { MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { GUIManager } from "./GUIManager";
 import { Interact } from "./Interact";
-import { SceneManager } from "./SceneManager";
+import { PostSceneCylinder } from "./PostSceneCylinder";
 import { SoundManager } from "./SoundManager";
 
 export class Hand extends Interact {
@@ -83,11 +83,11 @@ export class Hand extends Interact {
         }
     }
 
-    updateSOPTask(from: string, to: string, timeout) {
+    updateSOPTask(from: string, to: string) {
         let fromAndTo = `${from}to${to}`;
         if (sop.tasks[sop.currentState].label === fromAndTo) {
             if (sop.tasks[sop.currentState].next === "complete") {
-                let sceneManager = new SceneManager(
+                let sceneManager = new PostSceneCylinder(
                     this.scene,
                     this.cylinderInstances,
                     this.guiManager,
