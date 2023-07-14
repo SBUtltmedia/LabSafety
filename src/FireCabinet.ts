@@ -33,7 +33,7 @@ export class FireCabinet {
 
         console.log(this.scene);
 
-        let cabinet = cabinetMeshes.find((curMesh) => curMesh.name === "Cabinet");
+        let cabinet = cabinetMeshes.find((curMesh) => curMesh.name === "FireExtinguisherCabinet");
 
         this.doorMesh = cabinetMeshes.find((curMesh) => 
             curMesh.name === "Door"

@@ -31,7 +31,7 @@ export class SceneManager {
         let models = [
             // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             {
-              fileName: "roomCabinet.glb",
+              fileName: "room.glb",
               callback: (mesh: Mesh[]) => createRoom(mesh),
               label: "floor",
             },
