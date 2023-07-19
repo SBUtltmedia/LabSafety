@@ -21,52 +21,25 @@ export class FireCabinet {
     animating: boolean;
     state: boolean; // true = closed, false = opened
 
-    constructor(cabinetMeshes: Mesh[]) {
+    constructor(room: Mesh[]) {
         // this.doorMesh = MeshBuilder.CreateBox("firedoor", {
         //     size: 0.2,
         //     width: 0.05,
         // });
 
-        console.log(cabinetMeshes[0]);
+        console.log(room[0]);
 
-        this.scene = cabinetMeshes[0].getScene();
+        this.scene = room[0].getScene();
 
         console.log(this.scene);
 
-        let cabinet = cabinetMeshes.find((curMesh) => curMesh.name === "FireExtinguisherCabinet");
+        let cabinet = room.find((curMesh) => curMesh.name === "FireExtinguisherCabinet");
 
-        this.doorMesh = cabinetMeshes.find((curMesh) => 
+        this.doorMesh = room.find((curMesh) => 
             curMesh.name === "Door"
         );
 
         this.doorMesh.rotationQuaternion = null
-
-        let camera: Camera = this.scene.activeCamera;
-
-        // cabinetMeshes[0].position = camera.position.add(new Vector3(0, -0.5, 1.75));
-        
-        this.doorMesh.rotation.y = Math.PI / 2;
-
-        // // let hingeMesh = MeshBuilder.CreateBox("hinge", {
-        // //     width: 0.05,
-        // //     height: 0.2,
-        // //     depth: 0.05,
-        // // });
-        // let hingeMesh = scene.getMeshByName("")
-        // hingeMesh.position = camera.position.add(new Vector3(0, -0.5, 1.75));
-
-        // this.doorMesh.setParent(hingeMesh);
-
-        // change the center of the box to its side
-        // var vertices = this.doorMesh.getVerticesData(VertexBuffer.PositionKind);
-        // var vertexCount = vertices.length / 3;
-
-        // for (var i = 0; i < vertexCount; i++) {
-        //     var vertexIndex = i * 3;
-        //     vertices[vertexIndex + 2] -= 0.1; // Shift x-coordinate
-        // }
-
-        // this.doorMesh.setVerticesData(VertexBuffer.PositionKind, vertices);
 
         this.animations = [];
 
@@ -79,15 +52,16 @@ export class FireCabinet {
         );
 
         let keyFrames = [];
-
-        keyFrames.push({
-            frame: 0,
-            value: Math.PI / 2,
-        });
-        keyFrames.push({
-            frame: 60,
+        let closed = {
             value: 0,
-        });
+        };
+
+        let opened = {
+            value: -Math.PI / 2,
+        }
+
+        keyFrames.push({...closed, frame:0});
+        keyFrames.push({...opened, frame:60});
 
         this.doorMesh.animations.push(rotationAnimation);
         rotationAnimation.setKeys(keyFrames);
@@ -103,14 +77,8 @@ export class FireCabinet {
 
         keyFrames = [];
 
-        keyFrames.push({
-            frame: 0,
-            value: 0,
-        });
-        keyFrames.push({
-            frame: 60,
-            value: Math.PI / 2,
-        });
+        keyFrames.push({...opened, frame:0});
+        keyFrames.push({...closed, frame:60});
 
         this.doorMesh.animations.push(resetAnimation);
         resetAnimation.setKeys(keyFrames);
@@ -123,6 +91,7 @@ export class FireCabinet {
 
         this.animating = false;
         this.state = true;
+
     }
 
     rotateAroundY = (
@@ -142,6 +111,8 @@ export class FireCabinet {
             ) {
                 this.animating = true;
                 let currentAnimation;
+
+                console.log("Click!");
 
                 if (this.state === true) {
                     // if the door is closed, then play the open animation

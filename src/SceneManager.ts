@@ -12,6 +12,7 @@ import SOP from "./SOP";
 import { SoundManager } from "./SoundManager";
 import { rootPath } from "./Constants";
 import { CustomScene } from "./CustomScene";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export class SceneManager {
 
@@ -28,6 +29,7 @@ export class SceneManager {
         let fireCabinet: FireCabinet
         let cylinders = [];
         let cylinderName = "CylinderNewSmoothLabel.glb";
+        let fireExtinguisher: FireExtinguisher;
         let models = [
             // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             {
@@ -75,6 +77,15 @@ export class SceneManager {
               fileName: "clipBoardWithPaperCompressedTextureNew.glb",
               callback: (mesh: Mesh[]) => createClipboard(mesh[0]),
             },
+            {
+              fileName: "fireExtinguisher.glb",
+              callback: (mesh: Mesh[]) => {
+                let model = mesh[0];
+                // model.position.y = 1;
+                fireExtinguisher = new FireExtinguisher(model);
+
+              }
+            }
             // {
             //   fileName: "fireAlarm.glb",
             //   callback: (mesh: Mesh[]) => createFireAlarm(mesh[0]),

@@ -1,5 +1,5 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 
 import "@babylonjs/core/Materials/Node/Blocks";
 import "@babylonjs/core/Loading/loadingScreen";
