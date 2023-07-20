@@ -1,5 +1,6 @@
-import { AbstractMesh, Mesh, MeshBuilder,Animation, PointerDragBehavior, Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { TIME_UNTIL_FADE } from "./Constants";
+import { SmokeParticles } from "./SmokeParticles";
 
 export class FireExtinguisher {
     modelTransform: TransformNode
@@ -7,6 +8,7 @@ export class FireExtinguisher {
     mesh: Mesh
     base: Mesh
     startPos: Vector3 = new Vector3(1.89, 1, -0.95)
+    smokeSystem: SmokeParticles
 
     constructor(model: Mesh) {
         this.mesh = model;
@@ -16,12 +18,15 @@ export class FireExtinguisher {
         this.mesh.position = this.startPos;
         this.mesh.isPickable = true;
 
-
         console.log(this.mesh);
 
         this.addDragBehavior();
 
         let meshes = this.getChildMeshes(this.mesh);
+
+        this.smokeSystem = new SmokeParticles(this.mesh);
+
+        // this.startSmoke();
     }
 
     // need to do a depth-first-search to get all the child meshes and grandchild meshes...
@@ -112,7 +117,6 @@ export class FireExtinguisher {
                 false,
                 undefined,
                 () => {
-
                     this.mesh.position.x = 1.89
                     this.mesh.position.y = 1;
                     this.mesh.position.z = -0.95
@@ -143,5 +147,9 @@ export class FireExtinguisher {
 
         }, TIME_UNTIL_FADE);
 
+    }
+
+    startSmoke() {
+        this.smokeSystem.start();
     }
 }
