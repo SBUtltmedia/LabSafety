@@ -13,6 +13,7 @@ import { SoundManager } from "./SoundManager";
 import { rootPath } from "./Constants";
 import { CustomScene } from "./CustomScene";
 import { FireExtinguisher } from "./FireExtinguisher";
+import { Fire } from "./Fire";
 
 export class SceneManager {
 
@@ -128,6 +129,9 @@ export class SceneManager {
               "Walls",
             ];
             let scene: Scene, camera: UniversalCamera;
+
+            let fire = new Fire(scene);
+
             for (let getStringMesh of wantedCollisions) {
               const getCollidableMesh: Mesh = mesh.find(
                 (mesh) => mesh.name === getStringMesh
