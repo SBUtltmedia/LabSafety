@@ -5,6 +5,7 @@ import { FireMaterial } from "@babylonjs/materials"
 
 export class Fire {
     scene: Scene
+    plane: Mesh
 
     constructor(scene: Scene) {
         this.scene = scene;
@@ -26,14 +27,32 @@ export class Fire {
     
         // var plane = scene.getMeshByName("Plane");
         plane.receiveShadows = true; 
+
+        console.log(scene);
     
-        plane.position = new Vector3(0, 0, 0);
+        plane.position = scene.getMeshByName("ExitDoor").getAbsolutePosition();
         plane.scaling.x = 0.1;
         plane.scaling.y = 0.7;
-        plane.billboardMode = Mesh.BILLBOARDMODE_Y;
+        plane.rotationQuaternion = null;
+        plane.rotation.y = -Math.PI / 2;
+
+        plane.position.x += 0.1;
+        // plane.billboardMode = Mesh.BILLBOARDMODE_Y;
         plane.material = fire;
         plane.material.shadowDepthWrapper = new ShadowDepthWrapper(plane.material);
-        generator.getShadowMap().renderList.push(plane);            
+        generator.getShadowMap().renderList.push(plane);
+
+        this.plane = plane;
+
+        this.hide();
         
+    }
+
+    show() {
+        this.plane.isVisible = true;
+    }
+
+    hide() {
+        this.plane.isVisible = false;
     }
 }

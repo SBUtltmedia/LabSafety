@@ -19,7 +19,7 @@ import { SoundManager } from "./SoundManager";
 export class PostSceneCylinder extends Interact {
 
     particleSystem: ParticleSystem;
-    instances: Array<Cylinder>
+    instances: Array<Cylinder>;
 
     constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
         super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
@@ -219,9 +219,11 @@ export class PostSceneCylinder extends Interact {
                                     
                                         setTimeout(() => {
                                             (gotSomething as PointerDragBehavior).releaseDrag();
-                                            super.showFailureScreen();
-                                            sop.resetSOP();
-                                            failBeaker = false;
+                                            // super.showFailureScreen();
+                                            // sop.resetSOP();
+                                            // failBeaker = false;
+                                            this.scene.getMeshByName("fireplane").isVisible = true;
+
                                         }, 1500);
                                     }
                                 }

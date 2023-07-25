@@ -1,6 +1,6 @@
 import { Mesh, Color3, ActionManager, BoundingBox,
      ExecuteCodeAction, Scene, UniversalCamera, 
-     Vector3, Animation } from "@babylonjs/core";
+     Vector3, Animation, Color4 } from "@babylonjs/core";
 
 import { createPlacard } from "./CreatePlarcard";
 import { Cylinder } from "./Cylinder";
@@ -130,8 +130,6 @@ export class SceneManager {
             ];
             let scene: Scene, camera: UniversalCamera;
 
-            let fire = new Fire(scene);
-
             for (let getStringMesh of wantedCollisions) {
               const getCollidableMesh: Mesh = mesh.find(
                 (mesh) => mesh.name === getStringMesh
@@ -145,6 +143,7 @@ export class SceneManager {
                   const cameraXPosition = tableBoundingBox.center.x;
                   scene = getCollidableMesh.getScene();
                   camera = scene.getCameraByName("camera") as UniversalCamera;
+                  let fire = new Fire(scene);                  
                   camera.position = new Vector3(
                     tableBoundingBox.center.x - 0.5,
                     tableBoundingBox.center.y * 2 + 1.75,

@@ -2,7 +2,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { GUIManager } from "./GUIManager";;
 import { SoundManager } from "./SoundManager";
 import { Scene, UniversalCamera, Vector3,
-        HemisphericLight, SceneLoader, Color3, Light, WebXRDefaultExperience } from "@babylonjs/core";
+        HemisphericLight, SceneLoader, Color3, Light, WebXRDefaultExperience, Color4 } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { PostSceneCylinder } from "./PostSceneCylinder";
@@ -26,6 +26,7 @@ export class CustomScene {
     renderScene() {
       this.createScene().then((scene: Scene) => {
         this.scene = scene;
+        // this.scene.clearColor = new Color4(0,0,0,0);
         this.soundManager = new SoundManager(this.soundObjects, scene);
         this.soundManager.enableAudio();
         this.soundManager.loadSounds().then((sounds: Array<any>) => {

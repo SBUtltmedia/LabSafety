@@ -26,7 +26,7 @@ export class FireExtinguisher {
 
         this.smokeSystem = new SmokeParticles(this.mesh);
 
-        this.startSmoke();
+        this.stopSmoke();
     }
 
     // need to do a depth-first-search to get all the child meshes and grandchild meshes...
@@ -151,5 +151,9 @@ export class FireExtinguisher {
 
     startSmoke() {
         this.smokeSystem.start();
+    }
+
+    stopSmoke() {
+        this.smokeSystem.stop();
     }
 }
