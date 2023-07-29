@@ -64,6 +64,17 @@ export class FireExtinguisher {
         });
         pointerDragBehavior.useObjectOrientationForDragging = false;
 
+        let timeout;
+
+        pointerDragBehavior.onDragStartObservable.add(() => {
+            let camera = this.scene.activeCamera;
+            timeout = setTimeout(() => {
+                //@ts-ignore
+                camera.rotation.y *= -1;
+                this.startSmoke();
+            }, 700);
+        })
+
         pointerDragBehavior.onDragObservable.add(() => {
             let wallsAndFloor = this.scene.getMeshByName("WallsandFloor");
 
@@ -76,6 +87,10 @@ export class FireExtinguisher {
         });
 
         pointerDragBehavior.onDragEndObservable.add(() => {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+            this.stopSmoke();
             this.fadeAndRespawn();
         })
 

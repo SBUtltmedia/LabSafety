@@ -1,4 +1,4 @@
-import { Color4, Mesh, MeshBuilder, ParticleSystem, Texture, Vector3 } from "@babylonjs/core";
+import { Color4, Mesh, MeshBuilder, ParticleSystem, SolidParticleSystem, Texture, Vector3 } from "@babylonjs/core";
 
 export class SmokeParticles {
     particleSystem: ParticleSystem
