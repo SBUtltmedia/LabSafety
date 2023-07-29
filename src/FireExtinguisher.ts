@@ -1,6 +1,7 @@
 import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3 } from "@babylonjs/core";
 import { TIME_UNTIL_FADE } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
+import { FireCabinet } from "./FireCabinet";
 
 export class FireExtinguisher {
     modelTransform: TransformNode
@@ -9,8 +10,13 @@ export class FireExtinguisher {
     base: Mesh
     startPos: Vector3 = new Vector3(1.89, 1, -0.95)
     smokeSystem: SmokeParticles
+    fireCabinetInstance: FireCabinet
 
-    constructor(model: Mesh) {
+    constructor() {
+
+    }
+
+    setModel(model: Mesh) {
         this.mesh = model;
         this.scene = model.getScene();
         this.modelTransform = this.scene.getTransformNodeByName("fire_ex");
@@ -61,8 +67,10 @@ export class FireExtinguisher {
         pointerDragBehavior.onDragObservable.add(() => {
             let wallsAndFloor = this.scene.getMeshByName("WallsandFloor");
 
+            console.log(this.fireCabinetInstance.state);
+
             // if the extinguisher is inside the room, it intersects WallsAndFloor
-            if (!this.mesh.intersectsMesh(wallsAndFloor) && this.mesh.isPickable) {
+            if (this.fireCabinetInstance.state && this.mesh.intersectsMesh(wallsAndFloor) && this.mesh.isPickable) {
                 pointerDragBehavior.releaseDrag();
             }
         });
@@ -76,6 +84,8 @@ export class FireExtinguisher {
 
     fadeAndRespawn() {
         this.mesh.isPickable = false;
+
+        console.log(this.fireCabinetInstance);
 
         setTimeout(() => {
             let meshes = this.getChildMeshes(this.mesh);

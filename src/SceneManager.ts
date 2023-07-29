@@ -30,7 +30,7 @@ export class SceneManager {
         let fireCabinet: FireCabinet
         let cylinders = [];
         let cylinderName = "CylinderNewSmoothLabel.glb";
-        let fireExtinguisher: FireExtinguisher;
+        let fireExtinguisher: FireExtinguisher = new FireExtinguisher();
         let models = [
             // { "fileName": "RoomandNewLabBench.glb", "callback": mesh => createRoom(mesh), "label": "floor" },
             {
@@ -83,8 +83,7 @@ export class SceneManager {
               callback: (mesh: Mesh[]) => {
                 let model = mesh[0];
                 // model.position.y = 1;
-                fireExtinguisher = new FireExtinguisher(model);
-
+                fireExtinguisher.setModel(model);
               }
             }
             // {
@@ -119,7 +118,8 @@ export class SceneManager {
         
 
         function createRoom(mesh: Mesh[]) {
-            fireCabinet = new FireCabinet(mesh);    
+            fireCabinet = new FireCabinet(mesh);
+            fireExtinguisher.fireCabinetInstance = fireCabinet;
             const wantedCollisions = [
               "WallsandFloor",
               "Floor",
