@@ -1,5 +1,5 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+// import "@babylonjs/core/Debug/debugLayer";
+// import "@babylonjs/inspector";
 
 import "@babylonjs/core/Materials/Node/Blocks";
 import "@babylonjs/core/Loading/loadingScreen";
@@ -13,7 +13,7 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 import { SceneManager } from "./SceneManager";
 
 
-// console.log = () => {};
+console.log = () => {};
 
 export class App {
   constructor() {

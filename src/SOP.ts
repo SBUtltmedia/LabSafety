@@ -12,10 +12,6 @@ export default class SOP {
     currentState: number;
     tasks: Array<any>;
 
-    // to communicate between fire extinguisher and other classes
-    // need to find a better way to do this
-    
-
     constructor(title: string, description: string, tasks: Array<any>, currentState: number = 0) {
         this.title = title;
         this.description = description;
