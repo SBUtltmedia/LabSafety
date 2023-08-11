@@ -15,15 +15,18 @@ import { Cylinder } from "./Cylinder";
 import { sop } from "./Constants";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export class PostSceneCylinder extends Interact {
 
     particleSystem: ParticleSystem;
     instances: Array<Cylinder>;
+    fireExtinguisher: FireExtinguisher
 
-    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
+    constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience, fireExtinguisher: FireExtinguisher) {
         super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
         this.instances = cylinderInstances;
+        this.fireExtinguisher = fireExtinguisher;
     }
 
     resetCylinders() {
@@ -137,6 +140,16 @@ export class PostSceneCylinder extends Interact {
             let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
             let rotationFlag = false;
             let hit = "resetRotateAroundZleft";
+            
+            this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
+                if (this.fireExtinguisher.fireExtinguished) {
+                    console.log("Here!!!");
+                    super.showFailureScreen();
+                    sop.resetSOP();
+                    failBeaker = false;
+                    this.fireExtinguisher.fireExtinguished = false;                        
+                }                
+            })
 
             let rotateTimeout;
 
@@ -170,7 +183,7 @@ export class PostSceneCylinder extends Interact {
                                 super.RotateCylinders(cylinderInstance, cylinderHitInstance);
                                 let to = cylinderHitDetected.name.split('-')[2];
                                 let from = cylinder.name.split('-')[2];
-                                let fromAndTo = `${from}to${to}`;
+                                let fromAndTo = `${from}to${to}`;                             
 
                                 if (sop.tasks[sop.currentState].label === fromAndTo) {
                                     samePour = true;
@@ -207,6 +220,8 @@ export class PostSceneCylinder extends Interact {
                                             cylinder.mesh.isPickable = false;
                                             cylinder.moveFlag = false;
                                         }
+
+                                        sop.failed = true;
         
                                         cylinderHitInstance.showEffects(true);
                                         setTimeout(() => {
@@ -225,6 +240,7 @@ export class PostSceneCylinder extends Interact {
                                             this.scene.getMeshByName("fireplane").isVisible = true;
 
                                         }, 1500);
+
                                     }
                                 }
 

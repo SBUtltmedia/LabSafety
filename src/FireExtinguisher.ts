@@ -1,5 +1,5 @@
 import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3 } from "@babylonjs/core";
-import { TIME_UNTIL_FADE } from "./Constants";
+import { TIME_UNTIL_FADE, sop } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
 
@@ -11,6 +11,8 @@ export class FireExtinguisher {
     startPos: Vector3 = new Vector3(1.89, 1, -0.95)
     smokeSystem: SmokeParticles
     fireCabinetInstance: FireCabinet
+    fireExtinguished: boolean = false;
+    pointerDragBehav: PointerDragBehavior
 
     constructor() {
 
@@ -64,7 +66,7 @@ export class FireExtinguisher {
         });
         pointerDragBehavior.useObjectOrientationForDragging = false;
 
-        let timeout;
+        let timeout, releaseTimeout;
 
         pointerDragBehavior.onDragStartObservable.add(() => {
             let camera = this.scene.activeCamera;
@@ -84,6 +86,14 @@ export class FireExtinguisher {
             if (this.fireCabinetInstance.state && this.mesh.intersectsMesh(wallsAndFloor) && this.mesh.isPickable) {
                 pointerDragBehavior.releaseDrag();
             }
+
+            if (sop.failed) {
+                releaseTimeout = setTimeout(() => {
+                    this.scene.getMeshByName("fireplane").isVisible = false;
+                    this.fireExtinguished = true;                    
+                    pointerDragBehavior.releaseDrag();
+                }, 8000);
+            }
         });
 
         pointerDragBehavior.onDragEndObservable.add(() => {
@@ -95,6 +105,7 @@ export class FireExtinguisher {
         })
 
         this.mesh.addBehavior(pointerDragBehavior);
+        this.pointerDragBehav = pointerDragBehavior;
     }
 
     fadeAndRespawn() {

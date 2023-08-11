@@ -113,7 +113,7 @@ export class SceneManager {
             { soundName: "success", fileName: `${rootPath}/sound/success.mp3` },
         ];
 
-        this.currentScene = new CustomScene(models, cylinders, soundObjects);
+        this.currentScene = new CustomScene(models, cylinders, soundObjects, fireExtinguisher);
         this.currentScene.renderScene();
         
 

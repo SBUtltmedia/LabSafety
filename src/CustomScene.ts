@@ -7,6 +7,7 @@ import { Cylinder } from "./Cylinder";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { XR } from "./XR";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export class CustomScene {
     models: any
@@ -16,11 +17,13 @@ export class CustomScene {
     soundObjects: any
     loadedSounds: any
     scene: Scene
+    fireExtinguisher: FireExtinguisher
 
-    constructor(models: any, cylinders: any, soundObjects: any) {
+    constructor(models: any, cylinders: any, soundObjects: any, fireExtinguisher: FireExtinguisher) {
       this.models = models;
       this.cylinders = cylinders;
       this.soundObjects = soundObjects;
+      this.fireExtinguisher = fireExtinguisher;
     }
 
     renderScene() {
@@ -34,7 +37,8 @@ export class CustomScene {
           this.processScene(
             scene,
             this.cylinders,
-            this.soundManager
+            this.soundManager,
+            this.fireExtinguisher
           );
         });
       })
@@ -148,7 +152,8 @@ export class CustomScene {
     async processScene(
         scene: Scene,
         cylinders: Array<Cylinder>,
-        soundManager: SoundManager
+        soundManager: SoundManager,
+        fireExtinguisher: FireExtinguisher
       ) {
     
         let camera = scene.getCameraByName("camera") as UniversalCamera;
@@ -223,7 +228,8 @@ export class CustomScene {
             cylinders,
             this.guiManager,
             soundManager,
-            xrCamera
+            xrCamera,
+            fireExtinguisher
           );
           desktopScene.postSceneCylinder();
           var toggleControllers = xr.addWebXrBehaviors();

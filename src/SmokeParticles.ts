@@ -6,14 +6,14 @@ export class SmokeParticles {
     constructor(sourceMesh: Mesh) {
         let scene = sourceMesh.getScene();
 
-        var particleSystem = new ParticleSystem("particles", 50000, scene);
+        var particleSystem = new ParticleSystem("particles", 500, scene);
 
         //Texture of each particle
         particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
     
         // lifetime
         particleSystem.minLifeTime = 2;
-        particleSystem.maxLifeTime = 6;
+        particleSystem.maxLifeTime = 4;
     
         // emit rate
         particleSystem.emitRate = 5000;
@@ -34,7 +34,7 @@ export class SmokeParticles {
         particleSystem.addColorGradient(1.0, new Color4(0.0, 0.0, 0.0, 0), new Color4(0.03, 0.03, 0.03, 0));
     
         // speed gradient
-        particleSystem.addVelocityGradient(1,1,1);
+        particleSystem.addVelocityGradient(1,0,0);
         // particleSystem.addVelocityGradient(0.1, 0.8, 0.9);
         // particleSystem.addVelocityGradient(0.7, 0.4, 0.5);
         // particleSystem.addVelocityGradient(1, 0.1, 0.2);
