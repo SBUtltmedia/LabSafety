@@ -101,7 +101,10 @@ export class FireExtinguisher {
                 clearTimeout(timeout);
             }
             this.stopSmoke();
-            this.fadeAndRespawn();
+            
+            this.mesh.position.x = 1.89
+            this.mesh.position.y = 1;
+            this.mesh.position.z = -0.95
         })
 
         this.mesh.addBehavior(pointerDragBehavior);
