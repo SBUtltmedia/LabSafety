@@ -9,6 +9,8 @@ export class FireExtinguisher {
     mesh: Mesh
     base: Mesh
     startPos: Vector3 = new Vector3(1.89, 1, -0.95)
+    // startPos: Vector3 = new Vector3(0,1,0)
+
     smokeSystem: SmokeParticles
     fireCabinetInstance: FireCabinet
     fireExtinguished: boolean = false;
@@ -35,6 +37,7 @@ export class FireExtinguisher {
         this.smokeSystem = new SmokeParticles(this.mesh);
 
         this.stopSmoke();
+        // this.startSmoke();
     }
 
     // need to do a depth-first-search to get all the child meshes and grandchild meshes...
@@ -70,11 +73,14 @@ export class FireExtinguisher {
 
         pointerDragBehavior.onDragStartObservable.add(() => {
             let camera = this.scene.activeCamera;
+            setTimeout(() => {
+            camera.rotation.y *= -1;
+            }, 500);
             timeout = setTimeout(() => {
                 //@ts-ignore
-                camera.rotation.y *= -1;
+                
                 this.startSmoke();
-            }, 700);
+            }, 1000);
         })
 
         pointerDragBehavior.onDragObservable.add(() => {
@@ -109,83 +115,6 @@ export class FireExtinguisher {
 
         this.mesh.addBehavior(pointerDragBehavior);
         this.pointerDragBehav = pointerDragBehavior;
-    }
-
-    fadeAndRespawn() {
-        this.mesh.isPickable = false;
-
-        console.log(this.fireCabinetInstance);
-
-        setTimeout(() => {
-            let meshes = this.getChildMeshes(this.mesh);
-            let animations = [
-                {name: "Invisible", startValue: 1},
-                {name: "Visible", startValue: 0}
-            ];
-
-            animations.forEach((animation) => {
-                animation["props"] = new Animation(
-                    animation.name,
-                    "visibility",
-                    60,
-                    Animation.ANIMATIONTYPE_FLOAT,
-                    Animation.ANIMATIONLOOPMODE_CONSTANT
-                );
-                animation["props"].setKeys([
-                    {frame: 0, value: animation.startValue},
-                    {frame: 60, value: animation.startValue === 0 ? 1 : 0}
-                ]);
-            });
-
-            for (let i = 0; i < meshes.length - 1; i++) {
-                let mesh = meshes[i];
-                this.scene.beginDirectAnimation(
-                    mesh,
-                    [animations[0]["props"]],
-                    0,
-                    60,
-                    false
-                )
-            }
-
-            this.scene.beginDirectAnimation(
-                meshes[meshes.length - 1],
-                [animations[0]["props"]],
-                0,
-                60,
-                false,
-                undefined,
-                () => {
-                    this.mesh.position.x = 1.89
-                    this.mesh.position.y = 1;
-                    this.mesh.position.z = -0.95
-                    
-                    for (let i = 0; i < meshes.length - 1; i++) {
-                        this.scene.beginDirectAnimation(
-                            meshes[i],
-                            [animations[1]["props"]],
-                            0,
-                            60,
-                            false
-                        );
-                    }
-
-                    this.scene.beginDirectAnimation(
-                        meshes[meshes.length - 1],
-                        [animations[1]["props"]],
-                        0,
-                        60,
-                        false,
-                        undefined,
-                        () => {
-                            this.mesh.isPickable = true;
-                        }
-                    )
-                }
-            )
-
-        }, TIME_UNTIL_FADE);
-
     }
 
     startSmoke() {
