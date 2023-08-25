@@ -13,7 +13,7 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 import { SceneManager } from "./SceneManager";
 
 
-console.log = () => {};
+console.log = () => { };
 
 export class App {
   constructor() {
@@ -21,6 +21,16 @@ export class App {
     sceneManager.createSceneOne();
   }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  let splash = document.querySelector("div.splash");
+  splash.addEventListener("click", () => {
+    splash.classList.add("hide")
+    console.log("Click")
+  })
+}, false);
+
 
 new App();
 
