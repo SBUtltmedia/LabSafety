@@ -11,6 +11,8 @@ import { getChildMeshByName } from "./utils";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { Hand } from "./Hand";
+import { FireCabinet } from "./FireCabinet";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export abstract class Interact {
     cylinderInstances: Array<Cylinder>;
@@ -21,8 +23,11 @@ export abstract class Interact {
     guiManager: GUIManager;
     soundManager: SoundManager;
     xrCamera: WebXRDefaultExperience;
+    fireExtinguisher: FireExtinguisher;
 
-    constructor(scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience) {
+    constructor(scene, cylinderInstances: Array<Cylinder>, 
+        guiManager: GUIManager, soundManager: SoundManager,
+         xrCamera: WebXRDefaultExperience, fireExtinguisher: FireExtinguisher) {
 
         this.labels = ["A", "B", "C"];
         this.scene = scene;
@@ -31,6 +36,7 @@ export abstract class Interact {
         this.soundManager = soundManager;
         this.xrCamera = xrCamera;
         this.isRotating = false;
+        this.fireExtinguisher = fireExtinguisher;
     }
 
     getCylinderInstanceFromMesh(cylinder) {
@@ -146,6 +152,8 @@ export abstract class Interact {
             }
         }
 
+        
+
         this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
     }
 
@@ -171,7 +179,7 @@ export abstract class Interact {
             }
         }
 
-
+        this.fireExtinguisher.fireCabinetInstance.doorMesh.rotation.y = 0;
 
         this.guiManager.createPromptWithButton("Task failed! The scene will now reset.", this.xrCamera, setPickable, this.cylinderInstances);
     }

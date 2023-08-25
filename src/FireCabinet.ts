@@ -12,6 +12,7 @@ import {
     VertexBuffer,
     AbstractMesh,
 } from "@babylonjs/core";
+import { sop } from "./Constants";
 
 export class FireCabinet {
     doorMesh: AbstractMesh;
@@ -100,7 +101,7 @@ export class FireCabinet {
             pickInfo: { pickedMesh: this.doorMesh },
         }
     ) => {
-        if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        if (pointerInfo.type === PointerEventTypes.POINTERDOWN && sop.failed) {
             const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
 
             if (

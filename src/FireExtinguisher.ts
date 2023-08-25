@@ -72,15 +72,18 @@ export class FireExtinguisher {
         let timeout, releaseTimeout;
 
         pointerDragBehavior.onDragStartObservable.add(() => {
-            let camera = this.scene.activeCamera;
-            setTimeout(() => {
-            camera.rotation.y *= -1;
-            }, 500);
-            timeout = setTimeout(() => {
-                //@ts-ignore
-                
-                this.startSmoke();
-            }, 1000);
+            // if its closed then drop: true = closed, false = open
+            if (!this.fireCabinetInstance.state) {
+                let camera = this.scene.activeCamera;
+                setTimeout(() => {
+                    //@ts-ignore
+                    camera.rotation.y *= -1;
+                }, 500);
+                timeout = setTimeout(() => {
+                    //@ts-ignore
+                    this.startSmoke();
+                }, 1000);
+            }
         })
 
         pointerDragBehavior.onDragObservable.add(() => {
@@ -98,7 +101,7 @@ export class FireExtinguisher {
                     this.scene.getMeshByName("fireplane").isVisible = false;
                     this.fireExtinguished = true;                    
                     pointerDragBehavior.releaseDrag();
-                }, 8000);
+                }, 5000);
             }
         });
 

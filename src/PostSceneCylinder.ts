@@ -21,10 +21,12 @@ export class PostSceneCylinder extends Interact {
 
     particleSystem: ParticleSystem;
     instances: Array<Cylinder>;
+    
+    // @ts-ignore
     fireExtinguisher: FireExtinguisher
 
     constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience, fireExtinguisher: FireExtinguisher) {
-        super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
+        super(scene, cylinderInstances, guiManager, soundManager, xrCamera, fireExtinguisher);
         this.instances = cylinderInstances;
         this.fireExtinguisher = fireExtinguisher;
     }

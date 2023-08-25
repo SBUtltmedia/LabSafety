@@ -9,10 +9,11 @@ import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
 import { Hand } from "./Hand";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience, 
     addHandModels: any, cylinders: Array<Cylinder>, 
-    guiManager: GUIManager, soundManager: SoundManager) {
+    guiManager: GUIManager, soundManager: SoundManager, fireExtinguisher: FireExtinguisher) {
 
     let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager, xrCamera);
     let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager, xrCamera);
@@ -171,7 +172,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                                     rotationFlag = true;
                                                     rotateTimeout = setTimeout(() => {
                                                         currentHandClass.addColors(currentHandClass.holdingInstance, currentHandClass.targetMeshInstance);
-                                                        isHolding = currentHandClass.updateSOPTask(from, to, grabSetInterval);
+                                                        isHolding = currentHandClass.updateSOPTask(from, to);
 
                                                         if (currentHandClass.holdingMesh) {
                                                             prevPos = Object.assign({}, currentHandClass.holdingMesh.position);

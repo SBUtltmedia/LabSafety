@@ -204,7 +204,7 @@ export class CustomScene {
           }
         });
     
-        let xr: XR = new XR(scene, xrCamera, null, cylinders, null, this.soundManager);
+        let xr: XR = new XR(scene, xrCamera, null, cylinders, null, this.soundManager, this.fireExtinguisher);
     
         xr.addWebXr().then((addHandModels) => {
     
