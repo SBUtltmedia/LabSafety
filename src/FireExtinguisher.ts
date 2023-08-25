@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3, WebXRDefaultExperience } from "@babylonjs/core";
 import { TIME_UNTIL_FADE, sop } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
@@ -13,8 +13,9 @@ export class FireExtinguisher {
 
     smokeSystem: SmokeParticles
     fireCabinetInstance: FireCabinet
-    fireExtinguished: boolean = false;
+    fireExtinguished: boolean = false
     pointerDragBehav: PointerDragBehavior
+    xrCamera: WebXRDefaultExperience
 
     constructor() {
 
@@ -78,6 +79,7 @@ export class FireExtinguisher {
                 setTimeout(() => {
                     //@ts-ignore
                     camera.rotation.y *= -1;
+                    this.xrCamera.baseExperience.camera.rotation.y *= -1;
                 }, 500);
                 timeout = setTimeout(() => {
                     //@ts-ignore
