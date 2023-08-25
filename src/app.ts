@@ -23,7 +23,6 @@ export class App {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-
   let splash = document.querySelector("div.splash");
   splash.addEventListener("click", () => {
     splash.classList.add("hide")
