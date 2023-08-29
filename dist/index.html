@@ -19,7 +19,7 @@
 
     <style>
         html,
-        body {
+        body, #sopcanvas, #canvas, .splash {
             overflow: hidden;
             width: 100%;
             height: 100%;
@@ -27,16 +27,15 @@
             padding: 0;
         }
 
-        #sopcanvas {
-            width: 100%;
-            height: 100%;
+        .splash {
+            display: flex;
+            align-items: center;
+            font-size: 5rem;
+            justify-content: center;
         }
 
-        #canvas {
-            width: 100%;
-            height: 100%;
-            touch-action: none;
-
+        .hide {
+            display: none;
         }
     </style>
 
@@ -44,15 +43,22 @@
     <link rel="icon" href="favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Babylon Template</title>
-  <script type="module" crossorigin src="./assets/index.897620c5.js"></script>
+  <script type="module" crossorigin src="./assets/index.dc2a42a4.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor.e526036a.js">
 </head>
 
 <body>
+    <div class="splash">
+        Click to start!
+    </div>
     <canvas id="canvas" allow="autoplay"></canvas>
     
     
     <script type="module" src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
 </body>
+
+<script>
+
+</script>
 
 </html>
