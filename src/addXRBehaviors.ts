@@ -15,8 +15,8 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
     addHandModels: any, cylinders: Array<Cylinder>, 
     guiManager: GUIManager, soundManager: SoundManager, fireExtinguisher: FireExtinguisher) {
 
-    let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager, xrCamera);
-    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager, xrCamera);
+    let handRight: Hand = new Hand("right", scene, cylinders, guiManager, soundManager, xrCamera, fireExtinguisher);
+    let handLeft: Hand = new Hand("left", scene, cylinders, guiManager, soundManager, xrCamera, fireExtinguisher);
     let isHolding: boolean = false;
     let currentAction = null;
     let handTable = {

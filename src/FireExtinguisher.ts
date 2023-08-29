@@ -73,6 +73,7 @@ export class FireExtinguisher {
         let timeout, releaseTimeout;
 
         pointerDragBehavior.onDragStartObservable.add(() => {
+            console.log("Start!");
             // if its closed then drop: true = closed, false = open
             if (!this.fireCabinetInstance.state) {
                 let camera = this.scene.activeCamera;

@@ -15,6 +15,7 @@ import { GUIManager } from "./GUIManager";
 import { Interact } from "./Interact";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { SoundManager } from "./SoundManager";
+import { FireExtinguisher } from "./FireExtinguisher";
 
 export class Hand extends Interact {
     handedness: string;
@@ -28,6 +29,7 @@ export class Hand extends Interact {
     failBeaker: boolean;
     particleSystem: ParticleSystem;
     cylinderInstancesHand: Cylinder[];
+    fireExtinguisher: FireExtinguisher;
 
     constructor(
         handedness: string,
@@ -35,13 +37,16 @@ export class Hand extends Interact {
         cylinderInstances: Array<Cylinder>,
         guiManager: GUIManager,
         soundManager: SoundManager,
-        xrCamera: WebXRDefaultExperience
+        xrCamera: WebXRDefaultExperience,
+        fireExtinguisher: FireExtinguisher
+        
     ) {
-        super(scene, cylinderInstances, guiManager, soundManager, xrCamera);
+        super(scene, cylinderInstances, guiManager, soundManager, xrCamera, fireExtinguisher);
         this.handedness = handedness;
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
         this.failBeaker = false;
+        this.fireExtinguisher = fireExtinguisher;
     }
 
     getMotionController() {
@@ -92,7 +97,8 @@ export class Hand extends Interact {
                     this.cylinderInstances,
                     this.guiManager,
                     this.soundManager,
-                    this.xrCamera
+                    this.xrCamera,
+                    this.fireExtinguisher
                 );
                 for (let cylinder of this.cylinderInstances) {
                     cylinder.moveFlag = false;
@@ -151,6 +157,7 @@ export class Hand extends Interact {
                 return undefined;
             }
         } else {
+            sop.failed = true;
             if (!this.failBeaker) {
                 setTimeout(() => {
                     if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
@@ -178,7 +185,7 @@ export class Hand extends Interact {
                     super.playExplosion();
                     this.targetMeshInstance.showEffects(true);
                 }, 1000);
-                sop.resetSOP();
+                // sop.resetSOP();
             }
         }
         return undefined;

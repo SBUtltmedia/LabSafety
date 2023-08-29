@@ -13,7 +13,7 @@ import "@babylonjs/core/Audio/audioSceneComponent";
 import { SceneManager } from "./SceneManager";
 
 
-console.log = () => { };
+// console.log = () => { };
 
 export class App {
   constructor() {
