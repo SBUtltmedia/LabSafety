@@ -1,6 +1,3 @@
-// import "@babylonjs/core/Debug/debugLayer";
-// import "@babylonjs/inspector";
-
 import "@babylonjs/core/Materials/Node/Blocks";
 import "@babylonjs/core/Loading/loadingScreen";
 
@@ -15,6 +12,8 @@ import { log } from "./utils";
 
 if (import.meta.env.DEV) {
   console.log("Running in development mode");
+  import("@babylonjs/core/Debug/debugLayer");
+  import("@babylonjs/inspector");
 }
 
 export class App {
