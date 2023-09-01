@@ -7,7 +7,7 @@ To start the development server, run
 
     > npm run start
 
-While the server is running, the application can be found at http://localhost:8887/.
+While the server is running, the application can be found at http://localhost:8081/.
 
 To build the project, run
 
