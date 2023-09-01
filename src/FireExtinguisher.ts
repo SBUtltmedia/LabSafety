@@ -2,6 +2,7 @@ import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNod
 import { TIME_UNTIL_FADE, sop } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
+import { log } from "./utils";
 
 export class FireExtinguisher {
     modelTransform: TransformNode
@@ -29,7 +30,7 @@ export class FireExtinguisher {
         this.mesh.position = this.startPos;
         this.mesh.isPickable = true;
 
-        console.log(this.mesh);
+        log(this.mesh);
 
         this.addDragBehavior();
 
@@ -73,7 +74,7 @@ export class FireExtinguisher {
         let timeout, releaseTimeout;
 
         pointerDragBehavior.onDragStartObservable.add(() => {
-            console.log("Start!");
+            log("Start!");
             // if its closed then drop: true = closed, false = open
             if (!this.fireCabinetInstance.state) {
                 let camera = this.scene.activeCamera;
@@ -92,7 +93,7 @@ export class FireExtinguisher {
         pointerDragBehavior.onDragObservable.add(() => {
             let wallsAndFloor = this.scene.getMeshByName("WallsandFloor");
 
-            console.log(this.fireCabinetInstance.state);
+            log(this.fireCabinetInstance.state);
 
             // if the extinguisher is inside the room, it intersects WallsAndFloor
             if (this.fireCabinetInstance.state && this.mesh.intersectsMesh(wallsAndFloor) && this.mesh.isPickable) {

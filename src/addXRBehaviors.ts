@@ -5,7 +5,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
-import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
+import { getChildMeshByName, log, resetPosition, resetRotation } from "./utils";
 import { Hand } from "./Hand";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
@@ -65,7 +65,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                     xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
                 })
 
-                console.log("Motion controller: ", motionController);
+                log("Motion controller: ", motionController);
 
                 [triggerComponent].forEach((component) => {
                     component.onButtonStateChangedObservable.add((item) => {

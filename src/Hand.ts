@@ -16,6 +16,7 @@ import { Interact } from "./Interact";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { SoundManager } from "./SoundManager";
 import { FireExtinguisher } from "./FireExtinguisher";
+import { log } from "./utils";
 
 export class Hand extends Interact {
     handedness: string;
@@ -177,7 +178,7 @@ export class Hand extends Interact {
                             screen.position.y = 0;
                             screen.position.z = 0.95;
 
-                            console.log(screen);
+                            log(screen);
 
                             screen.rotation = Vector3.Zero();
                         }

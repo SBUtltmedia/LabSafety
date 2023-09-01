@@ -2,6 +2,7 @@ import { Mesh, MeshBuilder, Scene, ShadowDepthWrapper,
      ShadowGenerator, SpotLight, Texture, Vector3 } from "@babylonjs/core";
 
 import { FireMaterial } from "@babylonjs/materials"
+import { log } from "./utils";
 
 export class Fire {
     scene: Scene
@@ -28,7 +29,7 @@ export class Fire {
         // var plane = scene.getMeshByName("Plane");
         plane.receiveShadows = true; 
 
-        console.log(scene);
+        log(scene);
     
         plane.position = scene.getMeshByName("ExitDoor").getAbsolutePosition();
         plane.scaling.x = 0.1;

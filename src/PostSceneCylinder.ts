@@ -1,6 +1,6 @@
 import { CYLINDER_MESH_NAME } from "./Constants";
 // import HighlightBehavior from "./HandDragBehavior";
-import { getChildMeshByName, resetRotation } from "./utils";
+import { getChildMeshByName, log, resetRotation } from "./utils";
 import { Scene } from "@babylonjs/core/scene";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -145,7 +145,7 @@ export class PostSceneCylinder extends Interact {
             
             this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
                 if (this.fireExtinguisher.fireExtinguished) {
-                    console.log("Here!!!");
+                    log("Here!!!");
                     super.showFailureScreen();
                     sop.resetSOP();
                     failBeaker = false;

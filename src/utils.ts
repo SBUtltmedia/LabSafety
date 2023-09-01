@@ -16,6 +16,12 @@ export function resetPosition(cylinder) {
     cylinder.position.z = 0;
 }
 
+export function log(...data: any[]) {
+    if (import.meta.env.DEV) {
+        console.log(...data);
+    }
+}
+
 
 
 

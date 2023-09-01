@@ -2,6 +2,7 @@ import { Color3, PointerDragBehavior, StandardMaterial, Vector3, WebXRDefaultExp
 import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Cylinder } from "./Cylinder";
+import { log } from "./utils";
 // import '@babylonjs/core/Materials/Node/Blocks';
 
 export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinders: Array<Cylinder>) {
@@ -51,9 +52,9 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             
             // xrCamera.pointerSelection.detach();
                 addHandModels= (webXrInputSource) => {
-                    console.log(webXrInputSource)
+                    log(webXrInputSource)
                 let handedness=webXrInputSource.inputSource.handedness;
-                console.log(models[handedness])
+                log(models[handedness])
                 let controllerMesh = models[handedness].parent.parent;
                 
                 models[handedness].isPickable = false;
@@ -116,10 +117,10 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
             let vrButton = document.getElementsByClassName("babylonVRicon")[0];
 
             vrButton.addEventListener("click", (e) => {
-              console.log("hi", e);
+              log("hi", e);
               var context = new AudioContext();
               context.resume().then(() => {
-                console.log('Playback resumed successfully');
+                log('Playback resumed successfully');
               });        
             });
 

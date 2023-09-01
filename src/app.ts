@@ -11,14 +11,10 @@ import "@babylonjs/core/Collisions/collisionCoordinator"; // To enable collision
 import "@babylonjs/core/Audio/audioSceneComponent";
 
 import { SceneManager } from "./SceneManager";
-
-
-// console.log = () => { };
+import { log } from "./utils";
 
 if (import.meta.env.DEV) {
   console.log("Running in development mode");
-} else if (import.meta.env.PROD) {
-  console.log("Running in production mode");
 }
 
 export class App {
@@ -33,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let splash = document.querySelector("div.splash");
   splash.addEventListener("click", () => {
     splash.classList.add("hide")
-    console.log("Click")
+    log("Click")
   })
 }, false);
 

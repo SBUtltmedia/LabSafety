@@ -13,6 +13,7 @@ import {
     AbstractMesh,
 } from "@babylonjs/core";
 import { sop } from "./Constants";
+import { log } from "./utils";
 
 export class FireCabinet {
     doorMesh: AbstractMesh;
@@ -28,11 +29,11 @@ export class FireCabinet {
         //     width: 0.05,
         // });
 
-        console.log(room[0]);
+        log(room[0]);
 
         this.scene = room[0].getScene();
 
-        console.log(this.scene);
+        log(this.scene);
 
         let cabinet = room.find((curMesh) => curMesh.name === "FireExtinguisherCabinet");
 
@@ -113,7 +114,7 @@ export class FireCabinet {
                 this.animating = true;
                 let currentAnimation;
 
-                console.log("Click!");
+                log("Click!");
 
                 if (this.state === true) {
                     // if the door is closed, then play the open animation
