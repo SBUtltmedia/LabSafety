@@ -14,6 +14,7 @@ export const ROTATION_RATE = 0.1;  // velocity factor
 export const MAX_POURING_DISTANCE = 0.5;
 export const TIME_UNTIL_FADE = 50;  // milliseconds
 export const NUMBER_OF_CYLINDERS = 3
+export const MAX_DISPLACEMENT_PER_FRAME = 0.12;  // If the camera is displaced by more than this in a single frame, the camera won't move at all. Fixes the jumping problem caused by some collisions.
 
 export const FAIL_SOUND_PATH = `${rootPath}sound/mi_explosion_03_hpx.mp3`;
 export const SUCCESS_SOUND_PATH = `${rootPath}sound/ding-idea-40142.mp3`;

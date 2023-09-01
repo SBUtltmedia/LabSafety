@@ -10,7 +10,7 @@ import { GUIManager } from "./GUIManager";
 import { createClipboard } from "./LoadClipboard";
 import SOP from "./SOP";
 import { SoundManager } from "./SoundManager";
-import { rootPath } from "./Constants";
+import { MAX_DISPLACEMENT_PER_FRAME, rootPath } from "./Constants";
 import { CustomScene } from "./CustomScene";
 import { FireExtinguisher } from "./FireExtinguisher";
 import { Fire } from "./Fire";
@@ -150,6 +150,17 @@ export class SceneManager {
                     -1.5
                   );
                   camera.rotation = new Vector3(Math.PI / 8, 0, 0);
+
+                  let cameraPosition = camera.position.clone();
+                  scene.onBeforeRenderObservable.add(() => {
+                    const displacementVector = camera.position.subtract(cameraPosition);
+                    const displacementLength = displacementVector.length();
+                    if (displacementLength > MAX_DISPLACEMENT_PER_FRAME) {
+                      // Reduce the length of the jump from displacementLength to 0.01 to get the player "unstuck"
+                      camera.position = cameraPosition.addInPlace(displacementVector.scale(0.01/displacementLength));
+                    }
+                    cameraPosition = camera.position.clone();
+                  });
                 }
               }
             }
