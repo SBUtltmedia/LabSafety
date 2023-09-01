@@ -15,6 +15,12 @@ import { SceneManager } from "./SceneManager";
 
 // console.log = () => { };
 
+if (import.meta.env.DEV) {
+  console.log("Running in development mode");
+} else if (import.meta.env.PROD) {
+  console.log("Running in production mode");
+}
+
 export class App {
   constructor() {
     let sceneManager: SceneManager = new SceneManager();
