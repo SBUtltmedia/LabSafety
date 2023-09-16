@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ESNext",
     "lib": [
-      "dom",
-      "es6"
+      "DOM",
+      "ESNext",
+      "DOM.Iterable"
     ],
     "useDefineForClassFields": true,
     "module": "ESNext",
     "rootDir": "src",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "noResolve": false,
     "sourceMap": true,
@@ -16,8 +17,8 @@
     "preserveConstEnums": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true

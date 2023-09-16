@@ -9,16 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@babylonjs/havok": "^1.0.1",
-    "babylonjs": "^6.0.0",
-    "handlebars": "^4.7.7"
+    "@babylonjs/core": "6.21.0",
+    "@babylonjs/havok": "1.1.4",
+    "handlebars": "4.7.8"
   },
   "devDependencies": {
-    "@babylonjs/core": "^6.0.0",
-    "@babylonjs/inspector": "^6.0.0",
-    "@vitejs/plugin-vue": "^3.2.0",
-    "typescript": "^4.6.4",
-    "vite": "^3.2.3",
-    "vite-plugin-mkcert": "^1.15.0"
+    "@babylonjs/inspector": "6.21.0",
+    "typescript": "5.2.2",
+    "vite": "4.4.9",
+    "vite-plugin-mkcert": "1.16.0"
   }
 }
