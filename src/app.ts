@@ -11,27 +11,23 @@ import { SceneManager } from "./SceneManager";
 import { log } from "./utils";
 
 if (import.meta.env.DEV) {
-  console.log("Running in development mode");
-  import("@babylonjs/core/Debug/debugLayer");
-  import("@babylonjs/inspector");
+    console.log("Running in development mode");
 }
 
 export class App {
-  constructor() {
-    let sceneManager: SceneManager = new SceneManager();
-    sceneManager.createSceneOne();
-  }
+    constructor() {
+        let sceneManager: SceneManager = new SceneManager();
+        sceneManager.createSceneOne();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-
-  let splash = document.querySelector("div.splash");
-  splash.addEventListener("click", () => {
-    splash.classList.add("hide")
-    log("Click")
-  })
+    let splash = document.querySelector("div.splash");
+    splash.addEventListener("click", () => {
+        splash.classList.add("hide")
+        log("Click")
+  });
 }, false);
 
 
 new App();
-

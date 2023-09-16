@@ -8,6 +8,8 @@ import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { XR } from "./XR";
 import { FireExtinguisher } from "./FireExtinguisher";
+import { setUpCamera } from "./setUpCamera";
+import { setUpScene } from "./setUpScene";
 
 export class CustomScene {
     models: any
@@ -76,32 +78,23 @@ export class CustomScene {
           const engine = new Engine(canvas, true, { stencil: true });
           const scene = new Scene(engine);
                 
-          // scene.debugLayer.show();
-          //scene.gravity.y = -0.01
-          scene.collisionsEnabled = true;
+          setUpScene(scene, true);
+          
           window.addEventListener("resize", function () {
             engine.resize();
           });
-          // checkIfDebug(scene);
+
           const camera = new UniversalCamera(
             "camera",
             new Vector3(0, 1, -1.134),
             scene
           );
-          //camera.cameraDirection = new Vector3(0.1, 0.1, 0.1);
-          camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
+          
+          setUpCamera(camera);
+          scene.activeCamera = camera;
+          scene.activeCamera.attachControl(canvas, true);
     
-          camera.attachControl(canvas, true);
-          camera.applyGravity = true;
-          camera.minZ = 0.0; // To prevent clipping through near meshes
-          camera.speed = 0;
-          camera.checkCollisions = true;
-          camera.keysUp.push(87); // W
-          camera.keysDown.push(83); // S
-          camera.keysLeft.push(65); // A
-          camera.keysRight.push(68); // D
-    
-          var light1: HemisphericLight = new HemisphericLight(
+          const light1 = new HemisphericLight(
             "light1",
             new Vector3(1, 1, 0),
             scene
