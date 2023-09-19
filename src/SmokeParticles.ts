@@ -11,8 +11,8 @@ export class SmokeParticles {
         let particleSystem;
 
         if (GPUParticleSystem.IsSupported) {
-            particleSystem = new GPUParticleSystem("particles", { capacity:10000 }, scene);
-            particleSystem.activeParticleCount = 200000;
+            particleSystem = new GPUParticleSystem("particles", { capacity:1000 }, scene);
+            particleSystem.activeParticleCount = 2000;
         } else {
             particleSystem = new ParticleSystem("particles", 2500 , scene); 
         }

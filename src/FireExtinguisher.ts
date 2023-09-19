@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3, WebXRDefaultExperience } from "@babylonjs/core";
+import { AbstractMesh, Observer, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3, WebXRDefaultExperience, PointerEventTypes, PointerInfo } from "@babylonjs/core";
 import { TIME_UNTIL_FADE, sop } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
@@ -9,7 +9,7 @@ export class FireExtinguisher {
     scene: Scene
     mesh: Mesh
     base: Mesh
-    startPos: Vector3 = new Vector3(1.89, 1, -0.95)
+    startPos: Vector3 = new Vector3(3.8, 1.505, -2.46);
     // startPos: Vector3 = new Vector3(0,1,0)
 
     smokeSystem: SmokeParticles
@@ -17,6 +17,11 @@ export class FireExtinguisher {
     fireExtinguished: boolean = false
     pointerDragBehav: PointerDragBehavior
     xrCamera: WebXRDefaultExperience
+    onPointerDownObserver: Observer<PointerInfo>;
+    childMeshes: AbstractMesh[]
+
+    isHolding = false;
+    isRunning = false;
 
     constructor() {
 
@@ -32,17 +37,17 @@ export class FireExtinguisher {
 
         log(this.mesh);
 
-        this.addDragBehavior();
-
-        let meshes = this.getChildMeshes(this.mesh);
-
         this.smokeSystem = new SmokeParticles(this.mesh);
 
         this.stopSmoke();
+        this.childMeshes = this.getChildMeshes(this.mesh);
+
+        this.onPointerDownObserver = this.scene.onPointerObservable.add(
+            this.flyToCamera
+        );
         // this.startSmoke();
     }
 
-    // need to do a depth-first-search to get all the child meshes and grandchild meshes...
     getChildMeshes(mesh: Mesh) {
         let childMeshes: Mesh[];
         childMeshes = mesh.getChildMeshes();
@@ -63,66 +68,45 @@ export class FireExtinguisher {
         }
 
         return childMeshes;
-    }
+    }    
 
-    addDragBehavior() {
-        let pointerDragBehavior = new PointerDragBehavior({
-            dragPlaneNormal: new Vector3(0, 1, 0), //What limits our axis
-        });
-        pointerDragBehavior.useObjectOrientationForDragging = false;
-
-        let timeout, releaseTimeout;
-
-        pointerDragBehavior.onDragStartObservable.add(() => {
-            log("Start!");
-            // if its closed then drop: true = closed, false = open
-            if (!this.fireCabinetInstance.state) {
+    flyToCamera = (
+        pointerInfo = {
+            type: PointerEventTypes.POINTERDOWN,
+            pickInfo: { pickedMesh: this.mesh },
+        }
+    ) => {
+        
+        if (pointerInfo.type === PointerEventTypes.POINTERDOWN && !this.isHolding) {
+            const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+            console.log(this.isHolding);
+            if (pickedMesh.isDescendantOf(this.mesh)) {
+                log("CLICKCKCKC");
+                this.isHolding = true;
+                console.log(this.scene);
                 let camera = this.scene.activeCamera;
-                setTimeout(() => {
-                    //@ts-ignore
-                    camera.rotation.y *= -1;
-                    this.xrCamera.baseExperience.camera.rotation.y *= -1;
-                }, 500);
-                timeout = setTimeout(() => {
-                    //@ts-ignore
-                    this.startSmoke();
-                }, 1000);
+                this.mesh.position = camera.position;
+                this.mesh.parent = camera;
+
+                this.mesh.rotation = new Vector3(0,120 * Math.PI / 180,0);
+
+                this.mesh.position.x = 0.4;
+                this.mesh.position.y = -0.4;
+                this.mesh.position.z = 1.1;
             }
-        })
-
-        pointerDragBehavior.onDragObservable.add(() => {
-            let wallsAndFloor = this.scene.getMeshByName("WallsandFloor");
-
-            log(this.fireCabinetInstance.state);
-
-            // if the extinguisher is inside the room, it intersects WallsAndFloor
-            if (this.fireCabinetInstance.state && this.mesh.intersectsMesh(wallsAndFloor) && this.mesh.isPickable) {
-                pointerDragBehavior.releaseDrag();
+        } else if (pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
+            if (!this.isRunning) {
+                this.startSmoke();
+                this.isRunning = true;
             }
-
-            if (sop.failed) {
-                releaseTimeout = setTimeout(() => {
-                    this.scene.getMeshByName("fireplane").isVisible = false;
-                    this.fireExtinguished = true;                    
-                    pointerDragBehavior.releaseDrag();
-                }, 5000);
+        } else {
+            if (this.isRunning) {
+                this.stopSmoke();
+                this.isRunning = false;
             }
-        });
-
-        pointerDragBehavior.onDragEndObservable.add(() => {
-            if (timeout) {
-                clearTimeout(timeout);
-            }
-            this.stopSmoke();
-            
-            this.mesh.position.x = 1.89
-            this.mesh.position.y = 1;
-            this.mesh.position.z = -0.95
-        })
-
-        this.mesh.addBehavior(pointerDragBehavior);
-        this.pointerDragBehav = pointerDragBehavior;
+        }
     }
+
 
     startSmoke() {
         this.smokeSystem.start();

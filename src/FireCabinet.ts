@@ -104,7 +104,7 @@ export class FireCabinet {
     ) => {
         if (pointerInfo.type === PointerEventTypes.POINTERDOWN && sop.failed) {
             const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-
+            console.log(this.animating);
             if (
                 !this.animating &&
                 pickedMesh &&

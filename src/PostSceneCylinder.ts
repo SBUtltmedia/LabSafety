@@ -143,15 +143,15 @@ export class PostSceneCylinder extends Interact {
             let rotationFlag = false;
             let hit = "resetRotateAroundZleft";
             
-            this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
-                if (this.fireExtinguisher.fireExtinguished) {
-                    log("Here!!!");
-                    super.showFailureScreen();
-                    sop.resetSOP();
-                    failBeaker = false;
-                    this.fireExtinguisher.fireExtinguished = false;                        
-                }                
-            })
+            // this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
+            //     if (this.fireExtinguisher.fireExtinguished) {
+            //         log("Here!!!");
+            //         super.showFailureScreen();
+            //         sop.resetSOP();
+            //         failBeaker = false;
+            //         this.fireExtinguisher.fireExtinguished = false;                        
+            //     }                
+            // })
 
             let rotateTimeout;
 
