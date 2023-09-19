@@ -1,10 +1,15 @@
-import { BoxParticleEmitter, Color3, Color4, GPUParticleSystem, Mesh, MeshBuilder, ParticleSystem, SolidParticleSystem, Texture, Vector3 } from "@babylonjs/core";
+import { BoxParticleEmitter, Color3, Color4, GPUParticleSystem,  Mesh,  MeshBuilder, ParticleSystem, SolidParticleSystem, Texture, Vector3 } from "@babylonjs/core";
 
 export class SmokeParticles {
     particleSystem: ParticleSystem
 
     constructor(sourceMesh: Mesh) {
         let scene = sourceMesh.getScene();
+
+        let camera = scene.activeCamera;
+
+
+        const lastPos = camera.getDirection(new Vector3(0,1,0));
 
         // var particleSystem = new ParticleSystem("particles", 5000, scene);
 
@@ -23,6 +28,7 @@ export class SmokeParticles {
     
         particleSystem.emitRate = 200;
         particleSystem.particleEmitterType = new BoxParticleEmitter();
+
 
         particleSystem.gravity = new Vector3(-200, 0, 0);
 

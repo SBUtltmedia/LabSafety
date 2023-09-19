@@ -85,10 +85,8 @@ export class FireExtinguisher {
                 this.isHolding = true;
                 console.log(this.scene);
                 let camera = this.scene.activeCamera;
-                this.mesh.position = camera.position;
                 this.mesh.parent = camera;
-
-                this.mesh.rotation = new Vector3(0,120 * Math.PI / 180,0);
+                this.mesh.rotation = new Vector3(0, 260 * Math.PI / 180, 0);
 
                 this.mesh.position.x = 0.4;
                 this.mesh.position.y = -0.4;

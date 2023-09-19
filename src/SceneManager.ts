@@ -146,8 +146,8 @@ export class SceneManager {
                   let fire = new Fire(scene);                  
                   camera.position = new Vector3(
                     tableBoundingBox.center.x - 0.5,
-                    tableBoundingBox.center.y * 2 + 1.75,
-                    -1.5
+                    1.6,
+                    -2.5
                   );
                   camera.rotation = new Vector3(Math.PI / 8, 0, 0);
 
