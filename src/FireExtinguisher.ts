@@ -81,7 +81,6 @@ export class FireExtinguisher {
             const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
             console.log(this.isHolding);
             if (pickedMesh.isDescendantOf(this.mesh)) {
-                log("CLICKCKCKC");
                 this.isHolding = true;
                 console.log(this.scene);
                 let camera = this.scene.activeCamera;
@@ -93,6 +92,14 @@ export class FireExtinguisher {
                 this.mesh.position.z = 1.1;
             }
         } else if (pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
+            let lastPos = new Vector3(0,0,0);
+
+            this.scene.onBeforeRenderObservable.add(() => {
+                lastPos = this.mesh.forward;
+                this.smokeSystem.particleSystem.gravity = new Vector3(0, 0, lastPos.z * 100);
+            })
+
+
             if (!this.isRunning) {
                 this.startSmoke();
                 this.isRunning = true;

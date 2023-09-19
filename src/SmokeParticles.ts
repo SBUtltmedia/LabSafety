@@ -2,14 +2,14 @@ import { BoxParticleEmitter, Color3, Color4, GPUParticleSystem,  Mesh,  MeshBuil
 
 export class SmokeParticles {
     particleSystem: ParticleSystem
+    gravity: Vector3;
 
     constructor(sourceMesh: Mesh) {
         let scene = sourceMesh.getScene();
-
         let camera = scene.activeCamera;
 
+        this.gravity = Vector3.Zero();
 
-        const lastPos = camera.getDirection(new Vector3(0,1,0));
 
         // var particleSystem = new ParticleSystem("particles", 5000, scene);
 
@@ -29,8 +29,7 @@ export class SmokeParticles {
         particleSystem.emitRate = 200;
         particleSystem.particleEmitterType = new BoxParticleEmitter();
 
-
-        particleSystem.gravity = new Vector3(-200, 0, 0);
+        particleSystem.gravity = this.gravity;
 
         // how long before the particles dispose?
         particleSystem.minLifeTime = 1;

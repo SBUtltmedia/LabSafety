@@ -59,6 +59,7 @@ export class Cylinder {
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
 
         this.name = name;
+    
 
         this.moveFlag = true;
         this.rotateEnd = true;
