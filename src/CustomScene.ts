@@ -2,12 +2,14 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { GUIManager } from "./GUIManager";;
 import { SoundManager } from "./SoundManager";
 import { Scene, UniversalCamera, Vector3,
-        HemisphericLight, SceneLoader, Color3, Light, WebXRDefaultExperience, Color4 } from "@babylonjs/core";
+        HemisphericLight, RayHelper, SceneLoader, Color3, Light, WebXRDefaultExperience, Color4, Ray } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { XR } from "./XR";
 import { FireExtinguisher } from "./FireExtinguisher";
+import { AdvancedDynamicTexture, Image } from "@babylonjs/gui";
+import { log } from "./utils";
 
 export class CustomScene {
     models: any
@@ -75,6 +77,7 @@ export class CustomScene {
           const canvas = document.getElementById("canvas") as HTMLCanvasElement;
           const engine = new Engine(canvas, true, { stencil: true });
           const scene = new Scene(engine);
+
                 
           // scene.debugLayer.show();
           //scene.gravity.y = -0.01
@@ -94,18 +97,46 @@ export class CustomScene {
           camera.attachControl(canvas, true);
           camera.applyGravity = true;
           camera.minZ = 0.0; // To prevent clipping through near meshes
-          camera.speed = 0;
+          camera.speed = 1;
           camera.checkCollisions = true;
           camera.keysUp.push(87); // W
           camera.keysDown.push(83); // S
           camera.keysLeft.push(65); // A
           camera.keysRight.push(68); // D
+
+          var isLocked = false;
+
+          let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+          let crossHair = new Image("crosshair", "images/crosshair.png");
+          crossHair.width = "200px";
+          crossHair.height = "200px";
+          crossHair.alpha = .5
+
+          advancedTexture.addControl(crossHair);
+
+          let locked = false;
+
+          canvas.addEventListener("keydown", (event) => {
+            if (event.keyCode === 27) { // escape
+              locked = false;
+            }
+          })
+	
+          scene.onPointerDown = function (evt, pickRes) {
+            log(locked);  
+            if (!locked) {
+              scene.getEngine().enterPointerlock();
+              locked = true;
+            }            
+          };
+      
     
           var light1: HemisphericLight = new HemisphericLight(
             "light1",
             new Vector3(1, 1, 0),
             scene
           );
+          
           light1.intensity = 0;
           Promise.all(
             this.models.map((model) => {
@@ -215,10 +246,10 @@ export class CustomScene {
             clipboard.addBehavior(flyToCamera);
           }
           this.guiManager = new GUIManager(scene);
-          this.guiManager.createPromptWithButton(
-            "Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!",
-            xrCamera
-          );
+          // this.guiManager.createPromptWithButton(
+          //   "Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!",
+          //   xrCamera
+          // );
     
           xr.guiManager = this.guiManager;
     

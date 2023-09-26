@@ -17,8 +17,8 @@ import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDra
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
-import { getChildMeshByName, resetPosition, resetRotation } from "./utils";
-import { ParticleSystem, Texture } from "@babylonjs/core";
+import { getChildMeshByName, goToCameraFPS, resetPosition, resetRotation } from "./utils";
+import { Camera, ParticleSystem, PointerEventTypes, PointerInfo, Ray, RayHelper, Texture } from "@babylonjs/core";
 import { Hand } from "./Hand";
 import { CreateEllipsoidLines } from "./CreateEllipsoidLines";
 /**
@@ -55,6 +55,8 @@ export class Cylinder {
     rotateEnd: boolean
     startRotation: Vector3;
     dropped: boolean;
+    isHolding = false;
+
 
     constructor(cylinderMesh: Mesh, i: number, name: string, color: Color3) {
 
@@ -236,7 +238,9 @@ export class Cylinder {
 
         this.setOpacity(this.startOpacity);
 
-        this.addDragCollision();
+        // this.addDragCollision();
+        this.addClickBehavior();
+
     }
 
     startParticles() {
@@ -271,6 +275,21 @@ export class Cylinder {
         }
     }
 
+    addClickBehavior() {
+        this.scene.onPointerObservable.add((eventData: PointerInfo) => {
+            if (eventData.type === PointerEventTypes.POINTERDOWN && !this.isHolding) {
+                const pickedRes = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay(800));
+                let pickedMesh = pickedRes.pickedMesh;
+
+                if (pickedMesh === this.mesh || pickedMesh.isDescendantOf(this.mesh)) {
+                    this.isHolding = true;
+                    this.mesh.parent = this.scene.activeCamera;
+                    goToCameraFPS(this.mesh, new Vector3(0, 0.1, 0));
+                }
+            }
+        })
+    }
+
     addDragCollision() {
         let thisInterval: number;
         let pointerDragBehavior = new PointerDragBehavior({
@@ -282,7 +301,6 @@ export class Cylinder {
         pointerDragBehavior.moveAttached = false;
 
         pointerDragBehavior.onDragObservable.add((eventData) => {
-
             if (eventData.delta != Vector3.Zero() && this.moveFlag && this.mesh.isPickable) {
                 this.mesh.moveWithCollisions(eventData.delta);
             }

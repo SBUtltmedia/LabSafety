@@ -1,8 +1,8 @@
-import { AbstractMesh, Observer, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3, WebXRDefaultExperience, PointerEventTypes, PointerInfo } from "@babylonjs/core";
+import { AbstractMesh, Observer, Mesh, Animation, PointerDragBehavior, Scene, TransformNode, Vector3, WebXRDefaultExperience, PointerEventTypes, PointerInfo, Camera } from "@babylonjs/core";
 import { TIME_UNTIL_FADE, sop } from "./Constants";
 import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
-import { log } from "./utils";
+import { goToCameraFPS, log } from "./utils";
 
 export class FireExtinguisher {
     modelTransform: TransformNode
@@ -78,8 +78,10 @@ export class FireExtinguisher {
     ) => {
         
         if (pointerInfo.type === PointerEventTypes.POINTERDOWN && !this.isHolding) {
-            const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-            console.log(this.isHolding);
+            
+            const pickedRes = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay(800));
+            let pickedMesh = pickedRes.pickedMesh;
+            // console.log(this.isHolding);
             if (pickedMesh.isDescendantOf(this.mesh)) {
                 this.isHolding = true;
                 console.log(this.scene);
@@ -87,9 +89,8 @@ export class FireExtinguisher {
                 this.mesh.parent = camera;
                 this.mesh.rotation = new Vector3(0, 260 * Math.PI / 180, 0);
 
-                this.mesh.position.x = 0.4;
-                this.mesh.position.y = -0.4;
-                this.mesh.position.z = 1.1;
+                goToCameraFPS(this.mesh);
+
             }
         } else if (pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
             let lastPos = new Vector3(0,0,0);

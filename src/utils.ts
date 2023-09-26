@@ -1,4 +1,4 @@
-import { AbstractMesh, Nullable, Scene } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Nullable, Scene, Vector3 } from "@babylonjs/core";
 
 export function getChildMeshByName(mesh: AbstractMesh, name: string): Nullable<AbstractMesh> {
     return mesh.getChildMeshes().find(mesh => mesh.name === name) || null;
@@ -20,6 +20,12 @@ export function log(...data: any[]) {
     if (import.meta.env.DEV) {
         console.log(...data);
     }
+}
+
+export function goToCameraFPS(mesh: Mesh, offset: Vector3 = Vector3.Zero()) {
+    mesh.position.x = 0.4 + offset.x;
+    mesh.position.y = -0.4 + offset.y;
+    mesh.position.z = 1.1 + offset.z;    
 }
 
 
