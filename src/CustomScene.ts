@@ -20,12 +20,14 @@ export class CustomScene {
     loadedSounds: any
     scene: Scene
     fireExtinguisher: FireExtinguisher
+    divFps: Element
 
     constructor(models: any, cylinders: any, soundObjects: any, fireExtinguisher: FireExtinguisher) {
       this.models = models;
       this.cylinders = cylinders;
       this.soundObjects = soundObjects;
       this.fireExtinguisher = fireExtinguisher;
+      this.divFps = document.getElementById("fps");
     }
 
     renderScene() {
@@ -97,7 +99,6 @@ export class CustomScene {
           camera.attachControl(canvas, true);
           camera.applyGravity = true;
           camera.minZ = 0.0; // To prevent clipping through near meshes
-          camera.speed = 1;
           camera.checkCollisions = true;
           camera.keysUp.push(87); // W
           camera.keysDown.push(83); // S
@@ -136,7 +137,7 @@ export class CustomScene {
             new Vector3(1, 1, 0),
             scene
           );
-          
+
           light1.intensity = 0;
           Promise.all(
             this.models.map((model) => {
@@ -175,6 +176,7 @@ export class CustomScene {
           // run the main render loop
           engine.runRenderLoop(() => {
             scene.render();
+            this.divFps.innerHTML = engine.getFps().toFixed() + " fps";
           });
         });
 
@@ -193,7 +195,7 @@ export class CustomScene {
         let xrCamera: WebXRDefaultExperience;
         this.fireExtinguisher.xrCamera = xrCamera;
         //light.intensity = 1;
-        camera.speed = 0.16;
+        camera.speed = 100;
         let cameraFadeIn = setInterval(() => {
           if (light.intensity >= 1) {
             clearInterval(cameraFadeIn);

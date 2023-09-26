@@ -119,184 +119,184 @@ export class PostSceneCylinder extends Interact {
 
         let prevHit;
 
-        for (let i = 0; i < cylinderLetters.length; i++) {
+        // for (let i = 0; i < cylinderLetters.length; i++) {
 
-            const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
-            let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
+        //     const cylinder = this.scene.getMeshByName(`pivot-Cylinder-${cylinderLetters[i]}`);
+        //     let cylinderInstance = super.getCylinderInstanceFromMesh(cylinder);
 
-            const gotSomething = cylinder.getBehaviorByName('PointerDrag');
+        //     const gotSomething = cylinder.getBehaviorByName('PointerDrag');
 
 
 
-            let filteredMeshes = [];
-            for (let cylMesh of allCylinders) {
-                if (cylMesh != cylinder) {
-                    filteredMeshes.push(cylMesh);
-                }
-            }
+        //     let filteredMeshes = [];
+        //     for (let cylMesh of allCylinders) {
+        //         if (cylMesh != cylinder) {
+        //             filteredMeshes.push(cylMesh);
+        //         }
+        //     }
 
-            let failBeaker: boolean = false
-            let samePour: boolean = false;            
+        //     let failBeaker: boolean = false
+        //     let samePour: boolean = false;            
 
-            //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
-            let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
-            let rotationFlag = false;
-            let hit = "resetRotateAroundZleft";
+        //     //TODO: FIX THIS PROBLEM! IT DETECTS TOO EARLY
+        //     let sourceCylinder = getChildMeshByName(cylinder, CYLINDER_MESH_NAME);
+        //     let rotationFlag = false;
+        //     let hit = "resetRotateAroundZleft";
             
-            // this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
-            //     if (this.fireExtinguisher.fireExtinguished) {
-            //         log("Here!!!");
-            //         super.showFailureScreen();
-            //         sop.resetSOP();
-            //         failBeaker = false;
-            //         this.fireExtinguisher.fireExtinguished = false;                        
-            //     }                
-            // })
+        //     // this.fireExtinguisher.pointerDragBehav.onDragEndObservable.add(() => {
+        //     //     if (this.fireExtinguisher.fireExtinguished) {
+        //     //         log("Here!!!");
+        //     //         super.showFailureScreen();
+        //     //         sop.resetSOP();
+        //     //         failBeaker = false;
+        //     //         this.fireExtinguisher.fireExtinguished = false;                        
+        //     //     }                
+        //     // })
 
-            let rotateTimeout;
+        //     let rotateTimeout;
 
-            if (cylinder.isPickable) {
-                (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
+        //     if (cylinder.isPickable) {
+        //         // (gotSomething as PointerDragBehavior).onDragObservable.add(() => {
 
-                    // Engine.audioEngine.unlock();
-                    // Engine.audioEngine.audioContext.resume();
+        //         //     // Engine.audioEngine.unlock();
+        //         //     // Engine.audioEngine.audioContext.resume();
 
-                    let doneSOP = false;
-                    let hitDetected = false;
-                    resetRotation(cylinder);
-                    let cylinderHitInstance;
-                    const cylinderHitDetected = super.intersectCylinder(cylinder);
+        //         //     let doneSOP = false;
+        //         //     let hitDetected = false;
+        //         //     resetRotation(cylinder);
+        //         //     let cylinderHitInstance;
+        //         //     const cylinderHitDetected = super.intersectCylinder(cylinder);
 
-                    if (cylinderHitDetected) {                        
-                        cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
-                        prevHit = cylinderHitInstance;
+        //         //     if (cylinderHitDetected) {                        
+        //         //         cylinderHitInstance = super.getCylinderInstanceFromMesh(cylinderHitDetected)
+        //         //         prevHit = cylinderHitInstance;
 
-                        super.highlightCylinders(cylinderInstance, cylinderHitInstance);
+        //         //         super.highlightCylinders(cylinderInstance, cylinderHitInstance);
 
-                        hitDetected = true;
+        //         //         hitDetected = true;
 
-                        let to = cylinderHitDetected.name.split('-')[2];
-                        let from = cylinder.name.split('-')[2];
-                        let fromAndTo = `${from}to${to}`
+        //         //         let to = cylinderHitDetected.name.split('-')[2];
+        //         //         let from = cylinder.name.split('-')[2];
+        //         //         let fromAndTo = `${from}to${to}`
 
-                        if (!rotationFlag) {
-                            rotationFlag = true;
-                            rotateTimeout = setTimeout(() => {
-                                super.RotateCylinders(cylinderInstance, cylinderHitInstance);
-                                let to = cylinderHitDetected.name.split('-')[2];
-                                let from = cylinder.name.split('-')[2];
-                                let fromAndTo = `${from}to${to}`;                             
+        //         //         if (!rotationFlag) {
+        //         //             rotationFlag = true;
+        //         //             rotateTimeout = setTimeout(() => {
+        //         //                 super.RotateCylinders(cylinderInstance, cylinderHitInstance);
+        //         //                 let to = cylinderHitDetected.name.split('-')[2];
+        //         //                 let from = cylinder.name.split('-')[2];
+        //         //                 let fromAndTo = `${from}to${to}`;                             
 
-                                if (sop.tasks[sop.currentState].label === fromAndTo) {
-                                    samePour = true;
-                                    if (sop.tasks[sop.currentState].next === 'complete') {
-                                        // for (let cylinderInstance of super.cylinderInstances) {
-                                        //     cylinderInstance.resetProperties();
-                                       // }   
-                                        doneSOP = true;
+        //         //                 if (sop.tasks[sop.currentState].label === fromAndTo) {
+        //         //                     samePour = true;
+        //         //                     if (sop.tasks[sop.currentState].next === 'complete') {
+        //         //                         // for (let cylinderInstance of super.cylinderInstances) {
+        //         //                         //     cylinderInstance.resetProperties();
+        //         //                        // }   
+        //         //                         doneSOP = true;
 
         
-                                        setTimeout(() => {
-                                            super.playSuccess();
-                                        }, 500);
+        //         //                         setTimeout(() => {
+        //         //                             super.playSuccess();
+        //         //                         }, 500);
         
-                                        // play the sound after the animation is done
-                                        setTimeout(() => {
-                                            cylinderInstance.fadeAndRespawn();
-                                        }, 1500);
+        //         //                         // play the sound after the animation is done
+        //         //                         setTimeout(() => {
+        //         //                             cylinderInstance.fadeAndRespawn();
+        //         //                         }, 1500);
                                         
-                                        sop.resetSOP();
-                                        this.resetCylinders();
-                                        super.showFinishScreen();
+        //         //                         sop.resetSOP();
+        //         //                         this.resetCylinders();
+        //         //                         super.showFinishScreen();
                                         
                                         
-                                    } else {
-                                        sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
-                                        super.playDing();
-                                    }
-                                } else {
+        //         //                     } else {
+        //         //                         sop.currentState = sop.tasks.indexOf(sop.tasks.find((value,) => value.label == sop.tasks[sop.currentState].next));
+        //         //                         super.playDing();
+        //         //                     }
+        //         //                 } else {
 
-                                    if (!failBeaker && !samePour) {
+        //         //                     if (!failBeaker && !samePour) {
 
-                                        for (let cylinder of this.instances) {
-                                            cylinder.mesh.isPickable = false;
-                                            cylinder.moveFlag = false;
-                                        }
+        //         //                         for (let cylinder of this.instances) {
+        //         //                             cylinder.mesh.isPickable = false;
+        //         //                             cylinder.moveFlag = false;
+        //         //                         }
 
-                                        sop.failed = true;
+        //         //                         sop.failed = true;
         
-                                        cylinderHitInstance.showEffects(true);
-                                        setTimeout(() => {
-                                        super.playExplosion();
-                                        }, 800);
+        //         //                         cylinderHitInstance.showEffects(true);
+        //         //                         setTimeout(() => {
+        //         //                         super.playExplosion();
+        //         //                         }, 800);
         
-                                        setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
+        //         //                         setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
                                         
-                                        failBeaker = true;
+        //         //                         failBeaker = true;
                                     
-                                        setTimeout(() => {
-                                            (gotSomething as PointerDragBehavior).releaseDrag();
-                                            // super.showFailureScreen();
-                                            // sop.resetSOP();
-                                            // failBeaker = false;
-                                            this.scene.getMeshByName("fireplane").isVisible = true;
+        //         //                         setTimeout(() => {
+        //         //                             (gotSomething as PointerDragBehavior).releaseDrag();
+        //         //                             // super.showFailureScreen();
+        //         //                             // sop.resetSOP();
+        //         //                             // failBeaker = false;
+        //         //                             this.scene.getMeshByName("fireplane").isVisible = true;
 
-                                        }, 1500);
+        //         //                         }, 1500);
 
-                                    }
-                                }
+        //         //                     }
+        //         //                 }
 
-                                if (!doneSOP)
-                                    super.addColors(cylinderInstance, cylinderHitInstance);
+        //         //                 if (!doneSOP)
+        //         //                     super.addColors(cylinderInstance, cylinderHitInstance);
                                 
-                                if (cylinderHitDetected.position.x > cylinder.position.x) {
-                                    hit = "resetRotateAroundZright";
-                                }
-                            }, 700);
-                        }
-                    }
+        //         //                 if (cylinderHitDetected.position.x > cylinder.position.x) {
+        //         //                     hit = "resetRotateAroundZright";
+        //         //                 }
+        //         //             }, 700);
+        //         //         }
+        //         //     }
 
-                    if (hitDetected === false && cylinderInstance.rotateEnd) {
-                        cylinderInstance.highlight(false);
-                        if (prevHit) {
+        //         //     if (hitDetected === false && cylinderInstance.rotateEnd) {
+        //         //         cylinderInstance.highlight(false);
+        //         //         if (prevHit) {
 
-                            prevHit.highlight(false);
-                            prevHit = undefined;
-                            // prevHit = null;
-                        }
+        //         //             prevHit.highlight(false);
+        //         //             prevHit = undefined;
+        //         //             // prevHit = null;
+        //         //         }
                             
-                        if (rotateTimeout) {
-                            clearTimeout(rotateTimeout);
-                            rotateTimeout = null;
-                            samePour = false;
-                            rotationFlag = false;
-                        } else {
-                            samePour = false;
-                            if (rotationFlag) {
+        //         //         if (rotateTimeout) {
+        //         //             clearTimeout(rotateTimeout);
+        //         //             rotateTimeout = null;
+        //         //             samePour = false;
+        //         //             rotationFlag = false;
+        //         //         } else {
+        //         //             samePour = false;
+        //         //             if (rotationFlag) {
 
-                                rotationFlag = false;
-                                cylinderInstance.rotateAnimation(hit, null, true);
-                            }
-                        }
-                    }
-                });
-            }
-            (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
-                rotationFlag = false;
+        //         //                 rotationFlag = false;
+        //         //                 cylinderInstance.rotateAnimation(hit, null, true);
+        //         //             }
+        //         //         }
+        //         //     }
+        //         // });
+        //     }
+        //     // (gotSomething as PointerDragBehavior).onDragEndObservable.add(() => {
+        //     //     rotationFlag = false;
 
-                for (let singleMesh of filteredMeshes) {
-                    if (singleMesh === sourceCylinder) continue;
+        //     //     for (let singleMesh of filteredMeshes) {
+        //     //         if (singleMesh === sourceCylinder) continue;
 
-                    cylinderInstance.highlight(false);
-                    super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
+        //     //         cylinderInstance.highlight(false);
+        //     //         super.getCylinderInstanceFromMesh(singleMesh).highlight(false);
 
-                    if (sourceCylinder.intersectsMesh(singleMesh)) {
-                        cylinderInstance.rotateAnimation(hit);
-                        sourceCylinder.position.x = 0;
-                        sourceCylinder.position.y = 0;
-                    }
-                }
-            })
-        }
+        //     //         if (sourceCylinder.intersectsMesh(singleMesh)) {
+        //     //             cylinderInstance.rotateAnimation(hit);
+        //     //             sourceCylinder.position.x = 0;
+        //     //             sourceCylinder.position.y = 0;
+        //     //         }
+        //     //     }
+        //     // })
+        // }
     }
 }
