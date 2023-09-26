@@ -42,9 +42,9 @@ export class FireExtinguisher {
         this.stopSmoke();
         this.childMeshes = this.getChildMeshes(this.mesh);
 
-        // this.onPointerDownObserver = this.scene.onPointerObservable.add(
-        //     this.flyToCamera
-        // );
+        this.onPointerDownObserver = this.scene.onPointerObservable.add(
+            this.flyToCamera
+        );
         // this.startSmoke();
     }
 

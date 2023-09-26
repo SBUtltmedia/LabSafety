@@ -195,7 +195,7 @@ export class CustomScene {
         let xrCamera: WebXRDefaultExperience;
         this.fireExtinguisher.xrCamera = xrCamera;
         //light.intensity = 1;
-        camera.speed = 100;
+        camera.speed = 0.16;
         let cameraFadeIn = setInterval(() => {
           if (light.intensity >= 1) {
             clearInterval(cameraFadeIn);
