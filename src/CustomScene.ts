@@ -38,7 +38,6 @@ export class CustomScene {
             scene,
             this.cylinders,
             this.soundManager,
-            this.fireExtinguisher
           );
         });
       })
@@ -153,14 +152,13 @@ export class CustomScene {
         scene: Scene,
         cylinders: Array<Cylinder>,
         soundManager: SoundManager,
-        fireExtinguisher: FireExtinguisher
       ) {
     
         let camera = scene.getCameraByName("camera") as UniversalCamera;
     
         let light: Light = scene.getLightByName("light1");
         let xrCamera: WebXRDefaultExperience;
-        this.fireExtinguisher.xrCamera = xrCamera;
+
         //light.intensity = 1;
         camera.speed = 0.16;
         let cameraFadeIn = setInterval(() => {
@@ -191,6 +189,8 @@ export class CustomScene {
     
         xrCamera.pointerSelection.displayLaserPointer = false;
         xrCamera.pointerSelection.displaySelectionMesh = false;
+
+        this.fireExtinguisher.xrCamera = xrCamera;        
     
         window.addEventListener("keydown", (ev) => {
           // Shift+Ctrl+Alt+I
@@ -204,6 +204,8 @@ export class CustomScene {
             xrCamera.pointerSelection.displaySelectionMesh = displayPtr;
           }
         });
+
+        console.log(this.fireExtinguisher);
     
         let xr: XR = new XR(scene, xrCamera, null, cylinders, null, this.soundManager, this.fireExtinguisher);
     
@@ -221,6 +223,8 @@ export class CustomScene {
           );
     
           xr.guiManager = this.guiManager;
+
+          console.log(this.fireExtinguisher);
     
           xr.addHandModels = addHandModels;
     
@@ -230,13 +234,13 @@ export class CustomScene {
             this.guiManager,
             soundManager,
             xrCamera,
-            fireExtinguisher
+            this.fireExtinguisher
           );
           desktopScene.postSceneCylinder();
           var toggleControllers = xr.addWebXrBehaviors();
           toggleControllers();
           for(let cylinder of  cylinders){
-            cylinder.toggleControllers =toggleControllers;
+            cylinder.toggleControllers = toggleControllers;
           }
         });
     }

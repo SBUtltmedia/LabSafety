@@ -27,7 +27,8 @@ export abstract class Interact {
 
     constructor(scene, cylinderInstances: Array<Cylinder>, 
         guiManager: GUIManager, soundManager: SoundManager,
-         xrCamera: WebXRDefaultExperience, fireExtinguisher: FireExtinguisher) {
+         xrCamera: WebXRDefaultExperience,
+         fireExtinguisher: FireExtinguisher) {
 
         this.labels = ["A", "B", "C"];
         this.scene = scene;
@@ -36,6 +37,9 @@ export abstract class Interact {
         this.soundManager = soundManager;
         this.xrCamera = xrCamera;
         this.isRotating = false;
+
+        // console.log(fireExtinguisher);
+
         this.fireExtinguisher = fireExtinguisher;
     }
 
@@ -156,8 +160,6 @@ export abstract class Interact {
 
         this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
     }
-
-
 
     showFailureScreen() {
 

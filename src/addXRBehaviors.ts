@@ -2,7 +2,7 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Scene } from "@babylonjs/core/scene";
-import { Color3, Engine, Mesh, Nullable, WebXRDefaultExperience, WebXRState } from "@babylonjs/core";
+import { Color3, Engine, Mesh, Nullable, RayHelper, WebXRDefaultExperience, WebXRInputSource, WebXRState } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, log, resetPosition, resetRotation } from "./utils";
@@ -37,10 +37,10 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
         }
         return null;
     }
-    let controllerObservable = controller => {
+    let controllerObservable = (controller: WebXRInputSource) => {
         addHandModels(controller);
         controller.onMotionControllerInitObservable.add(
-            motionController => {
+            (motionController: MotionControllerWithGrab) => {
                 let currentHand = (motionController as MotionControllerWithGrab);
                 currentHand.handID = motionController.handedness;
 
@@ -78,6 +78,28 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                             xrCamera.pointerSelection.displaySelectionMesh = false;
                         }
                     }
+
+                    if (fireExtinguisher.isHolding && !fireExtinguisher.xrHolding) {
+                        fireExtinguisher.xrHolding = true;
+
+                        currentHandClass.handMesh.visibility = 0;
+                        let mesh = fireExtinguisher.mesh;
+
+                        
+                        // mesh.position = new Vector3(0,0,0);
+
+                        console.log(mesh.position);
+                        let handMesh = currentHandClass.handMesh.position;
+                        mesh.position = new Vector3(handMesh.x, handMesh.y - 0.3, handMesh.z)
+                        mesh.parent = controller.pointer;
+
+                        mesh.position.x = 0.04;
+                        mesh.position.y = -0.46;
+                        mesh.position.z = 0;
+
+                        mesh.rotation = new Vector3(0, -Math.PI/2, 0);
+                    }
+
                 })});
 
                 // console.log();

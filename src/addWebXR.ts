@@ -73,8 +73,6 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 handMaterial.diffuseColor = color_names[handedness];
                 models[handedness].material = handMaterial;
 
-
-
                 controllerMesh.parent = webXrInputSource.grip || webXrInputSource.pointer;
 
 

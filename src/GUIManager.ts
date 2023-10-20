@@ -36,17 +36,15 @@ export class GUIManager {
     }
 
     createPromptWithButton(text: string, xrCamera: WebXRDefaultExperience = null, buttonClickCallBack = null, ...args) {
-        this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
-        this.screen.parent = this.camera;
 
         // need to add a vector because the origin of the camera is at top left
-        this.screen.position = this.camera.position.add(new Vector3(0.6, -1.5, 2.75));
-        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
+
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
         let container = new Container("container");
         var rect1 = new Rectangle();
         rect1.width = 0.50;
-        rect1.height = 0.20;
+        rect1.height = 0.30;
         rect1.color = "cyan";
         rect1.thickness = 4;
         rect1.background = "white";
@@ -74,7 +72,8 @@ export class GUIManager {
         button1.topInPixels = 40;
         let prompt = new PromptWithButton(rect1, text1, button1);
 
-        let mesh = (this.scene as Scene).getMeshByName("Start");
+        this.advancedTexture.addControl(container);
+
 
         let canvas = document.getElementsByTagName("canvas")[0]
         canvas.addEventListener("pointerdown", function() {
@@ -89,7 +88,6 @@ export class GUIManager {
         function pointerUp(){
 
           container.dispose();
-          mesh.dispose();
           if (buttonClickCallBack) {
             buttonClickCallBack(...args);
           }

@@ -16,19 +16,19 @@ import { sop } from "./Constants";
 import { GUIManager } from "./GUIManager";
 import { SoundManager } from "./SoundManager";
 import { FireExtinguisher } from "./FireExtinguisher";
+import { Fire } from "./Fire";
 
 export class PostSceneCylinder extends Interact {
 
     particleSystem: ParticleSystem;
     instances: Array<Cylinder>;
-    
-    // @ts-ignore
-    fireExtinguisher: FireExtinguisher
+    fire: Fire
 
     constructor(scene: Scene, cylinderInstances: Array<Cylinder>, guiManager: GUIManager, soundManager: SoundManager, xrCamera: WebXRDefaultExperience, fireExtinguisher: FireExtinguisher) {
+        // console.log(fireExtinguisher);
         super(scene, cylinderInstances, guiManager, soundManager, xrCamera, fireExtinguisher);
         this.instances = cylinderInstances;
-        this.fireExtinguisher = fireExtinguisher;
+        console.log(this.fireExtinguisher);
     }
 
     resetCylinders() {
@@ -230,7 +230,13 @@ export class PostSceneCylinder extends Interact {
                                         super.playExplosion();
                                         }, 800);
         
-                                        setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
+                                        // setTimeout(()=>cylinderHitInstance.showEffects(false),1000)
+
+                                        let fire = new Fire(this.scene);
+
+                                        this.fireExtinguisher.fire = fire;
+
+                                        fire.show();
                                         
                                         failBeaker = true;
                                     
@@ -239,7 +245,7 @@ export class PostSceneCylinder extends Interact {
                                             // super.showFailureScreen();
                                             // sop.resetSOP();
                                             // failBeaker = false;
-                                            this.scene.getMeshByName("fireplane").isVisible = true;
+                                            
 
                                         }, 1500);
 

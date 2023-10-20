@@ -115,7 +115,20 @@ export class SceneManager {
 
         this.currentScene = new CustomScene(models, cylinders, soundObjects, fireExtinguisher);
         this.currentScene.renderScene();
-        
+
+        setInterval(() => {
+          // console.log("Fire exntinguished: ", fireExtinguisher);
+          if (fireExtinguisher.extinguished === true) {
+            fireExtinguisher.extinguished = false;
+            setTimeout(() => {
+              this.disposeCurrentScene();
+              setTimeout(() => {
+                this.createSceneOne();
+              }, 500);
+            }, 1000)
+          }
+        }, 3000)        
+      
 
         function createRoom(mesh: Mesh[]) {
             fireCabinet = new FireCabinet(mesh);
@@ -165,36 +178,7 @@ export class SceneManager {
               }
             }
             //Set the speed here so we have the room loaded before the user can move around.
-        }
-        
-        function createFireAlarm(mesh: Mesh[]) {
-            const root = mesh.find(mesh => mesh.name === '__root__')!;
-              
-            root.rotationQuaternion = null
-            root.rotation.y= .5*Math.PI
-            const frameRate=10
-            const xSlide = new Animation("xSlide", "rotation.z", frameRate, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
-            const lever = mesh.find(mesh => mesh.name === 'LeverRedone'); 
-            lever.rotationQuaternion = null
-            let scene: Scene
-            scene = mesh[0].getScene();
-           
-            lever.actionManager = new ActionManager(scene);
-            lever.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, function () {
-                scene.beginAnimation(  lever, 0, 2 * frameRate, true);
-            }));
-        
-            xSlide.setKeys([{
-                frame: 0,
-                value: 0
-            },{
-                frame: frameRate,
-                value:- .5* Math.PI
-            }]);
-        
-            lever.animations.push(xSlide);
-
-        }        
+        }       
     }
 
 }

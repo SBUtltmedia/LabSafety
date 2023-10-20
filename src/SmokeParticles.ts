@@ -13,7 +13,7 @@ export class SmokeParticles {
 
         // var particleSystem = new ParticleSystem("particles", 5000, scene);
 
-        let particleSystem;
+        let particleSystem: ParticleSystem | GPUParticleSystem;
 
         if (GPUParticleSystem.IsSupported) {
             particleSystem = new GPUParticleSystem("particles", { capacity:1000 }, scene);
