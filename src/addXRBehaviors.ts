@@ -79,6 +79,12 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                         }
                     }
 
+                    if (fireExtinguisher.xrHolding && item.value > 0.3) {
+                        fireExtinguisher.smokeSystem.start();
+                    } else {
+                        fireExtinguisher.smokeSystem.stop();
+                    }
+
                     if (fireExtinguisher.isHolding && !fireExtinguisher.xrHolding) {
                         fireExtinguisher.xrHolding = true;
 

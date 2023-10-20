@@ -106,7 +106,7 @@ export class FireExtinguisher {
 
                 }
             }
-        } else if (pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
+        } else if (this.xrCamera.baseExperience.state !== WebXRState.IN_XR && pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
             let lastPos = new Vector3(0,0,0);
 
 
