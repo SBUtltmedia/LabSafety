@@ -16,6 +16,8 @@ if (import.meta.env.DEV) {
   import("@babylonjs/inspector");
 }
 
+console.log = () => {};
+
 export class App {
   constructor() {
     let sceneManager: SceneManager = new SceneManager();
