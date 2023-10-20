@@ -79,7 +79,7 @@ export class SceneManager {
               callback: (mesh: Mesh[]) => createClipboard(mesh[0]),
             },
             {
-              fileName: "fireExtinguisher.glb",
+              fileName: "fireExtinguisherTLL.glb",
               callback: (mesh: Mesh[]) => {
                 let model = mesh[0];
                 // model.position.y = 1;

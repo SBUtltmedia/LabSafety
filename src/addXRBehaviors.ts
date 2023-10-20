@@ -90,20 +90,18 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
                         currentHandClass.handMesh.visibility = 0;
                         let mesh = fireExtinguisher.mesh;
-
-                        
                         // mesh.position = new Vector3(0,0,0);
 
                         console.log(mesh.position);
                         let handMesh = currentHandClass.handMesh.position;
-                        mesh.position = new Vector3(handMesh.x, handMesh.y - 0.3, handMesh.z)
+                        mesh.position = new Vector3(handMesh.x, handMesh.y, handMesh.z)
                         mesh.parent = controller.pointer;
 
                         mesh.position.x = 0.04;
-                        mesh.position.y = -0.46;
+                        mesh.position.y = 0.2;
                         mesh.position.z = 0;
 
-                        mesh.rotation = new Vector3(0, -Math.PI/2, 0);
+                        mesh.rotation = new Vector3(0, Math.PI, 0);
                     }
 
                 })});

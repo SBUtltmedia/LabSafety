@@ -10,7 +10,7 @@ export class FireExtinguisher {
     scene: Scene
     mesh: Mesh
     base: Mesh
-    startPos: Vector3 = new Vector3(3.8, 1.505, -2.46);
+    startPos: Vector3 = new Vector3(3.8, 1.75, -2.5);
     // startPos: Vector3 = new Vector3(0,1,0)
 
     smokeSystem: SmokeParticles
@@ -99,10 +99,10 @@ export class FireExtinguisher {
                     this.mesh.parent = camera;
                     
                     this.mesh.position.x = 0.4;
-                    this.mesh.position.y = -0.4;
+                    this.mesh.position.y = -0.1;
                     this.mesh.position.z = 1.1;
 
-                    this.mesh.rotation = new Vector3(0, 260 * Math.PI / 180, 0);
+                    this.mesh.rotation = new Vector3(0, Math.PI, 0);
 
                 }
             }
