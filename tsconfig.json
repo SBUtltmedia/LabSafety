@@ -6,6 +6,9 @@
       "ESNext",
       "DOM.Iterable"
     ],
+    "types": [
+      "node_modules"
+    ],
     "useDefineForClassFields": true,
     "module": "ESNext",
     "rootDir": "src",
