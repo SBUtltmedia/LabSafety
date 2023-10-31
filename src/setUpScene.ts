@@ -5,9 +5,16 @@ export function setUpScene(scene: Scene, debug: boolean = false) {
 
     if (debug && import.meta.env.DEV) {
         import("@babylonjs/inspector").then(({ Inspector }) => {
-            Inspector.Show(scene, {
-                showInspector: false,
-                showExplorer: false
+            Inspector.Hide();
+            window.addEventListener("keydown", (ev) => {
+                // Shift+Ctrl+Alt+I
+                if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+                    if (Inspector.IsVisible) {
+                        Inspector.Hide();
+                    } else {
+                        Inspector.Show(scene, {});
+                    }
+                }
             });
         });
     }
