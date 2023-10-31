@@ -14,7 +14,6 @@ import { SoundManager } from "./SoundManager";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Light, WebXRDefaultExperienceOptions, WebXRState } from "@babylonjs/core";
 import { setUpXR } from "./setUpXR";
-import { XR } from "./XR";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { GUIManager } from "./GUIManager";
 import { PostSceneCylinder } from "./PostSceneCylinder";
