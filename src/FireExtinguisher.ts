@@ -116,7 +116,6 @@ export class FireExtinguisher {
 
                 console.log("In dispense");
 
-
                 let pickedMesh = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay(10)).pickedMesh;
                 console.log(pickedMesh)
 

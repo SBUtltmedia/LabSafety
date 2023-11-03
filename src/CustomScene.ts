@@ -2,7 +2,7 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { GUIManager } from "./GUIManager";;
 import { SoundManager } from "./SoundManager";
 import { Scene, UniversalCamera, Vector3,
-        HemisphericLight, SceneLoader, Color3, Light, WebXRDefaultExperience, Color4 } from "@babylonjs/core";
+        HemisphericLight, SceneLoader, Color3, Light, WebXRDefaultExperience, Color4, KeyboardEventTypes } from "@babylonjs/core";
 import { Cylinder } from "./Cylinder";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { PostSceneCylinder } from "./PostSceneCylinder";
@@ -95,10 +95,38 @@ export class CustomScene {
           camera.minZ = 0.0; // To prevent clipping through near meshes
           camera.speed = 0;
           camera.checkCollisions = true;
+
           camera.keysUp.push(87); // W
           camera.keysDown.push(83); // S
           camera.keysLeft.push(65); // A
           camera.keysRight.push(68); // D
+
+          let move = 0.0;
+
+          // scene.onKeyboardObservable.add((kbInfo) => {
+          //   switch (kbInfo.type) {
+          //     case KeyboardEventTypes.KEYDOWN:
+          //       switch (kbInfo.event.key) {
+          //                   case "a":
+          //                   case "A":
+          //                       camera.position.x -= move;
+          //                   break
+          //                   case "d":
+          //                   case "D":
+          //                       camera.position.x += move;
+          //                   break
+          //                   case "w":
+          //                   case "W":
+          //                       camera.position.z += move;
+          //                   break
+          //                   case "s":
+          //                   case "S":
+          //                       camera.position.z -= move;
+          //                   break
+          //               }
+          //     break;
+          //   }
+          // });          
     
           var light1: HemisphericLight = new HemisphericLight(
             "light1",
@@ -206,8 +234,15 @@ export class CustomScene {
         });
 
         console.log(this.fireExtinguisher);
+
+        this.guiManager = new GUIManager(scene);
+        this.guiManager.createPromptWithButton(
+          "Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!",
+          xrCamera
+        );        
     
         let xr: XR = new XR(scene, xrCamera, null, cylinders, null, this.soundManager, this.fireExtinguisher);
+        xr.guiManager = this.guiManager;
     
         xr.addWebXr().then((addHandModels) => {
     
@@ -216,11 +251,6 @@ export class CustomScene {
             const clipboard = scene.getMeshByName("clipboard");
             clipboard.addBehavior(flyToCamera);
           }
-          this.guiManager = new GUIManager(scene);
-          this.guiManager.createPromptWithButton(
-            "Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!",
-            xrCamera
-          );
     
           xr.guiManager = this.guiManager;
 

@@ -16,7 +16,7 @@ if (import.meta.env.DEV) {
   import("@babylonjs/inspector");
 }
 
-console.log = () => {};
+// console.log = () => {};
 
 export class App {
   constructor() {

@@ -19,21 +19,23 @@ export class SmokeParticles {
             particleSystem = new GPUParticleSystem("particles", { capacity:1000 }, scene);
             particleSystem.activeParticleCount = 2000;
         } else {
-            particleSystem = new ParticleSystem("particles", 2500 , scene); 
+            particleSystem = new ParticleSystem("particles", 1500 , scene); 
         }
             
 
         //Texture of each particle
         particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
     
-        particleSystem.emitRate = 200;
+        particleSystem.emitRate = 150;
         particleSystem.particleEmitterType = new BoxParticleEmitter();
 
-        particleSystem.gravity = this.gravity;
+        particleSystem.gravity = new Vector3(0, 0, 10);
+
+        particleSystem.isLocal = true;
 
         // how long before the particles dispose?
-        particleSystem.minLifeTime = 1;
-        particleSystem.maxLifeTime = 1;
+        particleSystem.minLifeTime = 0.3;
+        particleSystem.maxLifeTime = 0.3;
 
         // how much "push" from the back of the rocket.
         // Rocket forward movement also (seemingly) effects "push", but not really.
@@ -57,16 +59,15 @@ export class SmokeParticles {
 
         // adjust diections to aim out fat-bottom end of rocket, with slight spread.
 
-        let dirConstant = 7;
+        let dirConstant = 2;
 
         particleSystem.direction1 = new Vector3(dirConstant, dirConstant, dirConstant);
         particleSystem.direction2 = new Vector3(-dirConstant, -dirConstant, -dirConstant);
-        particleSystem.emitter = sourceMesh;
 
-        // rocket length 4, so move emission point... 2 units toward wide end of rocket.
-        let emitBoxVector = new Vector3(0.3, 0.2, 0);
-        particleSystem.minEmitBox = emitBoxVector;
-        particleSystem.maxEmitBox = emitBoxVector;
+        // particleSystem.direction1 = new Vector3(0, 5, 0);
+        // particleSystem.direction2 = new Vector3(0, 5, 0);
+    
+        particleSystem.emitter = sourceMesh;
 
 
         // a few colors, based on age/lifetime.  Yellow to red, generally speaking.

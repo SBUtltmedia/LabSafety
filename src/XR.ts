@@ -19,7 +19,6 @@ export class XR {
     constructor(scene: Scene, xrCamera: WebXRDefaultExperience, addHandModles: any, cylinders: Array<Cylinder>,
         guiManager: GUIManager, soundManager: SoundManager, fireExtinguisher: FireExtinguisher) {
 
-
         this.scene = scene;
         this.xrCamera = xrCamera;
         this.addHandModels = addHandModles;
@@ -32,7 +31,7 @@ export class XR {
 
 
     async addWebXr() {
-        return await addWebXR(this.scene, this.xrCamera, this.cylinders);
+        return await addWebXR(this.scene, this.xrCamera, this.cylinders, this.guiManager);
     }
 
     addWebXrBehaviors() {

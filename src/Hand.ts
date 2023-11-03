@@ -17,6 +17,7 @@ import { PostSceneCylinder } from "./PostSceneCylinder";
 import { SoundManager } from "./SoundManager";
 import { FireExtinguisher } from "./FireExtinguisher";
 import { log } from "./utils";
+import { Fire } from "./Fire";
 
 export class Hand extends Interact {
     handedness: string;
@@ -30,7 +31,6 @@ export class Hand extends Interact {
     failBeaker: boolean;
     particleSystem: ParticleSystem;
     cylinderInstancesHand: Cylinder[];
-    fireExtinguisher: FireExtinguisher;
 
     constructor(
         handedness: string,
@@ -47,7 +47,6 @@ export class Hand extends Interact {
         this.handMesh = scene.getMeshByName(this.handedness);
         this.isVisible = true;
         this.failBeaker = false;
-        this.fireExtinguisher = fireExtinguisher;
     }
 
     getMotionController() {
@@ -160,9 +159,11 @@ export class Hand extends Interact {
         } else {
             sop.failed = true;
             if (!this.failBeaker) {
+                let fire = new Fire(this.scene);
+                this.fireExtinguisher.fire = fire;
+                fire.show();
                 setTimeout(() => {
                     if (this.xrCamera.baseExperience.state == WebXRState.IN_XR) {
-                        super.showFailureScreen();
                         let screen = this.scene.getMeshByName("Start");
                         if (screen) {
                             let camera = this.xrCamera.baseExperience.camera;

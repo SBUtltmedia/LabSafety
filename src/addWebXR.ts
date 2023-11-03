@@ -3,9 +3,10 @@ import { AssetsManager } from "@babylonjs/core/Misc/assetsManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Cylinder } from "./Cylinder";
 import { log } from "./utils";
+import { GUIManager } from "./GUIManager";
 // import '@babylonjs/core/Materials/Node/Blocks';
 
-export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinders: Array<Cylinder>) {
+export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinders: Array<Cylinder>, guiManager: GUIManager) {
 
     let handAnimations;
     let addHandModels;
@@ -84,7 +85,12 @@ export function addWebXR(scene: Scene, xrCamera:WebXRDefaultExperience, cylinder
                 if (state === WebXRState.IN_XR) {
                     
                     xrCamera.baseExperience.camera.position.y = xrCamera.baseExperience.camera.realWorldHeight;
-                    xrCamera.baseExperience.camera.position.z = -0.5;
+                    xrCamera.baseExperience.camera.position.z = -2;
+
+                    console.log(guiManager);
+                    guiManager.containers["p1"]();
+
+                    guiManager.createPromptWithButtonVR("Welcome to the Lab Safety Simulation. Click on the clipboard to learn more about the simulation!", xrCamera);
 
                     let screen = scene.getMeshByName("Start");
                     if (screen) {

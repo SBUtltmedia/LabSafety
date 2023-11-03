@@ -2,7 +2,7 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Scene } from "@babylonjs/core/scene";
-import { Color3, Engine, Mesh, Nullable, RayHelper, WebXRDefaultExperience, WebXRInputSource, WebXRState } from "@babylonjs/core";
+import { Color3, Engine, Mesh, Nullable, RayHelper, WebXRControllerPointerSelection, WebXRDefaultExperience, WebXRInputSource, WebXRState } from "@babylonjs/core";
 import { CYLINDER_MESH_NAME, MotionControllerWithGrab, sop } from "./Constants";
 import { Cylinder } from "./Cylinder";
 import { getChildMeshByName, log, resetPosition, resetRotation } from "./utils";
@@ -79,6 +79,25 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                         }
                     }
 
+                    const tmpray = new Ray(
+                        controller.pointer.absolutePosition,
+                        controller.pointer.forward,
+                        2
+                    );
+
+                    // controller.getWorldPointerRayToRef(tmpray, true);
+
+                    console.log("Picked mesh: ", pickInfo.pickedMesh);
+                    
+                    if (fireExtinguisher.xrHolding && fireExtinguisher.fire && fireExtinguisher.fire.isRunning) {
+                        if (pickInfo.pickedMesh && pickInfo.pickedMesh.name == "ExitDoor") {
+                            setTimeout(() => {
+                                fireExtinguisher.fire.hide();
+                                fireExtinguisher.extinguished = true;
+                            }, 1500)
+                        }
+                    }
+
                     if (fireExtinguisher.xrHolding && item.value > 0.3) {
                         fireExtinguisher.smokeSystem.start();
                     } else {
@@ -99,7 +118,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
                         mesh.position.x = 0.04;
                         mesh.position.y = 0.2;
-                        mesh.position.z = 0;
+                        mesh.position.z = -0.01;
 
                         mesh.rotation = new Vector3(0, Math.PI, 0);
                     }

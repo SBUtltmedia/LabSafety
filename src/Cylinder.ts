@@ -281,6 +281,17 @@ export class Cylinder {
         //pointerDragBehavior.dragButtons = [0,1,2]
         pointerDragBehavior.moveAttached = false;
 
+        // pointerDragBehavior.onDragStartObservable.add((eventData) => {
+        //     let camera = this.scene.activeCamera;
+        //     let interval = setInterval(() => {
+        //         camera.position.x += 0.001;
+        //         console.log(this.scene.pointerX, this.scene.pointerY);
+        //     }, 1)            
+        //     let timeOut = setTimeout(() => {
+        //         clearInterval(interval);
+        //     }, 2000);
+        // })
+
         pointerDragBehavior.onDragObservable.add((eventData) => {
 
             if (eventData.delta != Vector3.Zero() && this.moveFlag && this.mesh.isPickable) {

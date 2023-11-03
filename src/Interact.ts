@@ -157,8 +157,8 @@ export abstract class Interact {
         }
 
         
-
-        this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
+        
+        this.guiManager.createPromptWithButtonVR("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
     }
 
     showFailureScreen() {
