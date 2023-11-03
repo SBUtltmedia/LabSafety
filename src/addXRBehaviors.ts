@@ -87,13 +87,19 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
                     // controller.getWorldPointerRayToRef(tmpray, true);
 
-                    console.log("Picked mesh: ", pickInfo.pickedMesh);
+                    let pickInfo = scene.pickWithRay(tmpray);
+
+                    console.log(pickInfo.pickedMesh);
+
                     
                     if (fireExtinguisher.xrHolding && fireExtinguisher.fire && fireExtinguisher.fire.isRunning) {
                         if (pickInfo.pickedMesh && pickInfo.pickedMesh.name == "ExitDoor") {
                             setTimeout(() => {
                                 fireExtinguisher.fire.hide();
-                                fireExtinguisher.extinguished = true;
+                                fireExtinguisher.mesh.position = fireExtinguisher.startPos;
+                                fireExtinguisher.mesh.parent = null;
+                                currentHandClass.handMesh.visibility = 1;
+                                currentHandClass.showFinishScreen();
                             }, 1500)
                         }
                     }
@@ -118,7 +124,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
 
                         mesh.position.x = 0.04;
                         mesh.position.y = 0.2;
-                        mesh.position.z = -0.01;
+                        mesh.position.z = -0.05;
 
                         mesh.rotation = new Vector3(0, Math.PI, 0);
                     }

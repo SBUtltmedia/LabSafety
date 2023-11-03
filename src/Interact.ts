@@ -142,6 +142,8 @@ export abstract class Interact {
             cylinder.moveFlag = false;
         }
 
+        
+
         function setPickable(instances: Array<Cylinder>) {
             for (let cylinder of instances) {
                 cylinder.mesh.isPickable = true;
@@ -156,9 +158,22 @@ export abstract class Interact {
             }
         }
 
-        
-        
         this.guiManager.createPromptWithButtonVR("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
+        let screen = this.scene.getMeshByName("Start");
+        if (screen) {
+            let camera = this.xrCamera.baseExperience.camera;
+            screen.parent = camera
+            screen.position = camera.position.add(new Vector3(-camera.position.x, -1.5, 1.15));
+
+            this.xrCamera.pointerSelection.displayLaserPointer = true;
+            this.xrCamera.pointerSelection.displaySelectionMesh = true;
+
+            screen.position.x = 0;
+            screen.position.y = 0;
+            screen.position.z = 0.7;
+
+            screen.rotation = Vector3.Zero();
+        } 
     }
 
     showFailureScreen() {
