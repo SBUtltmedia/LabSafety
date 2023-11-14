@@ -40,7 +40,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
     log("createSceneAsync start WebXR initialization");
     const xrOptions: WebXRDefaultExperienceOptions = {
-        floorMeshes: [scene.getMeshByName("Floor")],
         inputOptions: {
             // doNotLoadControllerMeshes: true
         },
@@ -79,6 +78,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
     // Places the camera at the starting position.
     placeCamera(camera);
+
+    xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
 
     fadeIn(light1);
 
