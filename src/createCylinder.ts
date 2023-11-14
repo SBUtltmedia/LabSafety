@@ -5,6 +5,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
+import { interactionXRManager } from "./scene";
 import { PointerDragBehavior, SixDofDragBehavior, Vector3 } from "@babylonjs/core";
 import { InteractableBehavior } from "./InteractableBehavior";
 
@@ -48,17 +49,11 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     // highlightLayer.addMesh(baseMesh, Color3.Green());
 
     // Add drag behavior
-    // Currently SixDofDragBehavior doesn't work well on desktop, because there is no obvious way to specify a drag plane.
-    // const sixDofDragBehavior = new SixDofDragBehavior();
-    // sixDofDragBehavior.rotateDraggedObject = false;
-    // sixDofDragBehavior.rotateWithMotionController = true;
-    // sixDofDragBehavior.dragDeltaRatio = 1;  // Removes default drag slowing (possibly useful in XR)
-    // sixDofDragBehavior.allowMultiPointer = false;  // @todo: Do we need this in case the user tries to move it with both hands?
     // baseMesh.addBehavior(sixDofDragBehavior);
 
     // const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
     // baseMesh.addBehavior(pointerDragBehavior);
 
-    const interactableBehavior = new InteractableBehavior();
+    const interactableBehavior = new InteractableBehavior(interactionXRManager || undefined);
     baseMesh.addBehavior(interactableBehavior);
 }

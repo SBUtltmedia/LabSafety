@@ -12,12 +12,17 @@ import { placeCamera } from "./placeCamera";
 import { processMeshes } from "./processMeshes";
 import { SoundManager } from "./SoundManager";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Light, WebXRDefaultExperienceOptions, WebXRState } from "@babylonjs/core";
+import { Light, PointerEventTypes, WebXRDefaultExperience, WebXRDefaultExperienceOptions, WebXRState } from "@babylonjs/core";
 import { setUpXR } from "./setUpXR";
 import FlyToCameraBehavior from "./FlyToCameraBehavior";
 import { GUIManager } from "./GUIManager";
 import { PostSceneCylinder } from "./PostSceneCylinder";
 import { log } from "./utils";
+import { MAX_XR_GRAB_DISTANCE } from "./Constants";
+import { InteractionXRManager } from "./InteractionXRManager";
+
+export let xrExperience: WebXRDefaultExperience;
+export let interactionXRManager: InteractionXRManager;
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
@@ -32,6 +37,31 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     scene.activeCamera.attachControl(true);
     
     light1.intensity = 0;
+
+    log("createSceneAsync start WebXR initialization");
+    const xrOptions: WebXRDefaultExperienceOptions = {
+        floorMeshes: [scene.getMeshByName("Floor")],
+        inputOptions: {
+            // doNotLoadControllerMeshes: true
+        },
+        pointerSelectionOptions: {
+            enablePointerSelectionOnAllControllers: true,
+            maxPointerDistance: MAX_XR_GRAB_DISTANCE
+        }
+    };
+
+    xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
+    interactionXRManager = new InteractionXRManager(xrExperience);
+    setUpXR(xrExperience);
+    // xrExperience.baseExperience.onStateChangedObservable.add(changePointerLock);
+    
+    const splashScreen = document.querySelector("div.splash");
+    splashScreen.textContent = "Click to start!";
+    splashScreen.addEventListener("click", () => {
+        splashScreen.classList.add("hide");
+        // changePointerLock(xrExperience.baseExperience.state);
+    }, false);
+    log("createSceneAsync end WebXR initialization");
 
     // Imports the meshes and renames the "__root__" mesh names and ids to the filename (minus the file extension).
     // Results is an array of results, where each element is the result from importing a particular file.
@@ -51,31 +81,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     placeCamera(camera);
 
     fadeIn(light1);
-    
-    const xrOptions: WebXRDefaultExperienceOptions = {
-        floorMeshes: [scene.getMeshByName("Floor")],
-        inputOptions: {
-            // doNotLoadControllerMeshes: true
-        }
-    };
-    log("createSceneAsync start WebXR initialization");
-    const xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
-    setUpXR(xrExperience);
-    xrExperience.baseExperience.onStateChangedObservable.add(changePointerLock);
-    
-    const splashScreen = document.querySelector("div.splash");
-    splashScreen.textContent = "Click to start!";
-    splashScreen.addEventListener("click", () => {
-        splashScreen.classList.add("hide");
-        changePointerLock(xrExperience.baseExperience.state);
-    }, false);
-    canvas.addEventListener("click", () => {
-        // @todo: This sometimes fails if it hasn't been long enough since the user exited pointer lock.
-        // This should be fixable by adding a listener to the pointer lock state change (see MDN on the
-        // Pointer Lock API).
-        changePointerLock(xrExperience.baseExperience.state);
-    }, false);
-    log("createSceneAsync end WebXR initialization");
+
     // const cylinderMeshes = meshes.filter(mesh => mesh.name.split("-")[0] === "cylinder");
     // const cylinderInstances = cylinderMeshes.map(mesh => )
     // const xr = new XR(scene, xrExperience, null, cylinders, null, this.soundManager, this.fireExtinguisher);
@@ -123,12 +129,12 @@ function fadeIn(light: Light) {
     }, 60);
 }
 
-function changePointerLock(state: WebXRState): void {
-    if (document.pointerLockElement && state === WebXRState.IN_XR) {
-        document.exitPointerLock();
-    }
-    if (!document.pointerLockElement && state === WebXRState.NOT_IN_XR) {
-        const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-        canvas.requestPointerLock();
-    }
-}
+// function changePointerLock(state: WebXRState): void {
+//     if (document.pointerLockElement && state === WebXRState.IN_XR) {
+//         document.exitPointerLock();
+//     }
+//     if (!document.pointerLockElement && state === WebXRState.NOT_IN_XR) {
+//         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+//         canvas.requestPointerLock();
+//     }
+// }

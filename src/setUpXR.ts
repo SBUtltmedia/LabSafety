@@ -4,9 +4,11 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { loadXRHands } from "./loadXRHands";
 import { pauseAnimations } from "./scene";
 import { Scene } from "@babylonjs/core/scene";
-import { StandardMaterial, WebXRAbstractMotionController, WebXRInputSource, WebXRState } from "@babylonjs/core";
+import { AbstractMesh, Observable, Observer, Ray, StandardMaterial, WebXRAbstractMotionController, WebXRControllerPointerSelection, WebXRFeatureName, WebXRInput, WebXRInputSource, WebXRState } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { log } from "./utils";
+import { InteractableXRBehavior } from "./InteractableXRBehavior";
+import { InteractionXRManager } from "./InteractionXRManager";
 
 // Create the default XR experience
 // fireExtinguisher.xrCamera = xrExperience
@@ -95,6 +97,19 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         // it would just be nice to know why it's necessary.
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
+
+    const interactionManager = new InteractionXRManager(xrExperience);
+    
+    xrExperience.input.controllers.forEach(controller => {
+        const squeezeComponent = controller.motionController.getComponentOfType("squeeze");
+        console.log("Squeeze component:");
+        console.log(squeezeComponent);
+    });
+    xrExperience.input.onControllerAddedObservable.add(controller => {
+        setUpInputSource(controller);
+    });
+
+
     log("setUpXR end");
 }
 
