@@ -15,7 +15,7 @@ export function placeMeshes(meshes: Mesh[]): void {
             const cylinderVerticalOffset = cylinder.position.y - cylinderBaseBoundingBox.minimum.y;
             cylinder.position.y = tableBoundingBox.maximum.y + cylinderVerticalOffset;  // @todo: maximumWorld: does maximum work? Also, do I need to add 0.0075 like was there before to prevent z-fighting?
             cylinder.position.x = tableBoundingBox.minimum.x + (i + 1) * (tableBoundingBox.maximum.x - tableBoundingBox.minimum.x) / (cylinders.length + 2);
-            cylinder.position.z = tableBoundingBox.center.z;
+            cylinder.position.z = (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3;
         });
 
         placards.forEach((placard, i) => {
@@ -25,7 +25,7 @@ export function placeMeshes(meshes: Mesh[]): void {
             const placardVerticalOffset = placard.position.y - placardBaseBoundingBox.minimum.y;
             placard.position.y = tableBoundingBox.maximum.y + placardVerticalOffset;
             placard.position.x = tableBoundingBox.minimum.x + (i + 1) * (tableBoundingBox.maximum.x - tableBoundingBox.minimum.x) / (placards.length + 2) + 0.2
-            placard.position.z = tableBoundingBox.center.z + 0.2;
+            placard.position.z = (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3 + 0.2;
 
             placard.rotationQuaternion = null;
             placard.rotation = new Vector3(0, Math.PI / 2, 0);
