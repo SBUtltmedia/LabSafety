@@ -1,25 +1,22 @@
-import { BoxParticleEmitter, Color3, Color4, GPUParticleSystem,  Mesh,  MeshBuilder, ParticleSystem, SolidParticleSystem, Texture, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, BoxParticleEmitter, Color3, Color4, GPUParticleSystem,  Mesh,  MeshBuilder, ParticleSystem, SolidParticleSystem, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
 
 export class SmokeParticles {
     particleSystem: ParticleSystem
     gravity: Vector3;
 
-    constructor(sourceMesh: Mesh) {
+    constructor(sourceMesh: AbstractMesh) {
         let scene = sourceMesh.getScene();
         let camera = scene.activeCamera;
 
         this.gravity = Vector3.Zero();
 
-
-        // var particleSystem = new ParticleSystem("particles", 5000, scene);
-
         let particleSystem: ParticleSystem | GPUParticleSystem;
 
         if (GPUParticleSystem.IsSupported) {
-            particleSystem = new GPUParticleSystem("particles", { capacity:1000 }, scene);
+            particleSystem = new GPUParticleSystem("particles", { capacity:15000 }, scene);
             particleSystem.activeParticleCount = 2000;
         } else {
-            particleSystem = new ParticleSystem("particles", 1500 , scene); 
+            particleSystem = new ParticleSystem("particles", 2000 , scene); 
         }
             
 
@@ -27,7 +24,10 @@ export class SmokeParticles {
         particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
     
         particleSystem.emitRate = 150;
-        particleSystem.particleEmitterType = new BoxParticleEmitter();
+    
+
+        let pointEmitter = particleSystem.createPointEmitter(new Vector3(-3.5, -4, 0), new Vector3(3.5,4, 0));
+        // coneEmitter.rotation.y = Math.PI / 2;
 
         particleSystem.gravity = new Vector3(0, 0, 10);
 
@@ -39,41 +39,19 @@ export class SmokeParticles {
 
         // how much "push" from the back of the rocket.
         // Rocket forward movement also (seemingly) effects "push", but not really.
-        particleSystem.minEmitPower = 0.5;
+        particleSystem.minEmitPower = 0.7;
         particleSystem.maxEmitPower = 0.5;
 
         particleSystem.minSize = 0.01;
-        particleSystem.maxSize = 0.01;
-
-        // particleSystem.addColorGradient(0, new Color4(0.5, 0.5, 0.5, 0),  new Color4(0.8, 0.8, 0.8, 0));
-        // particleSystem.addColorGradient(0.4, new Color4(0.1, 0.1, 0.1, 0.1), new Color4(0.4, 0.4, 0.4, 0.4));
-        // particleSystem.addColorGradient(0.7, new Color4(0.03, 0.03, 0.03, 0.2), new Color4(0.3, 0.3, 0.3, 0.4));
-        // particleSystem.addColorGradient(1.0, new Color4(0.0, 0.0, 0.0, 0), new Color4(0.03, 0.03, 0.03, 0));      
-        
-        let gradientSize = 0.5
+        particleSystem.maxSize = 0.02;
+     
+        let gradientSize = 0.3;
 
         particleSystem.addSizeGradient(gradientSize, gradientSize, gradientSize);
 
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 
-
-        // adjust diections to aim out fat-bottom end of rocket, with slight spread.
-
-        let dirConstant = 2;
-
-        particleSystem.direction1 = new Vector3(dirConstant, dirConstant, dirConstant);
-        particleSystem.direction2 = new Vector3(-dirConstant, -dirConstant, -dirConstant);
-
-        // particleSystem.direction1 = new Vector3(0, 5, 0);
-        // particleSystem.direction2 = new Vector3(0, 5, 0);
-    
         particleSystem.emitter = sourceMesh;
-
-
-        // a few colors, based on age/lifetime.  Yellow to red, generally speaking.
-        // particleSystem.color1 = new Color3(0,0,0);
-        // particleSystem.color2 = new Color3(1, .5, 0);
-        // particleSystem.colorDead = new Color3(1, 0, 0);
         
         this.particleSystem = particleSystem;
     }

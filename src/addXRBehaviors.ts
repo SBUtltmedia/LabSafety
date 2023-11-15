@@ -79,7 +79,7 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                         }
                     }
 
-                    const tmpray = new Ray(
+                    let tmpray = new Ray(
                         controller.pointer.absolutePosition,
                         controller.pointer.forward,
                         2
@@ -94,12 +94,15 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                     
                     if (fireExtinguisher.xrHolding && fireExtinguisher.fire && fireExtinguisher.fire.isRunning) {
                         if (pickInfo.pickedMesh && pickInfo.pickedMesh.name == "ExitDoor") {
+
                             setTimeout(() => {
-                                fireExtinguisher.fire.hide();
-                                fireExtinguisher.mesh.position = fireExtinguisher.startPos;
-                                fireExtinguisher.mesh.parent = null;
+                                currentHandClass.handMesh.removeChild(fireExtinguisher.mesh);
                                 currentHandClass.handMesh.visibility = 1;
+
+                                fireExtinguisher.reset();
+
                                 currentHandClass.showFinishScreen();
+
                             }, 1500)
                         }
                     }

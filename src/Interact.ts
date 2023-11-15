@@ -142,8 +142,7 @@ export abstract class Interact {
             cylinder.moveFlag = false;
         }
 
-        
-
+    
         function setPickable(instances: Array<Cylinder>) {
             for (let cylinder of instances) {
                 cylinder.mesh.isPickable = true;
@@ -168,9 +167,9 @@ export abstract class Interact {
             this.xrCamera.pointerSelection.displayLaserPointer = true;
             this.xrCamera.pointerSelection.displaySelectionMesh = true;
 
-            screen.position.x = 0;
-            screen.position.y = 0;
-            screen.position.z = 0.7;
+            screen.position.x = this.scene.activeCamera.position.x;
+            screen.position.y = this.scene.activeCamera.position.y;
+            screen.position.z = this.scene.activeCamera.position.z + 0.7;
 
             screen.rotation = Vector3.Zero();
         } 

@@ -101,7 +101,7 @@ export class CustomScene {
           camera.keysLeft.push(65); // A
           camera.keysRight.push(68); // D
 
-          let move = 0.0;
+          // let move = 0.0;
 
           // scene.onKeyboardObservable.add((kbInfo) => {
           //   switch (kbInfo.type) {

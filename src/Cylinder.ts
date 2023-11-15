@@ -292,8 +292,12 @@ export class Cylinder {
         //     }, 2000);
         // })
 
-        pointerDragBehavior.onDragObservable.add((eventData) => {
+        pointerDragBehavior.onDragStartObservable.add((eventData) => {
+            console.log("drag start!");
+        })
 
+        pointerDragBehavior.onDragObservable.add((eventData) => {
+            console.log("Drag going!");
             if (eventData.delta != Vector3.Zero() && this.moveFlag && this.mesh.isPickable) {
                 this.mesh.moveWithCollisions(eventData.delta);
             }

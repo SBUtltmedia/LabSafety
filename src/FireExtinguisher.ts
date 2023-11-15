@@ -4,6 +4,7 @@ import { SmokeParticles } from "./SmokeParticles";
 import { FireCabinet } from "./FireCabinet";
 import { log } from "./utils";
 import { Fire } from "./Fire";
+import { SmokeBehavior } from "./SmokeBehavior";
 
 export class FireExtinguisher {
     modelTransform: TransformNode
@@ -11,6 +12,7 @@ export class FireExtinguisher {
     mesh: Mesh
     base: Mesh
     startPos: Vector3 = new Vector3(3.8, 1.75, -2.5);
+    rotation: Vector3;
     // startPos: Vector3 = new Vector3(0,1,0)
 
     smokeSystem: SmokeParticles
@@ -40,6 +42,8 @@ export class FireExtinguisher {
 
         this.mesh.position = this.startPos;
         this.mesh.isPickable = true;
+
+        this.rotation = Object.assign({}, this.mesh.rotation);
 
         this.extinguished = false;
 
@@ -105,32 +109,8 @@ export class FireExtinguisher {
                     this.mesh.rotation = new Vector3(0, Math.PI, 0);
 
                 }
-            }
-        } else if (this.xrCamera.baseExperience.state !== WebXRState.IN_XR && pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
-            let lastPos = new Vector3(0,0,0);
 
-
-            if (!this.isRunning) {
-                this.startSmoke();
-                this.isRunning = true;
-
-                console.log("In dispense");
-
-                let pickedMesh = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay(10)).pickedMesh;
-                console.log(pickedMesh)
-
-                if (pickedMesh.id === "ExitDoor") {
-                    setTimeout(() => {
-                        this.extinguished = true;
-                        console.log(this.extinguished);
-                        this.fire.hide();
-                    }, 1500)
-                }
-            }
-        } else {
-            if (this.isRunning) {
-                this.stopSmoke();
-                this.isRunning = false;
+                this.mesh.addBehavior(new SmokeBehavior);
             }
         }
     }
@@ -142,5 +122,28 @@ export class FireExtinguisher {
 
     stopSmoke() {
         this.smokeSystem.stop();
+    }
+
+    reset() {
+
+        this.isHolding = false;
+        this.isRunning = false;
+        this.xrHolding = false;
+
+        this.mesh.isPickable = true;
+
+        this.extinguished = false;
+
+        this.stopSmoke();
+
+        this.mesh.parent = null;
+
+        setTimeout(() => {
+            this.mesh.position = this.startPos;
+            this.mesh.rotation = this.rotation;
+        }, 300);
+
+        if (this.fire)
+            this.fire.hide();
     }
 }
