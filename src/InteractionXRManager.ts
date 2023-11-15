@@ -63,6 +63,9 @@ export class InteractionXRManager {
     #notifyMeshObserver = (mesh: AbstractMesh, data: any) => {
         // Requires that mesh have the InteractableXRBehavior. Not checked because it's for internal use only.
         const behavior = mesh.getBehaviorByName(InteractableXRBehavior.name) as InteractableXRBehavior;
+        if (!behavior) {
+            throw new Error("InteractionXRManager: mesh must have InteractableXRBehavior.");
+        }
         const observer = behavior.observer;
         this.onGrabStateChangeObservable.notifyObserver(observer, data);
     }

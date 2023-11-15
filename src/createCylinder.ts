@@ -6,24 +6,13 @@ import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTextur
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { interactionXRManager } from "./scene";
-import { PointerDragBehavior, SixDofDragBehavior, Vector3 } from "@babylonjs/core";
-import { InteractableBehavior } from "./InteractableBehavior";
+import { AbstractMesh, Nullable, Vector3 } from "@babylonjs/core";
+import { log } from "./utils";
 
-export function createCylinder(mesh: Mesh, color: Color3): void {
-    mesh.id = mesh.name;
+import { PouringBehavior } from "./PouringBehavior";
+
+export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
     const meshIdentifier = mesh.name.split("-")[1];  // "a", "b", "c", etc.
-    // @todo: This shouldn't be necessary. These ought to be correct in the files themselves. Well, adding the suffixes might be necessary here.
-    mesh.getChildMeshes().forEach(childMesh => {
-        if (childMesh.name.split(".").pop() === "BeakerwOpacity") {
-            childMesh.name = `base-${meshIdentifier}`;
-            childMesh.id = `base-${meshIdentifier}`;
-            // childMesh.isPickable = false;  // @todo: Is this correct?
-        } else if (childMesh.name.split(".").pop() === "BeakerLiquid") {
-            childMesh.name = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
-            childMesh.id = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
-            childMesh.isPickable = false;  // @todo: Is this correct?
-        }
-    });
 
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.name === `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`);
     const liquidMaterial = new StandardMaterial("liquid-material");
@@ -40,20 +29,44 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     texture.drawText(mesh.name.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
 
     const baseMesh = mesh.getChildMeshes().find(childMesh => childMesh.name === `base-${meshIdentifier}`) as Mesh;
-    // @todo: Set up an Observable for the cylinder to be highlighted when desired.
-    // The reason for this is to avoid creating a class solely to store HighlightLayer information.
-    // Add highlighting
-    const highlightLayer = new HighlightLayer("highlight-layer");
-    highlightLayer.innerGlow = true;
-    highlightLayer.outerGlow = false;
-    // highlightLayer.addMesh(baseMesh, Color3.Green());
 
-    // Add drag behavior
-    // baseMesh.addBehavior(sixDofDragBehavior);
+    const pouringBehavior = new PouringBehavior(targets, interactionXRManager);
+    baseMesh.addBehavior(pouringBehavior);
+}
 
-    // const pointerDragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
-    // baseMesh.addBehavior(pointerDragBehavior);
+function checkNearTarget(source: Mesh, targets: Mesh[]): Nullable<Mesh> {
+    // log("source:");
+    // log(source);
+    // log("targets:")
+    // log(targets);
+    const validTargets = targets.filter(target => source.intersectsMesh(target));
 
-    const interactableBehavior = new InteractableBehavior(interactionXRManager || undefined);
-    baseMesh.addBehavior(interactableBehavior);
+    let bestTarget = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    for (const target of validTargets) {
+        const distance = Vector3.Distance(source.absolutePosition, target.absolutePosition);
+        if (distance < bestDistance) {
+            bestTarget = target;
+            bestDistance = distance;
+        }
+    }
+
+    return bestTarget;
+}
+
+export function renameCylinder(rootMesh: AbstractMesh): void {
+    rootMesh.id = rootMesh.name;
+    const meshIdentifier = rootMesh.name.split("-")[1];  // "a", "b", "c", etc.
+    // @todo: This shouldn't be necessary. These ought to be correct in the files themselves. Well, adding the suffixes might be necessary here.
+    rootMesh.getChildMeshes().forEach(childMesh => {
+        if (childMesh.name.split(".").pop() === "BeakerwOpacity") {
+            childMesh.name = `base-${meshIdentifier}`;
+            childMesh.id = `base-${meshIdentifier}`;
+            // childMesh.isPickable = false;  // @todo: Is this correct?
+        } else if (childMesh.name.split(".").pop() === "BeakerLiquid") {
+            childMesh.name = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
+            childMesh.id = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
+            childMesh.isPickable = false;  // @todo: Is this correct?
+        }
+    });
 }

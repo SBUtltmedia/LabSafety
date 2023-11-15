@@ -1,4 +1,4 @@
-import { AbstractMesh, Behavior, Mesh, Observer, Ray, Vector3, WebXRDefaultExperience, WebXRInput } from "@babylonjs/core";
+import { AbstractMesh, Behavior, Mesh, Observable, Observer, Ray, Vector3, WebXRDefaultExperience, WebXRInput } from "@babylonjs/core";
 import { InteractionXRManager } from "./InteractionXRManager";
 import { GrabState } from "./InteractionXRManager";
 
@@ -10,10 +10,12 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     mesh: AbstractMesh;
     observer: Observer<[AbstractMesh, GrabState]>;
     interactionManager: InteractionXRManager;
+    onGrabStateChangedObservable: Observable<GrabState>;
 
     
     constructor(interactionManager: InteractionXRManager) {
         this.interactionManager = interactionManager;
+        this.onGrabStateChangedObservable = new Observable();
     }
 
     static get name() {
@@ -34,7 +36,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
             if (grabState === GrabState.GRAB) {
                 this.#grab(pointer);
             } else if (grabState === GrabState.DROP) {
-                this.#drop(pointer)
+                this.#drop(pointer);
             }
         });
     }
@@ -47,10 +49,12 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     #grab = (grabbingMesh: AbstractMesh) => {
         const rootMesh = this.mesh.parent as AbstractMesh;
         rootMesh.setParent(grabbingMesh);
+        this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
     }
 
     #drop = (grabbingMesh: AbstractMesh) => {
         const rootMesh = this.mesh.parent as AbstractMesh;
         rootMesh.setParent(null);
+        this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
     }
 }
