@@ -24,6 +24,8 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
         "left": handLeft
     };
 
+    let rotateObserver;
+
     let rotationFlag: boolean = false;
 
     function getCylinderInstanceFromMesh(cylinder) {
@@ -284,6 +286,10 @@ export function addXRBehaviors(scene: Scene, xrCamera: WebXRDefaultExperience,
                                 currentHandClass.dropped(grabSetInterval);
                                 currentHandClass.disappearAnimation(false);
                                 rotationFlag = false;
+
+                                if (rotateObserver) {
+                                    scene.onBeforeRenderObservable.remove(rotateObserver);
+                                }
                             }
 
                             if (currentHandClass.holdingInstance.rotateEnd) {

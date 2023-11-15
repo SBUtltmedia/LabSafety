@@ -1,4 +1,4 @@
-import { AbstractMesh, GPUParticleSystem, ParticleSystem, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, GPUParticleSystem, ParticleSystem, Vector3, Texture } from "@babylonjs/core";
 
 export class SmokeParticles {
     particleSystem: ParticleSystem | GPUParticleSystem
