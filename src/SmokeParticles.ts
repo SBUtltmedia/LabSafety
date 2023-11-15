@@ -1,7 +1,7 @@
-import { AbstractMesh, BoxParticleEmitter, Color3, Color4, GPUParticleSystem,  Mesh,  MeshBuilder, ParticleSystem, SolidParticleSystem, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, GPUParticleSystem, ParticleSystem, Vector3 } from "@babylonjs/core";
 
 export class SmokeParticles {
-    particleSystem: ParticleSystem
+    particleSystem: ParticleSystem | GPUParticleSystem
     gravity: Vector3;
 
     constructor(sourceMesh: AbstractMesh) {
@@ -52,7 +52,7 @@ export class SmokeParticles {
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 
         particleSystem.emitter = sourceMesh;
-        
+
         this.particleSystem = particleSystem;
     }
 
