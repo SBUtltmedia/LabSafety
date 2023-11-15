@@ -35,15 +35,23 @@ export class FireExtinguisher {
 
     }
 
+    setPosition() {
+        this.mesh.position = this.startPos;
+        // this.mesh.rotation = this.rotation;
+    }
+
     setModel(model: Mesh) {
         this.mesh = model;
         this.scene = model.getScene();
         this.modelTransform = this.scene.getTransformNodeByName("fire_ex");
 
-        this.mesh.position = this.startPos;
+        // this.mesh.position = this.startPos;
         this.mesh.isPickable = true;
 
         this.rotation = Object.assign({}, this.mesh.rotation);
+
+        this.setPosition();
+
 
         this.extinguished = false;
 
@@ -109,12 +117,35 @@ export class FireExtinguisher {
                     this.mesh.rotation = new Vector3(0, Math.PI, 0);
 
                 }
+            }
+        } else if (this.xrCamera.baseExperience.state !== WebXRState.IN_XR && pointerInfo.type === PointerEventTypes.POINTERDOWN && this.isHolding) {
+            let lastPos = new Vector3(0,0,0);
 
-                this.mesh.addBehavior(new SmokeBehavior);
+
+            if (!this.isRunning) {
+                this.startSmoke();
+                this.isRunning = true;
+
+                console.log("In dispense");
+
+                let pickedMesh = this.scene.pickWithRay(this.scene.activeCamera.getForwardRay(10)).pickedMesh;
+                console.log(pickedMesh)
+
+                if (pickedMesh.id === "ExitDoor") {
+                    setTimeout(() => {
+                        this.extinguished = true;
+                        console.log(this.extinguished);
+                        this.fire.hide();
+                    }, 1500)
+                }
+            }
+        } else {
+            if (this.isRunning) {
+                this.stopSmoke();
+                this.isRunning = false;
             }
         }
     }
-
 
     startSmoke() {
         this.smokeSystem.start();
@@ -139,8 +170,7 @@ export class FireExtinguisher {
         this.mesh.parent = null;
 
         setTimeout(() => {
-            this.mesh.position = this.startPos;
-            this.mesh.rotation = this.rotation;
+            this.setPosition();
         }, 300);
 
         if (this.fire)

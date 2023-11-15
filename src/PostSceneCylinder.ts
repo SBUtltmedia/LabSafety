@@ -207,7 +207,7 @@ export class PostSceneCylinder extends Interact {
                                         
                                         sop.resetSOP();
                                         this.resetCylinders();
-                                        super.showFinishScreen();
+                                        super.showFinishScreen(false);
                                         
                                         
                                     } else {

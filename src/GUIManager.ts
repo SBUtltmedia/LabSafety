@@ -38,11 +38,22 @@ export class GUIManager {
     }
 
     createPromptWithButtonVR(text: string, xrCamera: WebXRDefaultExperience = null, buttonClickCallBack = null, ...args) {
+
+      let meshes = this.scene.getMeshByName("Start");
+
+      while (meshes != null && meshes != undefined) {
+        meshes.dispose();
+        meshes = this.scene.getMeshByName("Start");
+      }
+
       this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
-      this.screen.parent = this.camera;
+
+      let camera = xrCamera.baseExperience.camera;
+
+      this.screen.parent = camera;
 
       // need to add a vector because the origin of the camera is at top left
-      this.screen.position = this.camera.position.add(new Vector3(0.6, -1.5, 2.75));
+      this.screen.position = camera.position.add(new Vector3(0.6, -1.5, 2.75));
       this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
 
       let container = new Container("container");

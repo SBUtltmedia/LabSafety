@@ -133,7 +133,7 @@ export abstract class Interact {
         targetInstance.setColor(newColor);
     }
 
-    showFinishScreen() {
+    fireExtinguishScreen() {
         // this.guiManager.gameFinishPrompt.setVisible(true);
 
 
@@ -157,7 +157,7 @@ export abstract class Interact {
             }
         }
 
-        this.guiManager.createPromptWithButtonVR("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
+        this.guiManager.createPromptWithButtonVR("Fire extinguished! The scene will now reset.", this.xrCamera, setPickable, this.cylinderInstances);
         let screen = this.scene.getMeshByName("Start");
         if (screen) {
             let camera = this.xrCamera.baseExperience.camera;
@@ -167,15 +167,61 @@ export abstract class Interact {
             this.xrCamera.pointerSelection.displayLaserPointer = true;
             this.xrCamera.pointerSelection.displaySelectionMesh = true;
 
-            screen.position.x = this.scene.activeCamera.position.x;
-            screen.position.y = this.scene.activeCamera.position.y;
-            screen.position.z = this.scene.activeCamera.position.z + 0.7;
+            screen.position.x = 0;
+            screen.position.y = 0;
+            screen.position.z = 0.7;
 
             screen.rotation = Vector3.Zero();
         } 
+    }    
+
+    showFinishScreen(xr = true) {
+        // this.guiManager.gameFinishPrompt.setVisible(true);
+
+
+        for (let cylinder of this.cylinderInstances) {
+            cylinder.mesh.isPickable = false;
+            cylinder.moveFlag = false;
+        }
+
+    
+        function setPickable(instances: Array<Cylinder>) {
+            for (let cylinder of instances) {
+                cylinder.mesh.isPickable = true;
+                cylinder.moveFlag = true;
+                cylinder.resetProperties();
+                cylinder.showEffects(false);
+
+                setTimeout(() => {
+                    cylinder.setColor(cylinder.originalColor);
+                }, 1000);
+
+            }
+        }
+
+        if (xr) {
+            this.guiManager.createPromptWithButtonVR("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
+            let screen = this.scene.getMeshByName("Start");
+            if (screen) {
+                let camera = this.xrCamera.baseExperience.camera;
+                screen.parent = camera
+                screen.position = camera.position.add(new Vector3(-camera.position.x, -1.5, 1.15));
+
+                this.xrCamera.pointerSelection.displayLaserPointer = true;
+                this.xrCamera.pointerSelection.displaySelectionMesh = true;
+
+                screen.position.x = 0;
+                screen.position.y = 0;
+                screen.position.z = 0.7;
+
+                screen.rotation = Vector3.Zero();
+            } 
+        } else {
+            this.guiManager.createPromptWithButton("You have completed the task! The scene will now reset!", this.xrCamera, setPickable, this.cylinderInstances);
+        }
     }
 
-    showFailureScreen() {
+    showFailureScreen(xr = true) {
 
         for (let cylinder of this.cylinderInstances) {
             cylinder.mesh.isPickable = false;
