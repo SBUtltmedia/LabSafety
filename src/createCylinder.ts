@@ -10,6 +10,7 @@ import { AbstractMesh, Nullable, Vector3 } from "@babylonjs/core";
 import { log } from "./utils";
 
 import { PouringBehavior } from "./PouringBehavior";
+import { PourableBehavior } from "./PourableBehavior";
 
 export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
     const meshIdentifier = mesh.name.split("-")[1];  // "a", "b", "c", etc.
@@ -31,27 +32,10 @@ export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void
     const baseMesh = mesh.getChildMeshes().find(childMesh => childMesh.name === `base-${meshIdentifier}`) as Mesh;
 
     const pouringBehavior = new PouringBehavior(targets, interactionXRManager);
+    const pourableBehavior = new PourableBehavior();
+
     baseMesh.addBehavior(pouringBehavior);
-}
-
-function checkNearTarget(source: Mesh, targets: Mesh[]): Nullable<Mesh> {
-    // log("source:");
-    // log(source);
-    // log("targets:")
-    // log(targets);
-    const validTargets = targets.filter(target => source.intersectsMesh(target));
-
-    let bestTarget = null;
-    let bestDistance = Number.POSITIVE_INFINITY;
-    for (const target of validTargets) {
-        const distance = Vector3.Distance(source.absolutePosition, target.absolutePosition);
-        if (distance < bestDistance) {
-            bestTarget = target;
-            bestDistance = distance;
-        }
-    }
-
-    return bestTarget;
+    baseMesh.addBehavior(pourableBehavior);
 }
 
 export function renameCylinder(rootMesh: AbstractMesh): void {

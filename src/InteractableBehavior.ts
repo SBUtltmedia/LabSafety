@@ -106,4 +106,23 @@ export class InteractableBehavior implements Behavior<Mesh> {
         this.#currentBehavior = newBehavior;
         return this.mesh.addBehavior(this.#currentBehavior) as Mesh;
     }
+
+    disable = () => {
+        if (this.#currentBehavior.name === InteractableXRBehavior.name) {
+            (this.#currentBehavior as InteractableXRBehavior).disable();
+        } else if (this.#currentBehavior.name === "PointerDrag") {
+            log("Disabling " + PointerDragBehavior.name);
+            (this.#currentBehavior as PointerDragBehavior).releaseDrag();
+            (this.#currentBehavior as PointerDragBehavior).enabled = false;
+        }
+    }
+
+    enable = () => {
+        if (this.#currentBehavior.name === InteractableXRBehavior.name) {
+            (this.#currentBehavior as InteractableXRBehavior).enable();
+        } else if (this.#currentBehavior.name === "PointerDrag") {
+            log("Disabling " + PointerDragBehavior.name);
+            (this.#currentBehavior as PointerDragBehavior).enabled = true;
+        }
+    }
 }

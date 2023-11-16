@@ -1,7 +1,10 @@
-import { Behavior, Color3, Mesh, Nullable, Observer, Scene, Vector3 } from "@babylonjs/core";
+import { Behavior, Color3, Mesh, Nullable, Observable, Observer, Scene, Vector3 } from "@babylonjs/core";
 import { InteractableBehavior } from "./InteractableBehavior";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { PourableBehavior } from "./PourableBehavior";
+import { Animation } from "@babylonjs/core";
+import { log } from "./utils";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -16,11 +19,18 @@ export class PouringBehavior implements Behavior<Mesh> {
     #grabStateObserver: Observer<GrabState>;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<Mesh>;
+    onBeforePourObservable: Observable<Mesh>;
+    onAfterPourObservable: Observable<Mesh>;
+    pourDelay: number = 1000;
+    #delayTimeoutID: number = 0;
+    animating: boolean = false;
     
     constructor(targets: Mesh[], interactionXRManager?: InteractionXRManager) {
         this.#interactableBehavior = new InteractableBehavior(interactionXRManager || undefined);
         this.#interactableBehavior.targets.push(...targets);
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
+        this.onBeforePourObservable = new Observable();
+        this.onAfterPourObservable = new Observable();
     }
 
     static get name() {
@@ -65,7 +75,13 @@ export class PouringBehavior implements Behavior<Mesh> {
     }
 
     #checkNearTarget(targets: Mesh[]): Nullable<Mesh> {
-        const validTargets = targets.filter(target => this.mesh.absolutePosition.y > target.absolutePosition.y && this.mesh.intersectsMesh(target));
+        const validTargets = targets.filter(target => {
+            const isTargetBelow = this.mesh.absolutePosition.y > target.absolutePosition.y;
+            const isPourable = Boolean(target.getBehaviorByName(PourableBehavior.name));
+            const targetNotGrabbed = (target.getBehaviorByName(InteractableBehavior.name) as InteractableBehavior)?.grabState !== GrabState.GRAB;
+            const intersectingTarget = this.mesh.intersectsMesh(target);
+            return isTargetBelow && isPourable && targetNotGrabbed && intersectingTarget;
+        });
 
         let bestTarget = null;
         let bestDistance = Number.POSITIVE_INFINITY;
@@ -87,13 +103,89 @@ export class PouringBehavior implements Behavior<Mesh> {
 
         if (this.#currentTarget) {
             this.#highlightBehavior.unhighlightAll();
-        }
-
-        if (target) {
-            this.#highlightBehavior.highlightSelf();
-            this.#highlightBehavior.highlightOther(target);
+            if (this.#delayTimeoutID) {
+                clearTimeout(this.#delayTimeoutID);
+                this.#delayTimeoutID = 0;
+            }
         }
 
         this.#currentTarget = target;
+        
+        if (this.#currentTarget) {
+            this.#highlightBehavior.highlightSelf();
+            this.#highlightBehavior.highlightOther(this.#currentTarget);
+            this.#delayTimeoutID = setTimeout(() => {
+                this.#delayTimeoutID = 0;
+                this.pour()
+            }, this.pourDelay);
+        }
+    }
+
+    pour = () => {
+        if (!this.#currentTarget) {
+            throw new Error("PouringBehavior: attempted pour with no current target.");
+        }
+        const pourableBehavior = this.#currentTarget.getBehaviorByName(PourableBehavior.name) as PourableBehavior;
+        if (!pourableBehavior) {
+            throw new Error("PouringBehavior: target is not pourable.");
+        }
+        // Save checkCollisions, to be restored at the end of the animation.
+        const checkCollisions = this.mesh.checkCollisions;
+        const previousPosition = this.mesh.absolutePosition;
+        this.onBeforePourObservable.notifyObservers(this.#currentTarget);
+        this.mesh.checkCollisions = false;
+        const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
+        const keyFrames = animation.getKeys();
+        const from = keyFrames[0].frame;
+        const to = keyFrames[keyFrames.length - 1].frame;
+
+        const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
+        this.mesh.setAbsolutePosition(pouringPosition);
+        this.animating = true;
+        this.#interactableBehavior.disable();
+        this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], from, to, false, 1, () => {
+            this.#interactableBehavior.enable();
+            this.animating = false;
+            this.mesh.checkCollisions = checkCollisions;
+            this.mesh.setAbsolutePosition(previousPosition);
+            this.onAfterPourObservable.notifyObservers(this.#currentTarget);
+        });
     }
 }
+
+const frameRate = 30;
+
+const pourLeftKeyFrames = [
+    {
+        frame: 0,
+        value: new Vector3(0, 0, 0)
+    },
+    {
+        frame: frameRate,
+        value: new Vector3(0, 0, -Math.PI / 2)
+    },
+    {
+        frame: 2 * frameRate,
+        value: new Vector3(0, 0, 0)
+    }
+]
+const pourRightKeyFrames = [
+    {
+        frame: 0,
+        value: new Vector3(0, Math.PI, 0)
+    },
+    {
+        frame: frameRate,
+        value: new Vector3(0, Math.PI, -Math.PI / 2)
+    },
+    {
+        frame: 2 * frameRate,
+        value: new Vector3(0, Math.PI, 0)
+    }
+];
+
+const pourLeftAnimation = new Animation("pour-neg-z", "rotation", frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
+const pourRightAnimation = new Animation("pour-pos-z", "rotation", frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+pourLeftAnimation.setKeys(pourLeftKeyFrames, true);
+pourRightAnimation.setKeys(pourRightKeyFrames, true);
