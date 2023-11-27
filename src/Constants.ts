@@ -16,7 +16,7 @@ export const MAX_DISPLACEMENT_PER_FRAME = 0.12;  // If the camera is displaced b
 
 export const FAIL_SOUND_PATH = `${rootPath}sound/mi_explosion_03_hpx.mp3`;
 export const SUCCESS_SOUND_PATH = `${rootPath}sound/ding-idea-40142.mp3`;
-export const COMPLETION_SOUND_PATH = `${rootPath}sound/456966__funwithsound__success-fanfare-trumpets.mp3`;
+export const COMPLETION_SOUND_PATH = `${rootPath}sound/success.mp3`;
 export const COMPLETION_RESET_DELAY = 10000;  // milliseconds
 export const FAILURE_RESET_DELAY = 5000;  // milliseconds
 
