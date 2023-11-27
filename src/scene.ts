@@ -20,6 +20,7 @@ import { PostSceneCylinder } from "./PostSceneCylinder";
 import { log } from "./utils";
 import { MAX_XR_GRAB_DISTANCE } from "./Constants";
 import { InteractionXRManager } from "./InteractionXRManager";
+import { enableTasks } from "./enableTasks";
 
 export let xrExperience: WebXRDefaultExperience;
 export let interactionXRManager: InteractionXRManager;
@@ -110,6 +111,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // soundManager.enableAudio();
     // await soundManager.loadSounds();
     // log("createSceneAsync end sounds");
+    log("createSceneAsync enable tasks start");
+    enableTasks(scene);
+    log("createSceneAsync enable tasks end");
     log("createSceneAsync end");
     return scene;
 }
@@ -129,13 +133,3 @@ function fadeIn(light: Light) {
         }
     }, 60);
 }
-
-// function changePointerLock(state: WebXRState): void {
-//     if (document.pointerLockElement && state === WebXRState.IN_XR) {
-//         document.exitPointerLock();
-//     }
-//     if (!document.pointerLockElement && state === WebXRState.NOT_IN_XR) {
-//         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-//         canvas.requestPointerLock();
-//     }
-// }
