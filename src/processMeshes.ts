@@ -1,8 +1,9 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { createCylinder } from "./createCylinder";
+import { createCylinder, renameCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { AbstractMesh } from "@babylonjs/core";
 
 export function processMeshes(meshes: Mesh[]) {
     // Need to run all the callbacks in the models argument in createSceneOne() in the SceneManager
@@ -40,14 +41,21 @@ export function processMeshes(meshes: Mesh[]) {
     const cylinderB = cylinderMesh.clone(`${cylinderMesh.name}-b`, cylinderMesh.parent);
     const cylinderA = cylinderMesh;
 
-    cylinderC.id = cylinderC.name;
-    cylinderB.id = cylinderB.name;
     cylinderA.name += "-a";
-    cylinderA.id = cylinderA.name;
 
-    createCylinder(cylinderC, Color3.Blue());
-    createCylinder(cylinderB, Color3.Green());
-    createCylinder(cylinderA, Color3.Red());
+    renameCylinder(cylinderC);
+    renameCylinder(cylinderB);
+    renameCylinder(cylinderA);
+
+    createCylinder(cylinderC, Color3.Blue(), [cylinderA, cylinderB].map(getCylinderBaseMesh));
+    createCylinder(cylinderB, Color3.Green(), [cylinderA, cylinderC].map(getCylinderBaseMesh));
+    createCylinder(cylinderA, Color3.Red(), [cylinderB, cylinderC].map(getCylinderBaseMesh));
 
     meshes.push(cylinderC, cylinderB);
+}
+
+function getCylinderBaseMesh(rootMesh: AbstractMesh): Mesh {
+    const meshIdentifier = rootMesh.name.split("-")[1];
+    const baseMesh = rootMesh.getChildMeshes().find(childMesh => childMesh.name === `base-${meshIdentifier}`) as Mesh;
+    return baseMesh;
 }
