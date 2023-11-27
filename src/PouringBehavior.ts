@@ -114,9 +114,11 @@ export class PouringBehavior implements Behavior<Mesh> {
         if (this.#currentTarget) {
             this.#highlightBehavior.highlightSelf();
             this.#highlightBehavior.highlightOther(this.#currentTarget);
+
+            // @todo: Use something other than setTimeout?
             this.#delayTimeoutID = setTimeout(() => {
                 this.#delayTimeoutID = 0;
-                this.pour()
+                this.pour();
             }, this.pourDelay);
         }
     }
@@ -132,7 +134,8 @@ export class PouringBehavior implements Behavior<Mesh> {
         // Save checkCollisions, to be restored at the end of the animation.
         const checkCollisions = this.mesh.checkCollisions;
         const previousPosition = this.mesh.absolutePosition;
-        this.onBeforePourObservable.notifyObservers(this.#currentTarget);
+        const target = this.#currentTarget;
+        this.onBeforePourObservable.notifyObservers(target);
         this.mesh.checkCollisions = false;
         const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
         const keyFrames = animation.getKeys();
@@ -148,7 +151,7 @@ export class PouringBehavior implements Behavior<Mesh> {
             this.animating = false;
             this.mesh.checkCollisions = checkCollisions;
             this.mesh.setAbsolutePosition(previousPosition);
-            this.onAfterPourObservable.notifyObservers(this.#currentTarget);
+            this.onAfterPourObservable.notifyObservers(target);
         });
     }
 }
