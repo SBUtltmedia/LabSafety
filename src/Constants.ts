@@ -1,7 +1,5 @@
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
-import SOP from "./SOP";
 
 export const rootPath = './'
 export const RENDER_CANVAS_ID = 'canvas';
@@ -29,16 +27,3 @@ export const CYLINDER_B_NAME = 'cylinder-b';
 export const CYLINDER_C_NAME = 'cylinder-c';
 
 export const PLACARD_MESH_NAME = 'placard';
-export const sop = new SOP("", "", [{ next: "CtoA", label: "BtoC" },
-{ next: "complete", label: "CtoA" },
-]);
-export interface MotionControllerWithGrab extends WebXRAbstractMotionController {
-    //hand: {
-    grabbed: boolean,
-    meshGrabbed: AbstractMesh,
-    //moveDelta: Vector3,
-    handID: String,
-    lastPosition: Vector3,
-    //}
-}
-export  const  lookupHandModel={"right":"handR2320","left":"handL2320"}
