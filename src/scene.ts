@@ -36,6 +36,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     setUpCamera(camera);
     scene.activeCamera = camera;
     scene.activeCamera.attachControl(true);
+
+    // Enable audio
+    Engine.audioEngine.useCustomUnlockedButton = true;
     
     light1.intensity = 0;
 

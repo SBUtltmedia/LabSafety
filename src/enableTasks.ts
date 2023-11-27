@@ -5,10 +5,6 @@ import { bToCTask, cToATask, sop } from "./SOP";
 import { Status } from "./Task";
 import { log } from "./utils";
 
-function enableAudio() {
-    Engine.audioEngine.useCustomUnlockedButton = true;
-}
-
 export function enableTasks(scene: Scene): void {
     const pourers = scene.meshes.filter(mesh => {
         return Boolean(mesh.behaviors.find(behavior => behavior.name === PouringBehavior.name));
@@ -21,8 +17,6 @@ export function enableTasks(scene: Scene): void {
         explosion: new Sound("explosion", FAIL_SOUND_PATH),
         fanfare: new Sound("fanfare", COMPLETION_SOUND_PATH)
     };
-
-    enableAudio();
 
     [bToCTask, cToATask].forEach(task => {
         task.onTaskStateChangeObservable.add(status => {
