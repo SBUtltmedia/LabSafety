@@ -49,7 +49,7 @@ export function enableTasks(scene: Scene): void {
     });
 
     pouringBehaviors.forEach(b => {
-        b.onAfterPourObservable.add(target => {
+        b.onMidPourObservable.add(target => {
             log(`Pouring mesh name: ${b.mesh.name}`);
             log(`Poured mesh name: ${target.name}`);
             if (b.mesh.name === "base-b" && target.name === "base-c") {

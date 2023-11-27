@@ -1,4 +1,4 @@
-import { Behavior, Color3, Mesh, Nullable, Observable, Observer, Scene, Vector3 } from "@babylonjs/core";
+import { Behavior, Color3, IAnimationKey, Mesh, Nullable, Observable, Observer, Scene, Vector3 } from "@babylonjs/core";
 import { InteractableBehavior } from "./InteractableBehavior";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { GrabState, InteractionXRManager } from "./InteractionXRManager";
@@ -20,6 +20,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<Mesh>;
     onBeforePourObservable: Observable<Mesh>;
+    onMidPourObservable: Observable<Mesh>;
     onAfterPourObservable: Observable<Mesh>;
     pourDelay: number = 1000;
     #delayTimeoutID: number = 0;
@@ -30,6 +31,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.#interactableBehavior.targets.push(...targets);
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
+        this.onMidPourObservable = new Observable();
         this.onAfterPourObservable = new Observable();
     }
 
@@ -139,26 +141,71 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.mesh.checkCollisions = false;
         const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
         const keyFrames = animation.getKeys();
-        const from = keyFrames[0].frame;
-        const to = keyFrames[keyFrames.length - 1].frame;
+        const start = getFirstKeyFrame(keyFrames).frame;
+        const mid = getMidKeyFrame(keyFrames).frame;
+        const end = getLastKeyFrame(keyFrames).frame;
 
         const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
         this.mesh.setAbsolutePosition(pouringPosition);
         this.animating = true;
         this.#interactableBehavior.disable();
-        this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], from, to, false, 1, () => {
-            this.#interactableBehavior.enable();
-            this.animating = false;
-            this.mesh.checkCollisions = checkCollisions;
-            this.mesh.setAbsolutePosition(previousPosition);
-            this.onAfterPourObservable.notifyObservers(target);
+        this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], start, mid, false, 1, () => {
+            this.onMidPourObservable.notifyObservers(target);
+            this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], mid, end, false, 1, () => {
+                this.#interactableBehavior.enable();
+                this.animating = false;
+                this.mesh.checkCollisions = checkCollisions;
+                this.mesh.setAbsolutePosition(previousPosition);
+                this.onAfterPourObservable.notifyObservers(target);
+            });
         });
     }
 }
 
 const frameRate = 30;
 
-const pourLeftKeyFrames = [
+function getFirstKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
+    if (keys.length === 0) {
+        return null;
+    }
+
+    let minKey = keys[0];
+    for (let key of keys) {
+        if (key.frame < minKey.frame) {
+            minKey = key;
+        }
+    }
+    return minKey;
+}
+
+function getLastKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
+    if (keys.length === 0) {
+        return null;
+    }
+
+    let maxKey = keys[0];
+    for (let key of keys) {
+        if (key.frame > maxKey.frame) {
+            maxKey = key;
+        }
+    }
+    return maxKey;
+}
+
+function getMidKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
+    if (keys.length === 0) {
+        return null;
+    }
+
+    const first = getFirstKeyFrame(keys);
+    const last = getLastKeyFrame(keys);
+    
+    const midFrame = (first.frame + last.frame) / 2;
+    const midKey = getLastKeyFrame(keys.filter(key => key.frame <= midFrame));
+    return midKey
+}
+
+const pourLeftKeyFrames: IAnimationKey[] = [
     {
         frame: 0,
         value: new Vector3(0, 0, 0)
