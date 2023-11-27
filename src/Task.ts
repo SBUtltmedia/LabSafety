@@ -1,6 +1,6 @@
 import { Observable, Observer } from "@babylonjs/core";
 
-enum Status {
+export enum Status {
     SUCCESSFUL,
     FAILURE,
     RESET
@@ -44,19 +44,19 @@ export class Task {
                             this.fail();
                             break;
                         case Status.SUCCESSFUL:
+                            if (i !== 0 && orderedSubtasks[i-1].status !== Status.SUCCESSFUL) {
+                                // Task completed out of order.
+                                this.fail();
+                            }
+
                             // Check that the last Task of each ordered partition is succeeded.
                             // This implies that the whole partition is succeeded.
-                            const subtasksSucceeded = subtask.subtasks.every(orderedSubtasks => {
+                            const subtasksSucceeded = this.subtasks.every(orderedSubtasks => {
                                 return orderedSubtasks.at(-1).status === Status.SUCCESSFUL;
                             });
+
                             if (subtasksSucceeded) {
-                                // Verify that the Task was completed in order. If it was, succeed, else fail.
-                                if (i === 0 || orderedSubtasks[i-1].status === Status.SUCCESSFUL) {
-                                    this.succeed();
-                                } else {
-                                    // Task completed out of order.
-                                    this.fail();
-                                }
+                                this.#succeed();
                             }
                             break;
                         case Status.RESET:
@@ -78,11 +78,15 @@ export class Task {
 
     succeed = () => {
         // Only leaf Tasks can be manually succeeded. Internal Tasks automatically succeed or fail when their subtasks succeed or fail.
-        if (this.#status !== Status.RESET) {
-            throw new Error(`Attempted to succeed a Task (${this.name}) which has already succeeded or failed.`);
-        }
         if (this.subtasks.length) {
             throw new Error(`Task ${this.name} has subtasks and cannot be manually succeeded.`);
+        }
+        this.#succeed();
+    }
+
+    #succeed = () => {
+        if (this.#status !== Status.RESET) {
+            throw new Error(`Attempted to succeed a Task (${this.name}) which has already succeeded or failed.`);
         }
         this.#status = Status.SUCCESSFUL;
         this.onTaskStateChangeObservable.notifyObservers(this.#status);
