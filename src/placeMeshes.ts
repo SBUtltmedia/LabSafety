@@ -1,21 +1,38 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
+function compareById(left: AbstractMesh, right: AbstractMesh): number {
+    if (left.id < right.id) {
+        return -1;
+    } else if (left.id > right.id) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 export function placeMeshes(meshes: Mesh[]): void {
-    const cylinders = meshes.filter(mesh => mesh.name.split("-")[0] === "cylinder");
-    const placards = meshes.filter(mesh => mesh.name.split("-")[0] === "placard" && !mesh.name.includes("placard-base"));
+    const cylinders = meshes.filter(mesh => {
+        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
+    }).sort(compareById); // @todo: Change from the root mesh to the base mesh
+    const placards = meshes.filter(mesh => {
+        return mesh.name.split("-")[0] === "placard" && !mesh.name.includes("placard-base")
+    }).sort(compareById);
     const table = meshes.find(mesh => mesh.name === "Table");
     if (table) {
         // @todo: Is this guaranteed? Maybe we can do without the if statement.
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
         cylinders.forEach((cylinder, i) => {
-            const cylinderIdentifier = cylinder.name.split("-")[1];
-            const cylinderBase = cylinder.getChildMeshes().find(childMesh => childMesh.name === `base-${cylinderIdentifier}`);  // @todo: is it cylinder-base or cylinder-x.cylinder-base when cloned?
-            const cylinderBaseBoundingBox = cylinderBase.getBoundingInfo().boundingBox;
-            const cylinderVerticalOffset = cylinder.position.y - cylinderBaseBoundingBox.minimum.y;
-            cylinder.position.y = tableBoundingBox.maximum.y + cylinderVerticalOffset;  // @todo: maximumWorld: does maximum work? Also, do I need to add 0.0075 like was there before to prevent z-fighting?
-            cylinder.position.x = tableBoundingBox.minimum.x + (i + 1) * (tableBoundingBox.maximum.x - tableBoundingBox.minimum.x) / (cylinders.length + 2);
-            cylinder.position.z = (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3;
+            const cylinderBoundingBox = cylinder.getBoundingInfo().boundingBox;
+            const cylinderVerticalOffset = cylinder.position.y - cylinderBoundingBox.minimum.y;
+            cylinder.position.copyFromFloats(
+                tableBoundingBox.minimum.x + (i + 1) * (tableBoundingBox.maximum.x - tableBoundingBox.minimum.x) / (cylinders.length + 2),
+                tableBoundingBox.maximum.y + cylinderVerticalOffset,
+                (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3
+            );
+            
+            cylinder.rotationQuaternion = null;
+            cylinder.rotation.copyFromFloats(Math.PI, 0, 0);
         });
 
         placards.forEach((placard, i) => {
@@ -28,7 +45,7 @@ export function placeMeshes(meshes: Mesh[]): void {
             placard.position.z = (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3 + 0.2;
 
             placard.rotationQuaternion = null;
-            placard.rotation = new Vector3(0, Math.PI / 2, 0);
+            placard.rotation.copyFromFloats(0, Math.PI / 2, 0);
         });
     }
 }

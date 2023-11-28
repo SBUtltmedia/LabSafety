@@ -13,9 +13,7 @@ import { PouringBehavior } from "./PouringBehavior";
 import { PourableBehavior } from "./PourableBehavior";
 
 export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
-    const meshIdentifier = mesh.name.split("-")[1];  // "a", "b", "c", etc.
-
-    const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.name === `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`);
+    const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
     const liquidMaterial = new StandardMaterial("liquid-material");
     liquidMaterial.diffuseColor = color;
     liquidMesh.material = liquidMaterial;
@@ -26,31 +24,16 @@ export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void
     material.diffuseTexture = texture;
 
     const font = "bold 250px monospace";
-    mesh.getChildMeshes().filter(childMesh => childMesh.name.includes("Label")).forEach(m => m.material = material);
-    texture.drawText(mesh.name.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
 
-    const baseMesh = mesh.getChildMeshes().find(childMesh => childMesh.name === `base-${meshIdentifier}`) as Mesh;
+    const label = mesh.getChildMeshes().find(childMesh => {
+        return childMesh.id.split("-").pop() === "label";
+    });
+    label.material = material;
+    texture.drawText(mesh.id.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
 
     const pouringBehavior = new PouringBehavior(targets, interactionXRManager);
     const pourableBehavior = new PourableBehavior();
 
-    baseMesh.addBehavior(pouringBehavior);
-    baseMesh.addBehavior(pourableBehavior);
-}
-
-export function renameCylinder(rootMesh: AbstractMesh): void {
-    rootMesh.id = rootMesh.name;
-    const meshIdentifier = rootMesh.name.split("-")[1];  // "a", "b", "c", etc.
-    // @todo: This shouldn't be necessary. These ought to be correct in the files themselves. Well, adding the suffixes might be necessary here.
-    rootMesh.getChildMeshes().forEach(childMesh => {
-        if (childMesh.name.split(".").pop() === "BeakerwOpacity") {
-            childMesh.name = `base-${meshIdentifier}`;
-            childMesh.id = `base-${meshIdentifier}`;
-            // childMesh.isPickable = false;  // @todo: Is this correct?
-        } else if (childMesh.name.split(".").pop() === "BeakerLiquid") {
-            childMesh.name = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
-            childMesh.id = `${CYLINDER_LIQUID_MESH_NAME}-${meshIdentifier}`;
-            childMesh.isPickable = false;  // @todo: Is this correct?
-        }
-    });
+    mesh.addBehavior(pouringBehavior);
+    mesh.addBehavior(pourableBehavior);
 }

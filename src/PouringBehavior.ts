@@ -208,29 +208,29 @@ function getMidKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
 const pourLeftKeyFrames: IAnimationKey[] = [
     {
         frame: 0,
-        value: new Vector3(0, 0, 0)
+        value: new Vector3(Math.PI, 0, 0)
     },
     {
         frame: frameRate,
-        value: new Vector3(0, 0, -Math.PI / 2)
+        value: new Vector3(Math.PI, 0, -Math.PI / 2)
     },
     {
         frame: 2 * frameRate,
-        value: new Vector3(0, 0, 0)
+        value: new Vector3(Math.PI, 0, 0)
     }
 ]
 const pourRightKeyFrames = [
     {
         frame: 0,
-        value: new Vector3(0, Math.PI, 0)
+        value: new Vector3(Math.PI, 0, 0)
     },
     {
         frame: frameRate,
-        value: new Vector3(0, Math.PI, -Math.PI / 2)
+        value: new Vector3(Math.PI, 0, Math.PI / 2)
     },
     {
         frame: 2 * frameRate,
-        value: new Vector3(0, Math.PI, 0)
+        value: new Vector3(Math.PI, 0, 0)
     }
 ];
 
