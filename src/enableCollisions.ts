@@ -1,5 +1,6 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { COLLIDABLE_MESH_NAMES } from "./Constants";
+
+export const COLLIDABLE_MESH_NAMES = ["WallsandFloor", "Floor", "Table", "Roof", "Countertop", "Walls"];
 
 export function enableMeshCollisions(roomMesh: Mesh) {
     roomMesh.getChildMeshes().forEach(childMesh => {
