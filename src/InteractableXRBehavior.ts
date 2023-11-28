@@ -50,14 +50,12 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     }
 
     #grab = (grabbingMesh: AbstractMesh) => {
-        const rootMesh = this.mesh.parent as AbstractMesh;
-        rootMesh.setParent(grabbingMesh);
+        this.mesh.setParent(grabbingMesh);
         this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
     }
 
     #drop = () => {
-        const rootMesh = this.mesh.parent as AbstractMesh;
-        rootMesh.setParent(null);
+        this.mesh.setParent(null);
         this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
     }
 
