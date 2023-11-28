@@ -4,6 +4,8 @@ import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { AbstractMesh } from "@babylonjs/core";
+import { SOP_TEMPLATE_PATH } from "./Constants";
+import { createClipboard } from "./createClipboard";
 
 export function processMeshes(meshes: Mesh[]) {
     // Need to run all the callbacks in the models argument in createSceneOne() in the SceneManager
@@ -13,10 +15,25 @@ export function processMeshes(meshes: Mesh[]) {
     const placardMesh = meshes.find(mesh => mesh.name === "placard")!;
     const cylinderMesh = meshes.find(mesh => mesh.name === "cylinder")!.getChildMeshes(true)[0] as Mesh;
     // @todo: Process the clipboard and fire extinguisher meshes.
-    const clipboardMesh = meshes.find(mesh => mesh.name === "clipboard");
+    const clipboardMesh = meshes.find(mesh => mesh.name === "clipboard")!.getChildMeshes(true)[0] as AbstractMesh;
     const fireExtinguisherMesh = meshes.find(mesh => mesh.name === "fire-extinguisher");
 
     createRoom(roomMesh);
+
+    const clipboardRoot = clipboardMesh.parent;
+    // Because clipboardMesh is about to be renamed to "clipboard"
+    clipboardRoot.id = "clipboard-root";
+    clipboardRoot.name = clipboardRoot.id;
+    clipboardMesh.setParent(null);
+    clipboardRoot.dispose(true);
+
+    renameClipboard(clipboardMesh);
+
+    fetch(SOP_TEMPLATE_PATH)
+        .then(r => r.text())
+        .then(text => {
+            createClipboard(clipboardMesh, text);
+        });
 
     const placardC = placardMesh.clone(`${placardMesh.name}-c`, placardMesh.parent);
     const placardB = placardMesh.clone(`${placardMesh.name}-b`, placardMesh.parent);
@@ -36,10 +53,12 @@ export function processMeshes(meshes: Mesh[]) {
 
     meshes.push(placardC, placardB);
 
+    const cylinderRoot = cylinderMesh.parent;
     cylinderMesh.setParent(null);
+    cylinderRoot.dispose(true);
     
-    const cylinderC = cylinderMesh.clone(`${cylinderMesh.name}-c`, null) as Mesh;
-    const cylinderB = cylinderMesh.clone(`${cylinderMesh.name}-b`, null) as Mesh;
+    const cylinderC = cylinderMesh.clone(`${cylinderMesh.id}-c`, null) as Mesh;
+    const cylinderB = cylinderMesh.clone(`${cylinderMesh.id}-b`, null) as Mesh;
     const cylinderA = cylinderMesh;
 
     renameCylinders([cylinderA, cylinderB, cylinderC], ["a", "b", "c"]);
@@ -75,5 +94,30 @@ function renameCylinders(cylinders: Mesh[], identifiers: string[]): void {
                     break;
             }
         });
+    });
+}
+
+function renameClipboard(clipboard: AbstractMesh): void {
+    clipboard.id = "clipboard";
+    clipboard.name = clipboard.id;
+    clipboard.getChildMeshes().forEach(childMesh => {
+        switch (childMesh.id) {
+            case "Plane":
+                childMesh.id = `${clipboard.id}-plane`;
+                childMesh.name = childMesh.id;
+                break;
+            case "Clipper":
+                childMesh.id = `${clipboard.id}-clip`;
+                childMesh.name = childMesh.id;
+                break;
+            case "horizontalScrew":
+                childMesh.id = `${clipboard.id}-screw`;
+                childMesh.name = childMesh.id;
+                break;
+            case "metalThingy":
+                childMesh.id = `${clipboard.id}-metal`;
+                childMesh.name = childMesh.id;
+                break;
+        }
     });
 }

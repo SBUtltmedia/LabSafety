@@ -14,10 +14,11 @@ function compareById(left: AbstractMesh, right: AbstractMesh): number {
 export function placeMeshes(meshes: Mesh[]): void {
     const cylinders = meshes.filter(mesh => {
         return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
-    }).sort(compareById); // @todo: Change from the root mesh to the base mesh
+    }).sort(compareById);
     const placards = meshes.filter(mesh => {
         return mesh.name.split("-")[0] === "placard" && !mesh.name.includes("placard-base")
     }).sort(compareById);
+    const clipboard = meshes.find(mesh => mesh.id === "clipboard");
     const table = meshes.find(mesh => mesh.name === "Table");
     if (table) {
         // @todo: Is this guaranteed? Maybe we can do without the if statement.
@@ -47,5 +48,18 @@ export function placeMeshes(meshes: Mesh[]): void {
             placard.rotationQuaternion = null;
             placard.rotation.copyFromFloats(0, Math.PI / 2, 0);
         });
+        
+        clipboard.position.copyFromFloats(
+            cylinders[0].position.x + 0.5,
+            tableBoundingBox.maximum.y,
+            cylinders[0].position.z + 0.3
+        );
+
+        clipboard.rotationQuaternion = null;
+        clipboard.rotation.copyFromFloats(
+            0,
+            -Math.PI / 2,
+            Math.PI
+        );
     }
 }

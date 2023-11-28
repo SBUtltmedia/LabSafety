@@ -27,3 +27,5 @@ export const CYLINDER_B_NAME = 'cylinder-b';
 export const CYLINDER_C_NAME = 'cylinder-c';
 
 export const PLACARD_MESH_NAME = 'placard';
+
+export const SOP_TEMPLATE_PATH = `${rootPath}images/sopTemplate.svg`;
