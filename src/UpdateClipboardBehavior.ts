@@ -45,7 +45,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
                     // a checkbox for this task. If the task failed, update
                     // the data to have an X for this task. If the task was
                     // reset, update the data to be blank for this task.
-                    throw new Error("Not implemented.");
+                    // @todo: This is not implemented.
                 })
             })
         );

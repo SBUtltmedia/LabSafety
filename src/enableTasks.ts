@@ -52,10 +52,10 @@ export function enableTasks(scene: Scene): void {
         b.onMidPourObservable.add(target => {
             log(`Pouring mesh name: ${b.mesh.name}`);
             log(`Poured mesh name: ${target.name}`);
-            if (b.mesh.name === "base-b" && target.name === "base-c") {
+            if (b.mesh.name === "cylinder-b" && target.name === "cylinder-c") {
                 // Poured B into C. If this was done out of order, it will fail the SOP.
                 bToCTask.succeed();
-            } else if (b.mesh.name === "base-c" && target.name === "base-a") {
+            } else if (b.mesh.name === "cylinder-c" && target.name === "cylinder-a") {
                 // Poured C into A. If this was done out of order, it will fail the SOP.
                 cToATask.succeed();
             } else {
