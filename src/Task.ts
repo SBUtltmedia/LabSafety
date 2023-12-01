@@ -1,4 +1,5 @@
 import { Observable, Observer } from "@babylonjs/core";
+import { log } from "./utils";
 
 export enum Status {
     SUCCESSFUL,
@@ -10,6 +11,7 @@ export class Task {
     name: string;
     description: string;
     #status: Status;
+    optional: boolean;  // If false, when a task fails, its supertask will also fail.
 
     // Subtasks are an Array of Arrays of Tasks. Each Array of Tasks represents Tasks that must be completed in order:
     // if a Task is completed out of order, that Task Array fails. For example: [[pourAtoC, pourCtoB], [pourDtoE, pourEtoF], [doADance]].
@@ -17,10 +19,11 @@ export class Task {
     subtaskObservers: Observer<Status>[][];
     onTaskStateChangeObservable: Observable<Status>;
 
-    constructor(name: string, description: string, subtasks: Task[][]) {
+    constructor(name: string, description: string, subtasks: Task[][], optional = false) {
         this.name = name;
         this.description = description;
         this.#status = Status.RESET;
+        this.optional = optional;
 
         if (subtasks.some(orderedSubtasks => orderedSubtasks.length === 0)) {
             // This isn't strictly necessary; we could handle it if we wanted to.
@@ -31,22 +34,21 @@ export class Task {
         this.subtasks = subtasks;
         this.onTaskStateChangeObservable = new Observable();
 
-        // @todo: Long.
+        // Add observers to monitor subtasks
         this.subtaskObservers = this.subtasks.map(orderedSubtasks => {
             return orderedSubtasks.map((subtask, i) => {
-                return subtask.onTaskStateChangeObservable.add(status => {
+                const observer = subtask.onTaskStateChangeObservable.add((status, eventState) => {
                     switch (status) {
                         case Status.FAILURE:
-                            // Currently, a single failure in a Task's subtask is an instant short-circuit.
-                            // That's how the game is at the moment, but it's reasonable to want to allow
-                            // optional Tasks. That's fairly easy to add: maybe add an `optional` boolean
-                            // to Task and add a new degree of failure to Status (e.g., SOFT_FAILURE, HARD_FAILURE).
-                            this.fail();
+                            if (!subtask.optional) {
+                                this.fail();
+                            }
                             break;
                         case Status.SUCCESSFUL:
                             if (i !== 0 && orderedSubtasks[i-1].status !== Status.SUCCESSFUL) {
                                 // Task completed out of order.
-                                this.fail();
+                                eventState.skipNextObservers = true;
+                                break;
                             }
 
                             // Check that the last Task of each ordered partition is succeeded.
@@ -63,6 +65,12 @@ export class Task {
                             break;
                     }
                 });
+
+                // Ensure that the supertask is notified first. This is necessary when a task is completed out of order,
+                // so the supertask can cancel the notification and fail the task. This ensures that observers are only
+                // notified of success when it's actually correct.
+                subtask.onTaskStateChangeObservable.makeObserverTopPriority(observer);
+                return observer;
             });
         });
     }
@@ -72,8 +80,16 @@ export class Task {
         if (this.#status !== Status.RESET) {
             throw new Error(`Attempted to fail a Task (${this.name}) which has already succeeded or failed.`);
         }
-        this.#status = Status.FAILURE;
-        this.onTaskStateChangeObservable.notifyObservers(this.#status);
+
+        const valid = this.onTaskStateChangeObservable.notifyObservers(Status.FAILURE);
+        
+        // Note: Currently, `valid` should always be true.
+        if (valid) {
+            log(`Failing Task ${this.name}`);
+            this.#status = Status.FAILURE;
+        } else {
+            throw new Error(`Task ${this.name}: An observer skipped following observers.`);
+        }
     }
 
     succeed = () => {
@@ -88,8 +104,18 @@ export class Task {
         if (this.#status !== Status.RESET) {
             throw new Error(`Attempted to succeed a Task (${this.name}) which has already succeeded or failed.`);
         }
-        this.#status = Status.SUCCESSFUL;
-        this.onTaskStateChangeObservable.notifyObservers(this.#status);
+
+        // This will notify the supertask first. If `valid` is true, the task was correctly
+        // succeeded and the status should be changed. If false, the supertask (or some other
+        // authority) canceled the succeeding process, and the task should fail.
+        const valid = this.onTaskStateChangeObservable.notifyObservers(Status.SUCCESSFUL);
+        if (valid) {
+            log(`Succeeding Task ${this.name}`);
+            this.#status = Status.SUCCESSFUL;
+        } else {
+            // This task was completed out of order. Fail.
+            this.fail();
+        }
     }
 
     reset = () => {
