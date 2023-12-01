@@ -1,6 +1,7 @@
 import { AbstractMesh, Behavior, Observer, StandardMaterial, Texture } from "@babylonjs/core";
 import Handlebars from "handlebars";
 import { Status, Task } from "./Task";
+import { log } from "./utils";
 
 export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
     templateString: string;
@@ -11,6 +12,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
     #taskObservers: Observer<Status>[];
     mesh: AbstractMesh;
     #delegate: HandlebarsTemplateDelegate<any>;
+    #counter: number;
     
     constructor(templateString: string, data: any, rootTask: Task, basicTasks: Task[]) {
         this.templateString = templateString;
@@ -19,6 +21,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
         this.rootTask = rootTask;
         this.basicTasks = basicTasks;
         this.#taskObservers = [];
+        this.#counter = 0;
     }
 
     static get name() {
@@ -45,7 +48,20 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
                     // a checkbox for this task. If the task failed, update
                     // the data to have an X for this task. If the task was
                     // reset, update the data to be blank for this task.
-                    // @todo: This is not implemented.
+                    switch (status) {
+                        // @todo: This is a proof of concept. This will only change the "Pour chemical B into chemical C"
+                        // checkbox. We should define a common way to get a task's checkbox, probably from the task's name.
+                        case Status.SUCCESSFUL:
+                            this.data.items[1].sublist[1].text = this.data.items[1].sublist[1].text.replace(/\[.*\]/, "[CHECK]");
+                            this.#updateTextureFromData();
+                            break;
+                        case Status.FAILURE:
+                            this.data.items[1].sublist[1].text = this.data.items[1].sublist[1].text.replace(/\[.*\]/, "[X]");
+                            this.#updateTextureFromData();
+                            break;
+                        case Status.RESET:
+                            break;
+                    }
                 })
             })
         );
@@ -84,7 +100,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
 
         // Load the string into a buffer to generate the texture
         const buffer = "data:image/svg+xml;utf8," + encodeURIComponent(svgString);
-        const texture = Texture.LoadFromDataString("clipboard-texture", buffer, this.mesh.getScene(), undefined, undefined, undefined, Texture.LINEAR_LINEAR_MIPNEAREST);
+        const texture = Texture.LoadFromDataString(`clipboard-texture-${this.#counter++}`, buffer, this.mesh.getScene(), undefined, undefined, undefined, Texture.LINEAR_LINEAR_MIPNEAREST);
         
         // Configure the texture
         texture.uScale = 1.0;
