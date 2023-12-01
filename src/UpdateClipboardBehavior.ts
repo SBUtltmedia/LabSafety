@@ -1,7 +1,12 @@
-import { AbstractMesh, Behavior, Observer, StandardMaterial, Texture } from "@babylonjs/core";
+import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Observer } from "@babylonjs/core/Misc/observable";
+
 import Handlebars from "handlebars";
+
 import { Status, Task } from "./Task";
-import { log } from "./utils";
 
 export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
     templateString: string;
@@ -38,8 +43,6 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
 
     attach = (mesh: AbstractMesh) => {
         this.mesh = mesh;
-        // Hook onto task completions and update the clipboard with checkmarks, X's and so forth.
-
         this.#updateTextureFromData();
         this.#taskObservers.push(
             ...this.basicTasks.map(task => {

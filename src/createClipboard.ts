@@ -1,6 +1,9 @@
-import { AbstractMesh, Color3, StandardMaterial, Texture } from "@babylonjs/core";
-import { UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+
 import { bToCTask, cToATask, sop } from "./SOP";
+import { UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
 
 export function createClipboard(mesh: AbstractMesh, templateString: string): void {
     const scene = mesh.getScene();

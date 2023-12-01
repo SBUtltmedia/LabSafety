@@ -1,4 +1,5 @@
-import { Observable, Observer } from "@babylonjs/core";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
+
 import { log } from "./utils";
 
 export enum Status {
