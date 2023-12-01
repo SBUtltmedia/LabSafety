@@ -54,11 +54,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     interactionXRManager = new InteractionXRManager(xrExperience);
     setUpXR(xrExperience);
     
-    const splashScreen = document.querySelector("div.splash");
-    splashScreen.textContent = "Click to start!";
-    splashScreen.addEventListener("click", () => {
-        splashScreen.classList.add("hide");
-    }, false);
     log("createSceneAsync end WebXR initialization");
 
     // Imports the meshes and renames the "__root__" mesh names and ids to the filename (minus the file extension).
@@ -85,6 +80,13 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync enable tasks start");
     enableTasks(scene);
     log("createSceneAsync enable tasks end");
+
+    const splashScreen = document.querySelector("div.splash");
+    splashScreen.textContent = "Click to start!";
+    splashScreen.addEventListener("click", () => {
+        splashScreen.classList.add("hide");
+    }, false);
+
     log("createSceneAsync end");
     return scene;
 }
