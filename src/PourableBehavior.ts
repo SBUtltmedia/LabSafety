@@ -1,5 +1,6 @@
-import { Behavior, Mesh, Vector3 } from "@babylonjs/core";
-import { log } from "./utils";
+import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 export class PourableBehavior implements Behavior<Mesh> {
     mesh: Mesh;

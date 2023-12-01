@@ -1,9 +1,11 @@
-import { AbstractMesh, Behavior, Mesh, Observable, Observer, Ray, Vector3, WebXRDefaultExperience, WebXRInput } from "@babylonjs/core";
-import { InteractionXRManager } from "./InteractionXRManager";
-import { GrabState } from "./InteractionXRManager";
+import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
+
+import { GrabState, InteractionXRManager } from "./InteractionXRManager";
 
 export class InteractableXRBehavior implements Behavior<AbstractMesh> {
-    // The implementation for interactable behavior in XR. For now, it is
+    // The implementation for interactable behavior in XR. Currently, it is
     // intended to be used only in InteractableBehavior to remove some of
     // the burden of implementing functionality from InteractableBehavior.
 
@@ -45,6 +47,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     }
 
     detach = () => {
+        // @todo: Should this notify observers (by calling this.#drop)?
         this.mesh.setParent(null);
         this.observer.remove();
     }

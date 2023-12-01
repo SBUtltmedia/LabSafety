@@ -1,17 +1,21 @@
-import { Behavior, Color3, IAnimationKey, Mesh, Nullable, Observable, Observer, Scene, Vector3 } from "@babylonjs/core";
-import { InteractableBehavior } from "./InteractableBehavior";
+import { Scene } from "@babylonjs/core/scene";
+import { Nullable } from "@babylonjs/core/types";
+import { Animation } from "@babylonjs/core/Animations/animation";
+import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
+import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
+
 import { HighlightBehavior } from "./HighlightBehavior";
+import { InteractableBehavior } from "./InteractableBehavior";
 import { GrabState, InteractionXRManager } from "./InteractionXRManager";
 import { PourableBehavior } from "./PourableBehavior";
-import { Animation } from "@babylonjs/core";
-import { log } from "./utils";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
 
-// @todo: Should this instantiate InteractableBehavior and HighlightBehavior itself,
-// like InteractableBehavior does with InteractableXRBehavior and PointerDragBehavior?
-// Possibly.
 export class PouringBehavior implements Behavior<Mesh> {
     mesh: Mesh;
     #interactableBehavior: InteractableBehavior;
@@ -133,7 +137,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         if (!pourableBehavior) {
             throw new Error("PouringBehavior: target is not pourable.");
         }
-        // Save checkCollisions, to be restored at the end of the animation.
+        
         const checkCollisions = this.mesh.checkCollisions;
         const previousPosition = this.mesh.absolutePosition;
         const target = this.#currentTarget;

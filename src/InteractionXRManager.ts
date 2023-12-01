@@ -1,4 +1,9 @@
-import { AbstractMesh, Observable, Observer, WebXRAbstractMotionController, WebXRDefaultExperience, WebXRInputSource } from "@babylonjs/core";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Observable } from "@babylonjs/core/Misc/observable";
+import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
+
 import { InteractableXRBehavior } from "./InteractableXRBehavior";
 import { log } from "./utils";
 

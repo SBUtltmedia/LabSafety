@@ -1,4 +1,4 @@
-import { AbstractMesh } from "@babylonjs/core";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
@@ -37,7 +37,6 @@ export function placeMeshes(meshes: Mesh[]): void {
         });
 
         placards.forEach((placard, i) => {
-            // const placardIdentifier = placard.name.split("-")[1];
             const placardBase = placard.getChildMeshes().find(childMesh => childMesh.name === "placard-base");
             const placardBaseBoundingBox = placardBase.getBoundingInfo().boundingBox;
             const placardVerticalOffset = placard.position.y - placardBaseBoundingBox.minimum.y;

@@ -1,4 +1,7 @@
-import { Behavior, Color3, HighlightLayer, Mesh } from "@babylonjs/core";
+import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 export class HighlightBehavior implements Behavior<Mesh> {
     highlightLayer: HighlightLayer;

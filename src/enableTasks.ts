@@ -1,6 +1,8 @@
-import { Engine, Scene, Sound } from "@babylonjs/core";
-import { PouringBehavior } from "./PouringBehavior";
+import { Scene } from "@babylonjs/core/scene";
+import { Sound } from "@babylonjs/core/Audio/sound";
+
 import { COMPLETION_SOUND_PATH, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from "./Constants";
+import { PouringBehavior } from "./PouringBehavior";
 import { bToCTask, cToATask, sop } from "./SOP";
 import { Status } from "./Task";
 import { log } from "./utils";
@@ -33,14 +35,14 @@ export function enableTasks(scene: Scene): void {
     sop.onTaskStateChangeObservable.add(status => {
         switch (status) {
             case Status.SUCCESSFUL:
+                // Play fanfare, fade to black. After a few seconds, reset.
                 sounds.fanfare.stop();
                 sounds.fanfare.play();
-                // Play fanfare, fade to black. After a few seconds, reset.
                 break;
             case Status.FAILURE:
+                // Play explosion, cut to black screen. After a few seconds, reset.
                 sounds.explosion.stop();
                 sounds.explosion.play();
-                // Play explosion, cut to black screen. After a few seconds, reset.
                 break;
             case Status.RESET:
                 // Reset the scene. Ideally, we could do this without reloading the page, for performance.
@@ -54,6 +56,7 @@ export function enableTasks(scene: Scene): void {
             log(`Poured mesh name: ${target.name}`);
             if (b.mesh.name === "cylinder-b") {
                 if (target.name === "cylinder-c") {
+                    // Poured B into C. If this was done out of order, it will fail the SOP.
                     bToCTask.succeed();
                 } else {
                     bToCTask.fail();

@@ -1,7 +1,6 @@
-import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 
-//@todo: what about VR?
 export function setUpCamera(camera: UniversalCamera): void {
     camera.ellipsoid = new Vector3(0.4, 0.7, 0.4);
     camera.applyGravity = true;

@@ -1,16 +1,12 @@
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { CYLINDER_LIQUID_MESH_NAME } from "./Constants";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
-import { interactionXRManager } from "./scene";
-import { AbstractMesh, Nullable, Vector3 } from "@babylonjs/core";
-import { log } from "./utils";
 
-import { PouringBehavior } from "./PouringBehavior";
 import { PourableBehavior } from "./PourableBehavior";
+import { PouringBehavior } from "./PouringBehavior";
+import { interactionXRManager } from "./scene";
 
 export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");

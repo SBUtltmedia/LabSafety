@@ -1,14 +1,14 @@
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+
+import { SOP_TEMPLATE_PATH } from "./Constants";
+import { createClipboard } from "./createClipboard";
 import { createCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { AbstractMesh } from "@babylonjs/core";
-import { SOP_TEMPLATE_PATH } from "./Constants";
-import { createClipboard } from "./createClipboard";
 
 export function processMeshes(meshes: Mesh[]) {
-    // Need to run all the callbacks in the models argument in createSceneOne() in the SceneManager
     // @todo: make constants out of the names.
     // @todo: What if all meshes don't load?
     const roomMesh = meshes.find(mesh => mesh.name === "room")!;

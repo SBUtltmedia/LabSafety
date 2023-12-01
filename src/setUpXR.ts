@@ -1,61 +1,14 @@
-import { WebXRDefaultExperience, WebXRDefaultExperienceOptions } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { loadXRHands } from "./loadXRHands";
-import { pauseAnimations } from "./scene";
-import { Scene } from "@babylonjs/core/scene";
-import { AbstractMesh, Observable, Observer, Ray, StandardMaterial, WebXRAbstractMotionController, WebXRControllerPointerSelection, WebXRFeatureName, WebXRInput, WebXRInputSource, WebXRState } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Scene } from "@babylonjs/core/scene";
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
+import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
+
+import { loadXRHands } from "./loadXRHands";
 import { log } from "./utils";
-import { InteractableXRBehavior } from "./InteractableXRBehavior";
-import { InteractionXRManager } from "./InteractionXRManager";
-
-// Create the default XR experience
-// fireExtinguisher.xrCamera = xrExperience
-// Set XR options
-// place XR camera
-// displayPtr = false
-// xrExperience pointer selection options
-// keydown event listener to enable/disable pointer selection
-// Instantiate XR object
-// await xrObject.addWebXr()
-// Add FlyToCameraBehavior to the clipboard with the camera as the target
-// Add XR GUI
-// Add addHandModels function to the XR object
-// Set up post scene cylinders? What's that?
-// Add WebXRBehaviors
-// Add the the addWebXRBehaviors hook to the Cylinder objects
-
-// Create the default XR experience
-// - scene.ts
-// fireExtinguisher.xrCamera = xrExperience
-// - Get rid of fireExtinguisher. Do something else - maybe this could belong in Interactable
-// Set XR options
-// - setUpXR
-// place XR camera
-// - placeCamera, probably. Put all camera code in the same-ish place
-// displayPtr = false
-// - setUpXR
-// xrExperience pointer selection options
-// - setUpXR
-// keydown event listener to enable/disable pointer selection
-// setUpXR? Maybe a debug options function?
-// Instantiate XR object
-// - I don't like this. There is already an XR object; we should use only that. A custom class just seems like a temptation to tightly couple code. Also, it does nothing useful at all; it's just an interface to group up two functions without needing to list the arguments. That's not a good enough reason, and the functions need a lot of work in any case.
-// await xrObject.addWebXr()
-// - This is a mess that seems to do too much, and the name isn't at all descriptive. This should be something like five different functions.
-// Add FlyToCameraBehavior to the clipboard with the camera as the target
-// - Probably belongs in a setUpClipboard, but ideally the clipboard won't need to be special and could be an Interactable
-// Add XR GUI
-// - A display GUI function or something.
-// Add addHandModels function to the XR object
-// - This is way more complicated than it needs to be. The callback is returned, then passed as an attribute to a bunch of different instances. Worse, it's labeled as any. Figure something else out, after you figure out what this does.
-// Set up post scene cylinders? What's that?
-// - This is too confusing. Figure out what it does and make it make sense without needing to analyze the whole thing.
-// Add WebXRBehaviors
-// - This doesn't do what it says it does. We should not be getting a toggleControllers() callback from this method. Something like this should return void.
-// Add the the addWebXRBehaviors hook to the Cylinder objects
-// - I don't like wrapper classes.
 
 export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<void> {
     log("setUpXR start");
@@ -97,8 +50,6 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         // it would just be nice to know why it's necessary.
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
-
-    const interactionManager = new InteractionXRManager(xrExperience);
     
     xrExperience.input.controllers.forEach(controller => {
         const squeezeComponent = controller.motionController.getComponentOfType("squeeze");

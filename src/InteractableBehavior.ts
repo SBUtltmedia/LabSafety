@@ -1,11 +1,15 @@
-import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
-import { AbstractMesh, Observable, Observer, PointerDragBehavior, Vector3 } from "@babylonjs/core";
-import { log } from "./utils";
+import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
+
 import { InteractableXRBehavior } from "./InteractableXRBehavior";
 import { GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { log } from "./utils";
 
 export class InteractableBehavior implements Behavior<Mesh> {
     // If we want desktop mode to be a first-class platform, I feel strongly that camera controls should not
