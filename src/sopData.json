@@ -24,10 +24,10 @@
           "text": "When mixing these chemicals - always follow the correct sequence"
         },
         {
-          "text": "Pour chemical B into chemical C"
+          "text": "[ ] Pour chemical B into chemical C"
         },
         {
-          "text": "Then pour chemical mixture B+C into chemical A"
+          "text": "[ ] Then pour chemical mixture B+C into chemical A"
         }
       ]
     },
