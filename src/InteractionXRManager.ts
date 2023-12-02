@@ -26,7 +26,7 @@ export class InteractionXRManager {
     }
 
     #predicate (mesh: AbstractMesh): boolean {
-        return Boolean(mesh.getBehaviorByName(InteractableXRBehavior.name));
+        return mesh.behaviors.some(b => b instanceof InteractableXRBehavior);
     }
 
     #setUpController = (controller: WebXRInputSource) => {
@@ -66,9 +66,9 @@ export class InteractionXRManager {
     }
 
     #notifyMeshObserver = (mesh: AbstractMesh, data: any) => {
-        const behavior = mesh.getBehaviorByName(InteractableXRBehavior.name) as InteractableXRBehavior;
+        const behavior = mesh.behaviors.find(b => b instanceof InteractableXRBehavior) as InteractableXRBehavior;
         if (!behavior) {
-            throw new Error("InteractionXRManager: mesh must have InteractableXRBehavior.");
+            throw new Error("InteractionXRManager: mesh must have an instance of InteractableXRBehavior.");
         }
         const observer = behavior.observer;
         this.onGrabStateChangeObservable.notifyObserver(observer, data);

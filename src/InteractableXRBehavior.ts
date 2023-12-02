@@ -12,66 +12,78 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     mesh: AbstractMesh;
     observer: Observer<[AbstractMesh, GrabState]>;
     interactionManager: InteractionXRManager;
-    onGrabStateChangedObservable: Observable<GrabState>;
-    #enabled: boolean = true;
+    onGrabStateChangedObservable: Observable<GrabState> = new Observable();
+    protected _enabled: boolean = true;
+    protected _grabbing: boolean = false;
     
     constructor(interactionManager: InteractionXRManager) {
         this.interactionManager = interactionManager;
-        this.onGrabStateChangedObservable = new Observable();
     }
 
-    static get name() {
+    static get name(): string {
         return "InteractableXR";
     }
 
-    get name() {
+    get name(): string {
         return InteractableXRBehavior.name;
     }
 
-    init = () => {
+    init = (): void => {
 
     }
 
-    attach = (mesh: AbstractMesh) => {
+    attach = (mesh: AbstractMesh): void => {
         this.mesh = mesh;
         this.observer = this.interactionManager.onGrabStateChangeObservable.add(([pointer, grabState]) => {
-            if (!this.#enabled) {
+            if (!this._enabled) {
                 return;
             }
             if (grabState === GrabState.GRAB) {
-                this.#grab(pointer);
+                this._grab(pointer);
             } else if (grabState === GrabState.DROP) {
-                this.#drop();
+                this._drop();
             }
         });
     }
 
-    detach = () => {
-        // @todo: Should this notify observers (by calling this.#drop)?
+    detach = (): void => {
+        // @todo: Should this notify observers (by calling this._drop)?
         this.mesh.setParent(null);
         this.observer.remove();
     }
 
-    #grab = (grabbingMesh: AbstractMesh) => {
+    protected _onGrabStart = (grabbingMesh: AbstractMesh): void => {
         this.mesh.setParent(grabbingMesh);
+    }
+
+    protected _onGrabEnd = (): void => {
+        this.mesh.setParent(null);
+    }
+
+    protected _grab = (grabbingMesh: AbstractMesh): void => {
+        this._onGrabStart(grabbingMesh);
+        this._grabbing = true;
         this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
     }
 
-    #drop = () => {
-        this.mesh.setParent(null);
+    protected _drop = (): void => {
+        this._onGrabEnd();
+        this._grabbing = false;
         this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
     }
 
-    get enabled() {
-        return this.#enabled;
+    get enabled(): boolean {
+        return this._enabled;
     }
 
-    disable = () => {
-        this.#drop();
-        this.#enabled = false;
+    disable = (): void => {
+        if (this._grabbing) {
+            this._drop();
+        }
+        this._enabled = false;
     }
 
-    enable = () => {
-        this.#enabled = true;
+    enable = (): void => {
+        this._enabled = true;
     }
 }
