@@ -19,15 +19,14 @@ export class InteractionXRManager {
 
     constructor(xrExperience: WebXRDefaultExperience) {
         this.xrExperience = xrExperience;
-
-        this.xrExperience.pointerSelection.raySelectionPredicate = function(mesh: AbstractMesh): boolean {
-            return Boolean(mesh.getBehaviorByName(InteractableXRBehavior.name));
-        };
-
         this.xrExperience.input.controllers.forEach(this.#setUpController);
         this.xrExperience.input.onControllerAddedObservable.add(this.#setUpController);
         
         this.onGrabStateChangeObservable = new Observable();
+    }
+
+    #predicate (mesh: AbstractMesh): boolean {
+        return Boolean(mesh.getBehaviorByName(InteractableXRBehavior.name));
     }
 
     #setUpController = (controller: WebXRInputSource) => {
@@ -54,11 +53,11 @@ export class InteractionXRManager {
     #checkGrab = (grab: boolean, controller: WebXRInputSource) => {
         if (grab) {
             const mesh = this.xrExperience.pointerSelection.getMeshUnderPointer(controller.uniqueId);
-            if (mesh) {
+            if (mesh && this.#predicate(mesh)) {
                 this.#notifyMeshObserver(mesh, [controller.pointer, GrabState.GRAB]);
             }
         } else {
-            const mesh = controller.pointer.getChildMeshes(false).find(childMesh => childMesh.getBehaviorByName(InteractableXRBehavior.name));
+            const mesh = controller.pointer.getChildMeshes(false).find(childMesh => this.#predicate(childMesh));
             if (mesh) {
                 this.#notifyMeshObserver(mesh, [controller.pointer, GrabState.DROP]);
             }
@@ -66,7 +65,6 @@ export class InteractionXRManager {
     }
 
     #notifyMeshObserver = (mesh: AbstractMesh, data: any) => {
-        // Requires that mesh have the InteractableXRBehavior. Not checked because it's for internal use only.
         const behavior = mesh.getBehaviorByName(InteractableXRBehavior.name) as InteractableXRBehavior;
         if (!behavior) {
             throw new Error("InteractionXRManager: mesh must have InteractableXRBehavior.");
