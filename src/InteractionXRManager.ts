@@ -32,9 +32,10 @@ export class InteractionXRManager {
     #setUpController = (controller: WebXRInputSource) => {
         if (controller.motionController) {
             this.#setUpMotionController(controller.motionController, controller);
-        } else {
-            controller.onMotionControllerInitObservable.add(motionController => this.#setUpMotionController(motionController, controller));
         }
+        controller.onMotionControllerInitObservable.add(motionController => {
+            this.#setUpMotionController(motionController, controller)
+        });
     }
 
     #setUpMotionController = (motionController: WebXRAbstractMotionController, controller: WebXRInputSource) => {
