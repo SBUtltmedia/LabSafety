@@ -115,7 +115,6 @@ export class InteractableBehavior implements Behavior<Mesh> {
         if (this.#currentBehavior.name === InteractableXRBehavior.name) {
             (this.#currentBehavior as InteractableXRBehavior).disable();
         } else if (this.#currentBehavior.name === "PointerDrag") {
-            log("Disabling " + PointerDragBehavior.name);
             (this.#currentBehavior as PointerDragBehavior).releaseDrag();
             (this.#currentBehavior as PointerDragBehavior).enabled = false;
         }
@@ -125,7 +124,6 @@ export class InteractableBehavior implements Behavior<Mesh> {
         if (this.#currentBehavior.name === InteractableXRBehavior.name) {
             (this.#currentBehavior as InteractableXRBehavior).enable();
         } else if (this.#currentBehavior.name === "PointerDrag") {
-            log("Disabling " + PointerDragBehavior.name);
             (this.#currentBehavior as PointerDragBehavior).enabled = true;
         }
     }
