@@ -47,8 +47,9 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     }
 
     detach = (): void => {
-        // @todo: Should this notify observers (by calling this._drop)?
-        this.mesh.setParent(null);
+        if (this._grabbing) {
+            this._drop();
+        }
         this.observer.remove();
     }
 
