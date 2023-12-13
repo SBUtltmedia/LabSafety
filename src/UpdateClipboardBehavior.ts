@@ -7,6 +7,19 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 import Handlebars from "handlebars";
 
 import { Status, Task } from "./Task";
+import { Nullable } from "@babylonjs/core/types";
+
+const indicatorClassMap = {
+    [Status.SUCCESSFUL]: "correct",
+    [Status.FAILURE]: "incorrect",
+    [Status.RESET]: "empty"
+};
+
+interface ListItem {
+    taskName: string;
+    text: string;
+    indicator?: string;
+}
 
 export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
     templateString: string;
@@ -41,8 +54,21 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
 
     }
 
+    #getListItemByName = (taskName: string): Nullable<ListItem> => {
+        return this.#listItems.find((item: ListItem) => item.taskName === taskName) || null;
+    }
+
+    get #listItems(): ListItem[] {
+        return this.data.items[1].sublist;
+    }
+
     attach = (mesh: AbstractMesh) => {
         this.mesh = mesh;
+        // Initialize checkboxes
+        for (const task of this.basicTasks) {
+            const item = this.#getListItemByName(task.name);
+            item.indicator = indicatorClassMap[task.status];
+        }
         this.#updateTextureFromData();
         this.#taskObservers.push(
             ...this.basicTasks.map(task => {
@@ -51,20 +77,9 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
                     // a checkbox for this task. If the task failed, update
                     // the data to have an X for this task. If the task was
                     // reset, update the data to be blank for this task.
-                    switch (status) {
-                        // @todo: This is a proof of concept. This will only change the "Pour chemical B into chemical C"
-                        // checkbox. We should define a common way to get a task's checkbox, probably from the task's name.
-                        case Status.SUCCESSFUL:
-                            this.data.items[1].sublist[1].text = this.data.items[1].sublist[1].text.replace(/\[.*\]/, "[CHECK]");
-                            this.#updateTextureFromData();
-                            break;
-                        case Status.FAILURE:
-                            this.data.items[1].sublist[1].text = this.data.items[1].sublist[1].text.replace(/\[.*\]/, "[X]");
-                            this.#updateTextureFromData();
-                            break;
-                        case Status.RESET:
-                            break;
-                    }
+                    const item = this.#getListItemByName(task.name)!;
+                    item.indicator = indicatorClassMap[status];
+                    this.#updateTextureFromData();
                 })
             })
         );

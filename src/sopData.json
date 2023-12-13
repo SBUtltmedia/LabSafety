@@ -13,6 +13,9 @@
       "sublist": [
         {
           "text": "Improper mixing of chemicals can lead to explosive results!"
+        },
+        {
+          "text": "When mixing these chemicals - always follow the correct sequence"
         }
       ]
     },
@@ -21,13 +24,12 @@
       "sublistType": "a",
       "sublist": [
         {
-          "text": "When mixing these chemicals - always follow the correct sequence"
+          "taskName": "B -> C",
+          "text": "Pour chemical B into chemical C"
         },
         {
-          "text": "[ ] Pour chemical B into chemical C"
-        },
-        {
-          "text": "[ ] Then pour chemical mixture B+C into chemical A"
+          "taskName": "C -> A",
+          "text": "Then pour chemical mixture B+C into chemical A"
         }
       ]
     },
