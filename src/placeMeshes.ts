@@ -20,6 +20,7 @@ export function placeMeshes(meshes: Mesh[]): void {
     }).sort(compareById);
     const clipboard = meshes.find(mesh => mesh.id === "clipboard");
     const table = meshes.find(mesh => mesh.name === "Table");
+    const fireExtinguisher = meshes.find(mesh => mesh.id === "fire-extinguisher");
     if (table) {
         // @todo: Is this guaranteed? Maybe we can do without the if statement.
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
@@ -60,5 +61,11 @@ export function placeMeshes(meshes: Mesh[]): void {
             -Math.PI / 2,
             Math.PI
         );
+
+        // @todo: Hard-coded, bad!
+        fireExtinguisher.scaling.copyFromFloats(1.5, 1.5, 1.5);
+        fireExtinguisher.position.copyFromFloats(3.73, 1.48, -2.52);
+        fireExtinguisher.rotationQuaternion = null;
+        fireExtinguisher.rotation.copyFromFloats(0, -Math.PI / 2, 0);
     }
 }
