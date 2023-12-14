@@ -6,6 +6,7 @@ import { PouringBehavior } from "./PouringBehavior";
 import { bToCTask, cToATask, sop } from "./SOP";
 import { Status } from "./Task";
 import { log } from "./utils";
+import { startFire } from "./startFire";
 
 export function enableTasks(scene: Scene): void {
     const pourers = scene.meshes.filter(mesh => {
@@ -40,9 +41,10 @@ export function enableTasks(scene: Scene): void {
                 sounds.fanfare.play();
                 break;
             case Status.FAILURE:
-                // Play explosion, cut to black screen. After a few seconds, reset.
+                // Play explosion, start a fire.
                 sounds.explosion.stop();
                 sounds.explosion.play();
+                const fire = startFire();
                 break;
             case Status.RESET:
                 // Reset the scene. Ideally, we could do this without reloading the page, for performance.
