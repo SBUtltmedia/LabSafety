@@ -23,14 +23,7 @@
       "text": "CHEMICAL HANDLING PROCEDURES",
       "sublistType": "a",
       "sublist": [
-        {
-          "taskName": "B -> C",
-          "text": "Pour chemical B into chemical C"
-        },
-        {
-          "taskName": "C -> A",
-          "text": "Then pour chemical mixture B+C into chemical A"
-        }
+        
       ]
     },
     {
