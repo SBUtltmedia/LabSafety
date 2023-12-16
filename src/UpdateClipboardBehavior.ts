@@ -97,16 +97,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
         }
     }
 
-    #updateData = (): void => {
-        throw new Error("Not implemented.");
-    }
-
     #updateTextureFromData = (): void => {
-        const texture = this.#generateTexture();
-        this.#updateTexture(texture);
-    }
-
-    #generateTexture = (): Texture => {
         // Get DocumentFragment from the SVG template string and JSON data
         const templateElement = document.createElement("template");
         const html = this.#delegate(this.data);
@@ -118,14 +109,13 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
 
         // Load the string into a buffer to generate the texture
         const buffer = "data:image/svg+xml;utf8," + encodeURIComponent(svgString);
-        const texture = Texture.LoadFromDataString(`clipboard-texture-${this.#counter++}`, buffer, this.mesh.getScene(), undefined, undefined, undefined, Texture.LINEAR_LINEAR_MIPNEAREST);
-        
-        // Configure the texture
-        texture.uScale = 1.0;
-        texture.vScale = -1.0;
-        texture.hasAlpha = true;
+        const texture = Texture.LoadFromDataString(`clipboard-texture-${this.#counter++}`, buffer, this.mesh.getScene(), undefined, undefined, undefined, Texture.LINEAR_LINEAR_MIPNEAREST, () => {
+            texture.uScale = 1.0;
+            texture.vScale = -1.0;
+            texture.hasAlpha = true;
 
-        return texture;
+            this.#updateTexture(texture);
+        });
     }
 
     #updateTexture = (texture: Texture): void => {
