@@ -31,7 +31,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     animating: boolean = false;
     
     constructor(targets: Mesh[], interactionXRManager?: InteractionXRManager) {
-        this.#interactableBehavior = new InteractableBehavior(interactionXRManager || undefined);
+        this.#interactableBehavior = new InteractableBehavior(false, interactionXRManager || undefined);
         this.#interactableBehavior.targets.push(...targets);
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();

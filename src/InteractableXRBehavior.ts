@@ -2,7 +2,8 @@ import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { ActivationState, GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { log } from "./utils";
 
 export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     // The implementation for interactable behavior in XR. Currently, it is
@@ -10,13 +11,18 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     // the burden of implementing functionality from InteractableBehavior.
 
     mesh: AbstractMesh;
-    observer: Observer<[AbstractMesh, GrabState]>;
     interactionManager: InteractionXRManager;
+    grabObserver: Observer<[AbstractMesh, GrabState]>;
+    activationObserver: Observer<[AbstractMesh, ActivationState]>;
     onGrabStateChangedObservable: Observable<GrabState> = new Observable();
+    onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
+    #activatable: boolean;
     protected _enabled: boolean = true;
     protected _grabbing: boolean = false;
+    protected _active: boolean = false;
     
-    constructor(interactionManager: InteractionXRManager) {
+    constructor(activatable: boolean, interactionManager: InteractionXRManager) {
+        this.#activatable = activatable;
         this.interactionManager = interactionManager;
     }
 
@@ -28,13 +34,28 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         return InteractableXRBehavior.name;
     }
 
+    get activatable(): boolean {
+        return this.#activatable;
+    }
+
+    get active(): boolean {
+        return this._active;
+    }
+
+    set activatable(value: boolean) {
+        if (!value && this._active) {
+            this._deactivate();
+        }
+        this.#activatable = value;
+    }
+
     init = (): void => {
 
     }
 
     attach = (mesh: AbstractMesh): void => {
         this.mesh = mesh;
-        this.observer = this.interactionManager.onGrabStateChangeObservable.add(([pointer, grabState]) => {
+        this.grabObserver = this.interactionManager.onGrabStateChangeObservable.add(([pointer, grabState]) => {
             if (!this._enabled) {
                 return;
             }
@@ -44,13 +65,23 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
                 this._drop();
             }
         });
+        this.activationObserver = this.interactionManager.onActivationStateChangeObservable.add(([pointer, activationState]) => {
+            if (!this._enabled || !this.#activatable) {
+                return;
+            }
+            if (activationState === ActivationState.ACTIVE) {
+                this._activate();
+            } else if (activationState === ActivationState.INACTIVE) {
+                this._deactivate();
+            }
+        });
     }
 
     detach = (): void => {
         if (this._grabbing) {
             this._drop();
         }
-        this.observer.remove();
+        this.grabObserver.remove();
     }
 
     protected _onGrabStart = (grabbingMesh: AbstractMesh): void => {
@@ -68,9 +99,38 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     }
 
     protected _drop = (): void => {
+        // I'm torn about whether deactivation should occur before, after, or mid-drop,
+        // so we might want to change this.
+        if (this._active) {
+            this._deactivate();
+        }
         this._onGrabEnd();
         this._grabbing = false;
         this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
+    }
+
+    protected _onActivationStart = (): void => {
+        log("Start activation");
+    }
+
+    protected _onActivationEnd = (): void => {
+        log("End activation");
+    }
+
+    protected _activate = (): void => {
+        if (this.#activatable) {
+            this._onActivationStart();
+            this._active = true;
+            this.onActivationStateChangedObservable.notifyObservers(ActivationState.ACTIVE);
+        }
+    }
+
+    protected _deactivate = (): void => {
+        if (this.#activatable) {
+            this._onActivationEnd();
+            this._active = false;
+            this.onActivationStateChangedObservable.notifyObservers(ActivationState.INACTIVE);
+        }
     }
 
     get enabled(): boolean {
@@ -80,6 +140,10 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     disable = (): void => {
         if (this._grabbing) {
             this._drop();
+        }
+        // this._active implies this.#activatable, so we don't need to check this.#activatable.
+        if (this._active) {
+            this._deactivate();
         }
         this._enabled = false;
     }

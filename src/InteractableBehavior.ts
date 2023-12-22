@@ -8,7 +8,7 @@ import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperienc
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 
 import { InteractableXRBehavior } from "./InteractableXRBehavior";
-import { GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { ActivationState, GrabState, InteractionXRManager } from "./InteractionXRManager";
 import { log } from "./utils";
 
 export class InteractableBehavior implements Behavior<Mesh> {
@@ -20,23 +20,52 @@ export class InteractableBehavior implements Behavior<Mesh> {
     #xrInteractionManager?: InteractionXRManager;
     #xrExperience?: WebXRDefaultExperience;
     #xrStateObserver?: Observer<WebXRState>;
-    #grabStateObservers: Observer<any>[];
-    onGrabStateChangedObservable: Observable<GrabState>;
-    grabState: GrabState;
+    #grabStateObservers: Observer<any>[] = [];
+    #activationStateObservers: Observer<any>[] = [];
+    onGrabStateChangedObservable: Observable<GrabState> = new Observable();
+    onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
+    #grabState: GrabState = GrabState.DROP;
+    #activationState: ActivationState = ActivationState.INACTIVE;
     targets: AbstractMesh[];
+    // @todo: Currently does nothing for desktop, because I don't know how we should handle it.
+    #activatable: boolean;
     
-    constructor(xrInteractionManager?: InteractionXRManager) {
+    constructor(activatable: boolean = false, xrInteractionManager?: InteractionXRManager) {
+        this.#activatable = activatable;
         if (xrInteractionManager) {
             this.#xrInteractionManager = xrInteractionManager;
             this.#xrExperience = this.#xrInteractionManager.xrExperience;
         }
-        this.onGrabStateChangedObservable = new Observable();
-        this.#grabStateObservers = [];
         this.targets = [];
     }
 
     get name() {
         return "Interactable";
+    }
+
+    get activatable(): boolean {
+        return this.#activatable;
+    }
+
+    set activatable(value: boolean) {
+        // The `as any` assertion effectively ignores TypeScript. I don't love this, but it's
+        // the easiest way to check for existence of activatable without the compiler
+        // complaining. It should be safe since we check the type of activatable first.
+        // Note that Object.hasOwn will NOT work for this, since activatable is defined
+        // by accessors.
+        const behavior = this.#currentBehavior as any;
+        if (typeof behavior.activatable === "boolean") {
+            behavior.activatable = value;
+        }
+        this.#activatable = value;
+    }
+
+    get activationState(): ActivationState {
+        return this.#activationState;
+    }
+
+    get grabState(): GrabState {
+        return this.#grabState;
     }
 
     init = () => {
@@ -63,6 +92,10 @@ export class InteractableBehavior implements Behavior<Mesh> {
         while (this.#grabStateObservers.length) {
             this.#grabStateObservers.pop().remove();
         }
+
+        while (this.#activationStateObservers.length) {
+            this.#activationStateObservers.pop().remove();
+        }
         
         this.#xrStateObserver?.remove();
     }
@@ -71,13 +104,17 @@ export class InteractableBehavior implements Behavior<Mesh> {
         switch (state) {
             case WebXRState.IN_XR:
                 if (this.#xrInteractionManager) {
-                    const xrBehavior = new InteractableXRBehavior(this.#xrInteractionManager);
+                    const xrBehavior = new InteractableXRBehavior(this.#activatable, this.#xrInteractionManager);
                     
                     this.#changeBehavior(xrBehavior);
                     
                     this.#grabStateObservers.push(xrBehavior.onGrabStateChangedObservable.add(grabState => {
-                        this.grabState = grabState;
+                        this.#grabState = grabState;
                         this.onGrabStateChangedObservable.notifyObservers(grabState);
+                    }));
+                    this.#activationStateObservers.push(xrBehavior.onActivationStateChangedObservable.add(activationState => {
+                        this.#activationState = activationState;
+                        this.onActivationStateChangedObservable.notifyObservers(activationState);
                     }));
                 } else {
                     log("InteractableBehavior: attempted to switch mode to XR without an XR interaction manager.");
@@ -89,11 +126,11 @@ export class InteractableBehavior implements Behavior<Mesh> {
                 this.#changeBehavior(desktopBehavior);
                 
                 this.#grabStateObservers.push(desktopBehavior.onDragStartObservable.add(() => {
-                    this.grabState = GrabState.GRAB;
+                    this.#grabState = GrabState.GRAB;
                     this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
                 }));
                 this.#grabStateObservers.push(desktopBehavior.onDragEndObservable.add(() => {
-                    this.grabState = GrabState.DROP;
+                    this.#grabState = GrabState.DROP;
                     this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
                 }));
                 break;
@@ -106,13 +143,16 @@ export class InteractableBehavior implements Behavior<Mesh> {
             while (this.#grabStateObservers.length) {
                 this.#grabStateObservers.pop().remove();
             }
+            while (this.#activationStateObservers.length) {
+                this.#activationStateObservers.pop().remove();
+            }
         }
         this.#currentBehavior = newBehavior;
         return this.mesh.addBehavior(this.#currentBehavior) as Mesh;
     }
 
     disable = () => {
-        if (this.#currentBehavior.name === InteractableXRBehavior.name) {
+        if (this.#currentBehavior instanceof InteractableXRBehavior) {
             (this.#currentBehavior as InteractableXRBehavior).disable();
         } else if (this.#currentBehavior.name === "PointerDrag") {
             (this.#currentBehavior as PointerDragBehavior).releaseDrag();
@@ -121,7 +161,7 @@ export class InteractableBehavior implements Behavior<Mesh> {
     }
 
     enable = () => {
-        if (this.#currentBehavior.name === InteractableXRBehavior.name) {
+        if (this.#currentBehavior instanceof InteractableXRBehavior) {
             (this.#currentBehavior as InteractableXRBehavior).enable();
         } else if (this.#currentBehavior.name === "PointerDrag") {
             (this.#currentBehavior as PointerDragBehavior).enabled = true;
