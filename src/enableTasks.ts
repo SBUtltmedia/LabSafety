@@ -7,6 +7,7 @@ import { bToCTask, cToATask, sop } from "./SOP";
 import { Status } from "./Task";
 import { log } from "./utils";
 import { startFire } from "./startFire";
+import { FireBehavior } from "./FireBehavior";
 
 export function enableTasks(scene: Scene): void {
     const pourers = scene.meshes.filter(mesh => {
@@ -45,6 +46,16 @@ export function enableTasks(scene: Scene): void {
                 sounds.explosion.stop();
                 sounds.explosion.play();
                 const fire = startFire();
+                const fireBehavior = fire.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                if (fireBehavior) {
+                    fireBehavior.onFireObservable.add(aflame => {
+                        if (!aflame) {
+                            // Handle successful fire handling
+                            sounds.fanfare.stop();
+                            sounds.fanfare.play();
+                        }
+                    });
+                }
                 break;
             case Status.RESET:
                 // Reset the scene. Ideally, we could do this without reloading the page, for performance.

@@ -6,6 +6,7 @@ import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator"
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { ShadowDepthWrapper } from "@babylonjs/core/Materials/shadowDepthWrapper";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { FireBehavior } from "./FireBehavior";
 
 export function startFire(): Mesh {
     const fireMaterial = new FireMaterial("fire");
@@ -31,6 +32,9 @@ export function startFire(): Mesh {
     plane.material = fireMaterial;
     plane.material.shadowDepthWrapper = new ShadowDepthWrapper(plane.material);
     generator.getShadowMap().renderList.push(plane);
+
+    const fireBehavior = new FireBehavior();
+    plane.addBehavior(fireBehavior);
     
     return plane;
 }

@@ -7,6 +7,7 @@ import { createClipboard } from "./createClipboard";
 import { createCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
+import { createFireExtinguisher } from "./createFireExtinguisher";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.
@@ -66,6 +67,8 @@ export function processMeshes(meshes: Mesh[]) {
     createCylinder(cylinderC, Color3.Blue(), [cylinderA, cylinderB]);
     createCylinder(cylinderB, Color3.Green(), [cylinderA, cylinderC]);
     createCylinder(cylinderA, Color3.Red(), [cylinderB, cylinderC]);
+
+    createFireExtinguisher(fireExtinguisherMesh);
 
     meshes.push(cylinderC, cylinderB);
 }
