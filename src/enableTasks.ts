@@ -8,6 +8,10 @@ import { Status } from "./Task";
 import { log } from "./utils";
 import { startFire } from "./startFire";
 import { FireBehavior } from "./FireBehavior";
+import { GUIWindows } from "./GUIManager";
+
+// TODO: is it fine to use global variable here?
+import { xrExperience } from "./scene";
 
 export function enableTasks(scene: Scene): void {
     const pourers = scene.meshes.filter(mesh => {
@@ -34,15 +38,19 @@ export function enableTasks(scene: Scene): void {
         });
     });
 
+
     sop.onTaskStateChangeObservable.add(status => {
         switch (status) {
             case Status.SUCCESSFUL:
+                // TODO: Reset scene on button click callback
+                GUIWindows.createSuccessScreen(scene, xrExperience)
                 // Play fanfare, fade to black. After a few seconds, reset.
                 sounds.fanfare.stop();
                 sounds.fanfare.play();
                 break;
             case Status.FAILURE:
                 // Play explosion, start a fire.
+                log("Fail SOP");
                 sounds.explosion.stop();
                 sounds.explosion.play();
                 const fire = startFire();

@@ -7,8 +7,8 @@ export function placeCamera(camera: Camera): void {
     if (table) {
         const tableBoundingBox = table.getBoundingInfo().boundingBox;
         camera.position.x = tableBoundingBox.center.x - 0.5;
-        camera.position.y = tableBoundingBox.center.y * 2 + 1.75;
-        camera.position.z = -1.5;
+        camera.position.y = tableBoundingBox.center.y * 2 + 0.46;
+        camera.position.z = -3;
     } else {
         // Default
         camera.position = Vector3.Zero();
