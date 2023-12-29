@@ -16,6 +16,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     #delay: float
     #interactableBehavior: InteractableBehavior;
     #grabStateObserver: Observer<GrabState>;
+    #animationStateObserver: Observer<Boolean>;
     #pouringBehavior: PouringBehavior;
 
 
@@ -38,15 +39,23 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
     attach(target: Mesh): void {
         this.mesh = target;
-        // log("Start Pos: ", this.#startPos);
-
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
         this.#pouringBehavior = this.mesh.getBehaviorByName("Pouring") as PouringBehavior;
 
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(grabState => {
-            if (grabState === GrabState.DROP && this.#pouringBehavior.animating === false) {
-                // TODO: Add fading effect
-                this.mesh.position.copyFrom(this.startPos);
+            if (grabState === GrabState.DROP) {
+                if (this.#pouringBehavior.animating) {
+                    if (this.#animationStateObserver) {
+                        this.#animationStateObserver.remove();
+                    }
+                    this.#animationStateObserver = this.#pouringBehavior.onAnimationChangeObservable.add(state => {
+                        if (state === false) {
+                            this.#placeMeshAtSpawn();
+                        }
+                    })
+                } else {
+                    this.#placeMeshAtSpawn();
+                }
             }
         })
 
@@ -54,5 +63,11 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
     detach(): void {
         this.#grabStateObserver.remove();
+        this.#animationStateObserver.remove();
+    }
+
+    #placeMeshAtSpawn() {
+        this.mesh.position.copyFrom(this.startPos);
+        this.mesh.rotation.copyFromFloats(Math.PI, 0, 0);
     }
 }

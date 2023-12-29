@@ -29,6 +29,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     pourDelay: number = 1000;
     #delayTimeoutID: number = 0;
     animating: boolean = false;
+    onAnimationChangeObservable: Observable<Boolean>;
     
     constructor(targets: Mesh[], interactionXRManager?: InteractionXRManager) {
         this.#interactableBehavior = new InteractableBehavior(false, interactionXRManager || undefined);
@@ -37,6 +38,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.onBeforePourObservable = new Observable();
         this.onMidPourObservable = new Observable();
         this.onAfterPourObservable = new Observable();
+        this.onAnimationChangeObservable = new Observable();
     }
 
     static get name() {
@@ -139,7 +141,6 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
         
         const checkCollisions = this.mesh.checkCollisions;
-        const previousPosition = this.mesh.absolutePosition;
         const target = this.#currentTarget;
         this.onBeforePourObservable.notifyObservers(target);
         this.mesh.checkCollisions = false;
@@ -152,14 +153,15 @@ export class PouringBehavior implements Behavior<Mesh> {
         const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
         this.mesh.setAbsolutePosition(pouringPosition);
         this.animating = true;
+        this.onAnimationChangeObservable.notifyObservers(this.animating);
         this.#interactableBehavior.disable();
         this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], start, mid, false, 1, () => {
             this.onMidPourObservable.notifyObservers(target);
             this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], mid, end, false, 1, () => {
                 this.#interactableBehavior.enable();
                 this.animating = false;
+                this.onAnimationChangeObservable.notifyObservers(this.animating);
                 this.mesh.checkCollisions = checkCollisions;
-                this.mesh.setAbsolutePosition(previousPosition);
                 this.onAfterPourObservable.notifyObservers(target);
             });
         });
