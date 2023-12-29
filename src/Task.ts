@@ -109,13 +109,14 @@ export class Task {
         // This will notify the supertask first. If `valid` is true, the task was correctly
         // succeeded and the status should be changed. If false, the supertask (or some other
         // authority) canceled the succeeding process, and the task should fail.
-        const valid = this.onTaskStateChangeObservable.notifyObservers(Status.SUCCESSFUL);
-        if (valid) {
-            log(`Succeeding Task ${this.name}`);
-            this.#status = Status.SUCCESSFUL;
-        } else {
+        this.#status = Status.SUCCESSFUL;
+        const valid = this.onTaskStateChangeObservable.notifyObservers(this.#status);
+        if (!valid) {
             // This task was completed out of order. Fail.
+            this.#status = Status.RESET;
             this.fail();
+        } else {
+            log(`Succeeding Task ${this.name}`);
         }
     }
 
