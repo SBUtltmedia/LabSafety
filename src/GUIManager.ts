@@ -1,7 +1,19 @@
-import { AdvancedDynamicTexture, Rectangle, TextBlock, Button, Container } from "@babylonjs/gui"
-import { Camera, Mesh, MeshBuilder, Scene, Vector3, WebXRState } from "@babylonjs/core"
+import {
+    AdvancedDynamicTexture,
+    Rectangle,
+    TextBlock,
+    Button,
+    Container,
+} from "@babylonjs/gui";
+import {
+    Camera,
+    Mesh,
+    MeshBuilder,
+    Scene,
+    Vector3,
+    WebXRState,
+} from "@babylonjs/core";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
-
 
 class PromptWithButton {
     rect: Rectangle;
@@ -21,7 +33,7 @@ class PromptWithButton {
     }
 }
 
-export class GUIManager {
+class GUIManager {
     advancedTexture: AdvancedDynamicTexture;
     welcomePrompt: PromptWithButton;
     gameFinishPrompt: PromptWithButton;
@@ -30,23 +42,29 @@ export class GUIManager {
     scene: Scene;
 
     constructor(scene: Scene) {
-      this.scene = scene;
-      this.camera = scene.activeCamera;
-
+        this.scene = scene;
+        this.camera = scene.activeCamera;
     }
 
-    createPromptWithButton(text: string, xrCamera: WebXRDefaultExperience = null, buttonClickCallBack = null, ...args) {
+    createPromptWithButton(
+        text: string,
+        xrDefaultExperience: WebXRDefaultExperience = null,
+        buttonClickCallBack: any = null,
+        ...args: any[]
+    ) {
         this.screen = MeshBuilder.CreatePlane("Start", { size: 1 });
         this.screen.parent = this.camera;
 
         // need to add a vector because the origin of the camera is at top left
-        this.screen.position = this.camera.position.add(new Vector3(0.6, -1.5, 2.75));
-        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.screen);
+        this.screen.position = new Vector3(0, 0, 1.2);
+        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(
+            this.screen
+        );
 
         let container = new Container("container");
         var rect1 = new Rectangle();
-        rect1.width = 0.50;
-        rect1.height = 0.20;
+        rect1.width = 0.5;
+        rect1.height = 0.2;
         rect1.color = "cyan";
         rect1.thickness = 4;
         rect1.background = "white";
@@ -66,7 +84,7 @@ export class GUIManager {
         rect1.addControl(text1);
 
         var button1 = Button.CreateSimpleButton("but1", "Click to dismiss");
-        button1.width = "150px"
+        button1.width = "150px";
         button1.height = "40px";
         button1.color = "black";
         button1.cornerRadius = 20;
@@ -76,45 +94,95 @@ export class GUIManager {
 
         let mesh = (this.scene as Scene).getMeshByName("Start");
 
-        let canvas = document.getElementsByTagName("canvas")[0]
-        canvas.addEventListener("pointerdown", function() {
-          xrCamera.baseExperience.onStateChangedObservable.add((state) => {
-            if (state === WebXRState.IN_XR) {
-              pointerUp()
-            }
+        let canvas = document.getElementsByTagName("canvas")[0];
+        canvas.addEventListener("pointerdown", function () {
+            xrDefaultExperience.baseExperience.onStateChangedObservable.add(
+                (state) => {
+                    if (state === WebXRState.IN_XR) {
+                        pointerUp();
+                    }
+                }
+            );
         });
-      });
 
-
-        function pointerUp(){
-
-          container.dispose();
-          mesh.dispose();
-          if (buttonClickCallBack) {
-            buttonClickCallBack(...args);
-          }
-          if (xrCamera) {
-
-            xrCamera.pointerSelection.displayLaserPointer = false;
-            xrCamera.pointerSelection.displaySelectionMesh = false;
-          }
+        function pointerUp() {
+            container.dispose();
+            mesh.dispose();
+            if (buttonClickCallBack) {
+                buttonClickCallBack(...args);
+            }
+            if (xrDefaultExperience) {
+                xrDefaultExperience.pointerSelection.displayLaserPointer =
+                    false;
+                xrDefaultExperience.pointerSelection.displaySelectionMesh =
+                    false;
+            }
         }
 
         prompt.button.onPointerUpObservable.add(function () {
-          pointerUp()
-       
+            pointerUp();
         });
         prompt.button.onPointerEnterObservable.add(() => {
             button1.background = "grey";
-        })
+        });
         prompt.button.onPointerOutObservable.add(() => {
             button1.background = "white";
-        })
+        });
         container.addControl(prompt.button);
         container.addControl(button1);
 
         this.advancedTexture.addControl(container);
 
         return prompt;
+    }
+}
+
+interface IWindows {
+    [key: string]: PromptWithButton;
+}
+
+export class GUIWindows {
+    static createWelcomeScreen(
+        scene: Scene,
+        xrDefaultExperience: WebXRDefaultExperience
+    ) {
+        let guiManager = new GUIManager(scene);
+        let prompt = guiManager.createPromptWithButton(
+            "Welcome to the game. Please click on the clipboard on the table to get started.",
+            xrDefaultExperience
+        );
+        prompt.setVisible(true);
+    }
+
+    static createSuccessScreen(
+        scene: Scene,
+        xrDefaultExperience: WebXRDefaultExperience,
+        buttonClickCallBack: any = null,
+        ...args: any[]
+    ) {
+        let guiManager = new GUIManager(scene);
+        let prompt = guiManager.createPromptWithButton(
+            "Congratulations! You have completed the SOP",
+            xrDefaultExperience,
+            buttonClickCallBack,
+            ...args
+        );
+        prompt.setVisible(true);
+    }
+
+    static createFailureScreen(
+        scene: Scene,
+        xrDefaultExperience: WebXRDefaultExperience,
+        buttonClickCallBack: any = null,
+        ...args: any[]
+    ) {
+        let guiManager = new GUIManager(scene);
+        let prompt = guiManager.createPromptWithButton(
+            "Oops! You mixed the wrong chemicals which resulted in a fire",
+            xrDefaultExperience,
+            buttonClickCallBack,
+            ...args
+        );
+        prompt.setVisible(true);
     }
 }

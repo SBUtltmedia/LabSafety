@@ -48,19 +48,37 @@ export class Task {
                         case Status.SUCCESSFUL:
                             if (i !== 0 && orderedSubtasks[i-1].status !== Status.SUCCESSFUL) {
                                 // Task completed out of order.
+                                log("Out of order");
                                 eventState.skipNextObservers = true;
                                 break;
                             }
+                            
+                            // TODO: remove this work around later
+                            // setTimeout(() => {
 
-                            // Check that the last Task of each ordered partition is succeeded.
-                            // This implies that the whole partition is succeeded.
-                            const subtasksSucceeded = this.subtasks.every(orderedSubtasks => {
-                                return orderedSubtasks.at(-1).status === Status.SUCCESSFUL;
-                            });
+                                // Check that the last Task of each ordered partition is succeeded.
+                                // This implies that the whole partition is succeeded.
+                                const subtasksSucceeded = this.subtasks.every(orderedSubtasks => {
 
-                            if (subtasksSucceeded) {
-                                this.#succeed();
-                            }
+                                    // the status checks for success before the success of task C->A changes to 0
+                                    // hence, always return false, meaning SOP would never succeed
+
+                                    // setTimeout(() => {
+                                    //     log("Status: ", orderedSubtasks.at(-1).name, orderedSubtasks.at(-1).status);
+                                    // }, 1000);
+                                    
+                                    log("Status: ", orderedSubtasks.at(-1).name, orderedSubtasks.at(-1).status);
+
+                                    return orderedSubtasks.at(-1).status === Status.SUCCESSFUL;
+                                });
+                                
+                                log("Sub task succeeded: ", subtasksSucceeded, this.subtasks);
+
+                                if (subtasksSucceeded) {
+                                    this.#succeed();
+                                }
+                            // }, 1000);
+
                             break;
                         case Status.RESET:
                             break;
@@ -109,10 +127,10 @@ export class Task {
         // This will notify the supertask first. If `valid` is true, the task was correctly
         // succeeded and the status should be changed. If false, the supertask (or some other
         // authority) canceled the succeeding process, and the task should fail.
+        this.#status = Status.SUCCESSFUL;
         const valid = this.onTaskStateChangeObservable.notifyObservers(Status.SUCCESSFUL);
         if (valid) {
             log(`Succeeding Task ${this.name}`);
-            this.#status = Status.SUCCESSFUL;
         } else {
             // This task was completed out of order. Fail.
             this.fail();

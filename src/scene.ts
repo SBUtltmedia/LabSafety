@@ -18,6 +18,8 @@ import { setUpCamera } from "./setUpCamera";
 import { setUpScene } from "./setUpScene";
 import { setUpXR } from "./setUpXR";
 import { log } from "./utils";
+import { GUIWindows } from "./GUIManager";
+import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
 export let xrExperience: WebXRDefaultExperience;
 export let interactionXRManager: InteractionXRManager;
@@ -73,6 +75,18 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // Places the camera at the starting position.
     placeCamera(camera);
 
+    // for every cylinder's FadeRespawnBehavior, set the start pos
+
+    const cylinders = meshes.filter(mesh => {
+        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
+    });
+
+    cylinders.forEach(cylinder => {
+        let fadeRespawnBehavior: FadeRespawnBehavior = cylinder.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
+        fadeRespawnBehavior.startPos.copyFrom(cylinder.position);
+    })   
+    
+
     xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
 
     fadeIn(light1);
@@ -80,6 +94,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync enable tasks start");
     enableTasks(scene);
     log("createSceneAsync enable tasks end");
+
+    GUIWindows.createWelcomeScreen(scene, xrExperience);
 
     const splashScreen = document.querySelector("div.splash");
     splashScreen.textContent = "Click to start!";
