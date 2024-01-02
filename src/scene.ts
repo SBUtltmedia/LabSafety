@@ -101,6 +101,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     splashScreen.textContent = "Click to start!";
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
+        Engine.audioEngine.audioContext.resume();
     }, false);
 
     log("createSceneAsync end");
