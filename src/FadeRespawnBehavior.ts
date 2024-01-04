@@ -1,15 +1,15 @@
+import { Scene } from "@babylonjs/core/scene";
+import { Nullable } from "@babylonjs/core/types";
+import { Animation } from "@babylonjs/core/Animations/animation";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observer } from "@babylonjs/core/Misc/observable";
-import { Animation } from "@babylonjs/core/Animations/animation";
-import { Scene } from "@babylonjs/core/scene";
 
 import { InteractableBehavior } from "./InteractableBehavior";
 import { GrabState } from "./InteractionXRManager";
-
 import { PouringBehavior } from "./PouringBehavior";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 interface IAnimation {
     name: string,
@@ -22,7 +22,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     startPos: Vector3
     #speedRatio: number
     #interactableBehavior: InteractableBehavior;
-    #grabStateObserver: Observer<[AbstractMesh, GrabState]>;
+    #grabStateObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
     #animationStateObserver: Observer<boolean>;
     #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];

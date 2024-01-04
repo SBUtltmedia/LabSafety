@@ -1,3 +1,4 @@
+import { Nullable } from "@babylonjs/core/types";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
@@ -6,7 +7,6 @@ import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
 
 import { InteractableXRBehavior } from "./InteractableXRBehavior";
 import { log } from "./utils";
-import { Nullable } from "@babylonjs/core/types";
 
 export enum GrabState {
     GRAB,
@@ -24,8 +24,8 @@ interface ControllerGrabbedMeshMap {
 
 export class InteractionXRManager {
     // @todo: Add something that cleans up Observers if the instance is ever disposed of.
-    onGrabStateChangeObservable: Observable<[AbstractMesh, GrabState]> = new Observable();
-    onActivationStateChangeObservable: Observable<[AbstractMesh, ActivationState]> = new Observable();
+    onGrabStateChangeObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
+    onActivationStateChangeObservable: Observable<[Nullable<AbstractMesh>, ActivationState]> = new Observable();
     xrExperience: WebXRDefaultExperience;
     grabbedMeshMap: ControllerGrabbedMeshMap = {};
 
