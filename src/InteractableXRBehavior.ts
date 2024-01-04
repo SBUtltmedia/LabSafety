@@ -82,7 +82,11 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         if (this.#grabbing) {
             this.#drop();
         }
+        if (this.#active) {
+            this.#deactivate();
+        }
         this.grabObserver.remove();
+        this.activationObserver.remove();
     }
 
     #grab = (grabbingMesh: AbstractMesh): void => {
@@ -132,7 +136,6 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         if (this.#grabbing) {
             this.#drop();
         }
-        // this._active implies this.#activatable, so we don't need to check this.#activatable.
         if (this.#active) {
             this.#deactivate();
         }
