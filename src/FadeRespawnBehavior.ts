@@ -23,7 +23,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     #speedRatio: number
     #interactableBehavior: InteractableBehavior;
     #grabStateObserver: Observer<[AbstractMesh, GrabState]>;
-    #animationStateObserver: Observer<Boolean>;
+    #animationStateObserver: Observer<boolean>;
     #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];
     #scene: Scene;
