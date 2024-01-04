@@ -69,8 +69,13 @@ export class PouringBehavior implements Behavior<Mesh> {
                 });
             } else if (grabState === GrabState.DROP) {
                 this.#changeTarget(null);
-                this.#renderObserver.remove();
-                this.#renderObserver = null;
+                // The conditional is necessary because a DROP can be received without a corresponding GRAB.
+                // An example is when the cylinder is automatically dropped when a pour occurs and the user
+                // subsequently releases the squeeze, triggering another drop.
+                if (this.#renderObserver) {
+                    this.#renderObserver.remove();
+                    this.#renderObserver = null;
+                }
             }
         });
     }
