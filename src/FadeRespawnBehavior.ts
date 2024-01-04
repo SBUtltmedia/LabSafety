@@ -9,6 +9,7 @@ import { InteractableBehavior } from "./InteractableBehavior";
 import { GrabState } from "./InteractionXRManager";
 
 import { PouringBehavior } from "./PouringBehavior";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 interface IAnimation {
     name: string,
@@ -21,7 +22,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     startPos: Vector3
     #speedRatio: number
     #interactableBehavior: InteractableBehavior;
-    #grabStateObserver: Observer<GrabState>;
+    #grabStateObserver: Observer<[AbstractMesh, GrabState]>;
     #animationStateObserver: Observer<Boolean>;
     #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];
@@ -70,7 +71,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.#pouringBehavior = this.mesh.getBehaviorByName("Pouring") as PouringBehavior;
         this.#scene = this.mesh.getScene();
 
-        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(grabState => {
+        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(([_, grabState]) => {
             if (grabState === GrabState.DROP) {
                 if (this.#pouringBehavior.animating) {
                     if (this.#animationStateObserver) {
@@ -97,39 +98,23 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     #fadeAndRespawn() {
         let dist = Math.abs(Vector3.Distance(this.mesh.position, this.startPos));
 
-        if (dist <= 0.15) {
+        if (dist <= 0.15) { 
             this.#placeMeshAtSpawn();
             return;
         }
 
-        // Note: Looping though the mesh and every child mesh except the last one because:
-        // The callback which scene.beginDirectAnimation takes runs after the animation takes place,
-        // so the cylinder should always respawn after the last mesh has disappeared. Could use an observable to avoid this.
-
-        let listMeshes = [this.mesh, ...this.mesh.getChildMeshes()];
-
-        for (let numMesh = 0; numMesh < listMeshes.length - 1; numMesh++) {
-            this.#scene.beginDirectAnimation(listMeshes[numMesh], [this.#animations.find(animation => {
-                return animation.name === "Invisibility"
-            }).animation], 0, 60, false, this.#speedRatio);
-        }
-
-        this.#scene.beginDirectAnimation(listMeshes[listMeshes.length - 1], [this.#animations.find(animation => {
-            return animation.name === "Invisibility"
+        this.#scene.beginDirectHierarchyAnimation(this.mesh, false, [this.#animations.find(animation => {
+                    return animation.name === "Invisibility"
         }).animation], 0, 60, false, this.#speedRatio, () => {
             this.#placeMeshAtSpawn();
-            this.#reappear();
+            this.#reappear();            
         });
     }
 
     #reappear() {
-        let listMeshes = [this.mesh, ...this.mesh.getChildMeshes()];
-
-        listMeshes.forEach(mesh => {
-            this.#scene.beginDirectAnimation(mesh, [this.#animations.find(animation => {
-                return animation.name === "Visibility"
-            }).animation], 0, 60, false);
-        });
+        this.#scene.beginDirectHierarchyAnimation(this.mesh, false, [this.#animations.find(animation => {
+            return animation.name === "Visibility"
+        }).animation], 0, 60, false, this.#speedRatio);
     }
 
     #placeMeshAtSpawn() {
