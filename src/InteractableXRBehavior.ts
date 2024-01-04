@@ -18,9 +18,9 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #activatable: boolean;
-    protected _enabled: boolean = true;
-    protected _grabbing: boolean = false;
-    protected _active: boolean = false;
+    #enabled: boolean = true;
+    #grabbing: boolean = false;
+    #active: boolean = false;
     
     constructor(activatable: boolean, interactionManager: InteractionXRManager) {
         this.#activatable = activatable;
@@ -40,12 +40,12 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     }
 
     get active(): boolean {
-        return this._active;
+        return this.#active;
     }
 
     set activatable(value: boolean) {
-        if (!value && this._active) {
-            this._deactivate();
+        if (!value && this.#active) {
+            this.#deactivate();
         }
         this.#activatable = value;
     }
@@ -57,89 +57,89 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     attach = (mesh: AbstractMesh): void => {
         this.mesh = mesh;
         this.grabObserver = this.interactionManager.onGrabStateChangeObservable.add(([pointer, grabState]) => {
-            if (!this._enabled) {
+            if (!this.#enabled) {
                 return;
             }
             if (grabState === GrabState.GRAB) {
-                this._grab(pointer);
+                this.#grab(pointer);
             } else if (grabState === GrabState.DROP) {
-                this._drop();
+                this.#drop();
             }
         });
         this.activationObserver = this.interactionManager.onActivationStateChangeObservable.add(([pointer, activationState]) => {
-            if (!this._enabled || !this.#activatable) {
+            if (!this.#enabled || !this.#activatable) {
                 return;
             }
             if (activationState === ActivationState.ACTIVE) {
-                this._activate();
+                this.#activate();
             } else if (activationState === ActivationState.INACTIVE) {
-                this._deactivate();
+                this.#deactivate();
             }
         });
     }
 
     detach = (): void => {
-        if (this._grabbing) {
-            this._drop();
+        if (this.#grabbing) {
+            this.#drop();
         }
         this.grabObserver.remove();
     }
 
-    protected _grab = (grabbingMesh: AbstractMesh): void => {
-        this._grabbing = true;
+    #grab = (grabbingMesh: AbstractMesh): void => {
+        this.#grabbing = true;
         this.onGrabStateChangedObservable.notifyObservers([grabbingMesh, GrabState.GRAB]);
     }
 
-    protected _drop = (): void => {
+    #drop = (): void => {
         // I'm torn about whether deactivation should occur before, after, or mid-drop,
         // so we might want to change this.
-        if (this._active) {
-            this._deactivate();
+        if (this.#active) {
+            this.#deactivate();
         }
-        this._grabbing = false;
+        this.#grabbing = false;
         this.onGrabStateChangedObservable.notifyObservers([null, GrabState.DROP]);
     }
 
-    protected _onActivationStart = (): void => {
+    #onActivationStart = (): void => {
         log("Start activation");
     }
 
-    protected _onActivationEnd = (): void => {
+    #onActivationEnd = (): void => {
         log("End activation");
     }
 
-    protected _activate = (): void => {
+    #activate = (): void => {
         if (this.#activatable) {
-            this._onActivationStart();
-            this._active = true;
+            this.#onActivationStart();
+            this.#active = true;
             this.onActivationStateChangedObservable.notifyObservers(ActivationState.ACTIVE);
         }
     }
 
-    protected _deactivate = (): void => {
+    #deactivate = (): void => {
         if (this.#activatable) {
-            this._onActivationEnd();
-            this._active = false;
+            this.#onActivationEnd();
+            this.#active = false;
             this.onActivationStateChangedObservable.notifyObservers(ActivationState.INACTIVE);
         }
     }
 
     get enabled(): boolean {
-        return this._enabled;
+        return this.#enabled;
     }
 
     disable = (): void => {
-        if (this._grabbing) {
-            this._drop();
+        if (this.#grabbing) {
+            this.#drop();
         }
         // this._active implies this.#activatable, so we don't need to check this.#activatable.
-        if (this._active) {
-            this._deactivate();
+        if (this.#active) {
+            this.#deactivate();
         }
-        this._enabled = false;
+        this.#enabled = false;
     }
 
     enable = (): void => {
-        this._enabled = true;
+        this.#enabled = true;
     }
 }
