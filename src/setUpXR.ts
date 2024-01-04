@@ -1,19 +1,20 @@
+import { Scene } from "@babylonjs/core/scene";
+import { Nullable } from "@babylonjs/core/types";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Scene } from "@babylonjs/core/scene";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
+import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
 import { loadXRHands } from "./loadXRHands";
 import { log } from "./utils";
 
 export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<void> {
     log("setUpXR start");
-    // let displayPointer = false;
-    let displayPointer = true;
+    let displayPointer = false;
 
     xrExperience.pointerSelection.laserPointerDefaultColor = Color3.Green();
     xrExperience.pointerSelection.laserPointerPickedColor = Color3.Green();
@@ -33,10 +34,10 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         }
     });
 
-    const [leftHand, rightHand] = await loadXRHands("left", "right");
+    const leftHandName = "left";
+    const rightHandName = "right";
+    const [leftHand, rightHand] = await loadXRHands(leftHandName, rightHandName);
 
-    // @todo: Is this necessary? And if it is, is it necessary to be done here? It doesn't really belong.
-    // pauseAnimations(scene);
     xrExperience.baseExperience.onStateChangedObservable.add(state => {
         if (state === WebXRState.IN_XR) {
             // @todo: Do we really need to do this? I understand we might need to for audio to work properly.
@@ -51,15 +52,12 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
     
-    xrExperience.input.controllers.forEach(controller => {
-        const squeezeComponent = controller.motionController.getComponentOfType("squeeze");
-        console.log("Squeeze component:");
-        console.log(squeezeComponent);
-    });
+    for (const controller of xrExperience.input.controllers) {
+        setUpController(controller, leftHand, rightHand);
+    }
     xrExperience.input.onControllerAddedObservable.add(controller => {
-        setUpInputSource(controller);
+        setUpController(controller, leftHand, rightHand);
     });
-
 
     log("setUpXR end");
 }
@@ -86,22 +84,52 @@ function displayXRSplashScreen(xrExperience: WebXRDefaultExperience, scene: Scen
     }
 }
 
-function setUpInputSource(inputSource: WebXRInputSource): void {
-    inputSource.onMotionControllerInitObservable.add(motionController => {
-        const squeezeComponent = motionController.getComponentOfType("squeeze");
-        squeezeComponent.onButtonStateChangedObservable.add(component => {
-            // @todo: Do fist animation
-        });
-    });
+function setUpController(controller: WebXRInputSource, leftHand: Mesh, rightHand: Mesh): void {
+    let handMesh: Nullable<Mesh> = null;
+        if (controller.inputSource.handedness === "left") {
+            handMesh = leftHand;
+        } else if (controller.inputSource.handedness === "right") {
+            handMesh = rightHand;
+        } else {
+            return;
+        }
+
+        setUpHandMesh(handMesh, controller.inputSource.handedness, new Color3(0 / 255, 128 / 255, 255 / 255));
+        addHandMesh(controller, handMesh);
 }
 
-function setUpHandMesh(handMesh: Mesh, color: Color3): void {
+function setUpHandMesh(handMesh: Mesh, handedness: XRHandedness, color: Color3): void {
+    handMesh.isPickable = false;
+    
     const handMaterial = new StandardMaterial("hand-material");
     handMaterial.diffuseColor.copyFrom(color);
     handMesh.material = handMaterial;
-    handMesh.isPickable = false;
+
+    handMesh.rotationQuaternion = null;
+    if (handedness === "left") {
+        handMesh.rotation.copyFromFloats(Math.PI, 0, Math.PI);
+    } else if (handedness === "right") {
+        handMesh.rotation.copyFromFloats(0, Math.PI, Math.PI);
+    } else {
+        handMesh.rotation.copyFromFloats(0, 0, 0);
+    }
 }
 
-function addHandMesh(inputSource: WebXRInputSource, handMesh: Mesh): void {
-    // @todo: Add the hand mesh to the player's controller.
+function addHandMesh(controller: WebXRInputSource, handMesh: Mesh): void {
+    handMesh.setParent(controller.grip || controller.pointer);
+    if (controller.motionController) {
+        addHandAnimations(controller.motionController, handMesh);
+    }
+    controller.onMotionControllerInitObservable.add(motionController => {
+        addHandAnimations(motionController, handMesh);
+    });
+}
+
+function addHandAnimations(motionController: WebXRAbstractMotionController, handMesh: Mesh) {
+    const squeezeComponent = motionController.getComponentOfType("squeeze");
+    const squeezeAnimation = handMesh.getScene().animationGroups.find(animGroup => animGroup.name === `Fist-${handMesh.name}`);
+    squeezeComponent.onButtonStateChangedObservable.add(component => {
+        const targetFrame = squeezeAnimation.from + (squeezeAnimation.to - squeezeAnimation.from) * component.value;
+        squeezeAnimation.goToFrame(targetFrame);
+    });
 }

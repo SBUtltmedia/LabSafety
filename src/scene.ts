@@ -44,7 +44,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start WebXR initialization");
     const xrOptions: WebXRDefaultExperienceOptions = {
         inputOptions: {
-            // doNotLoadControllerMeshes: true
+            doNotLoadControllerMeshes: true
         },
         pointerSelectionOptions: {
             enablePointerSelectionOnAllControllers: true,
