@@ -13,7 +13,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 const FIRE_EXTINGUISHER_RANGE = 2;
 
 export function createFireExtinguisher(mesh: Mesh): void {
-    const interactableBehavior = new InteractableBehavior(true, interactionXRManager);
+    const interactableBehavior = new InteractableBehavior(true, true, interactionXRManager);
     
     // @todo: This is terrible. Collapse the root mesh.
     const childMesh = mesh.getChildMeshes().find(mesh => mesh.id === "pCube10");
