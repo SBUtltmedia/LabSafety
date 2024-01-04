@@ -1,3 +1,4 @@
+import { Nullable } from "@babylonjs/core/types";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -22,16 +23,18 @@ export class InteractableBehavior implements Behavior<Mesh> {
     #xrStateObserver?: Observer<WebXRState>;
     #grabStateObservers: Observer<any>[] = [];
     #activationStateObservers: Observer<any>[] = [];
-    onGrabStateChangedObservable: Observable<GrabState> = new Observable();
+    onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #grabState: GrabState = GrabState.DROP;
     #activationState: ActivationState = ActivationState.INACTIVE;
     targets: AbstractMesh[];
+    #moveAttached: boolean;  // Should the behavior use the default implementation of grabbing? If not, it should be user-defined by subscribing to the observable.
     // @todo: Currently does nothing for desktop, because I don't know how we should handle it.
     #activatable: boolean;
     
-    constructor(activatable: boolean = false, xrInteractionManager?: InteractionXRManager) {
+    constructor(activatable: boolean = false, moveAttached: boolean = true, xrInteractionManager?: InteractionXRManager) {
         this.#activatable = activatable;
+        this.#moveAttached = moveAttached;
         if (xrInteractionManager) {
             this.#xrInteractionManager = xrInteractionManager;
             this.#xrExperience = this.#xrInteractionManager.xrExperience;
@@ -45,6 +48,10 @@ export class InteractableBehavior implements Behavior<Mesh> {
 
     get activatable(): boolean {
         return this.#activatable;
+    }
+
+    get moveAttached(): boolean {
+        return this.#moveAttached;
     }
 
     set activatable(value: boolean) {
@@ -108,30 +115,47 @@ export class InteractableBehavior implements Behavior<Mesh> {
                     
                     this.#changeBehavior(xrBehavior);
                     
-                    this.#grabStateObservers.push(xrBehavior.onGrabStateChangedObservable.add(grabState => {
+                    const grabObserver = xrBehavior.onGrabStateChangedObservable.add(data => {
+                        const [grabbingMesh, grabState] = data;
                         this.#grabState = grabState;
-                        this.onGrabStateChangedObservable.notifyObservers(grabState);
-                    }));
-                    this.#activationStateObservers.push(xrBehavior.onActivationStateChangedObservable.add(activationState => {
+                        if (this.#moveAttached) {
+                            switch (this.#grabState) {
+                                case GrabState.GRAB:
+                                    this.mesh.setParent(grabbingMesh);
+                                    break;
+                                case GrabState.DROP:
+                                    this.mesh.setParent(null);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        this.onGrabStateChangedObservable.notifyObservers(data);
+                    });
+                    this.#grabStateObservers.push(grabObserver);
+
+                    const activationObserver = xrBehavior.onActivationStateChangedObservable.add(activationState => {
                         this.#activationState = activationState;
                         this.onActivationStateChangedObservable.notifyObservers(activationState);
-                    }));
+                    });
+                    this.#activationStateObservers.push(activationObserver);
                 } else {
                     log("InteractableBehavior: attempted to switch mode to XR without an XR interaction manager.");
                 }
                 break;
             case WebXRState.NOT_IN_XR:
                 const desktopBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 0, 1) });
+                desktopBehavior.moveAttached = this.#moveAttached;
 
                 this.#changeBehavior(desktopBehavior);
                 
                 this.#grabStateObservers.push(desktopBehavior.onDragStartObservable.add(() => {
                     this.#grabState = GrabState.GRAB;
-                    this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
+                    this.onGrabStateChangedObservable.notifyObservers([null, GrabState.GRAB]);
                 }));
                 this.#grabStateObservers.push(desktopBehavior.onDragEndObservable.add(() => {
                     this.#grabState = GrabState.DROP;
-                    this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
+                    this.onGrabStateChangedObservable.notifyObservers([null, GrabState.DROP]);
                 }));
                 break;
         }

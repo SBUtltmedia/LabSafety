@@ -1,3 +1,4 @@
+import { Nullable } from "@babylonjs/core/types";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
@@ -14,7 +15,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     interactionManager: InteractionXRManager;
     grabObserver: Observer<[AbstractMesh, GrabState]>;
     activationObserver: Observer<[AbstractMesh, ActivationState]>;
-    onGrabStateChangedObservable: Observable<GrabState> = new Observable();
+    onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #activatable: boolean;
     protected _enabled: boolean = true;
@@ -84,18 +85,9 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         this.grabObserver.remove();
     }
 
-    protected _onGrabStart = (grabbingMesh: AbstractMesh): void => {
-        this.mesh.setParent(grabbingMesh);
-    }
-
-    protected _onGrabEnd = (): void => {
-        this.mesh.setParent(null);
-    }
-
     protected _grab = (grabbingMesh: AbstractMesh): void => {
-        this._onGrabStart(grabbingMesh);
         this._grabbing = true;
-        this.onGrabStateChangedObservable.notifyObservers(GrabState.GRAB);
+        this.onGrabStateChangedObservable.notifyObservers([grabbingMesh, GrabState.GRAB]);
     }
 
     protected _drop = (): void => {
@@ -104,9 +96,8 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         if (this._active) {
             this._deactivate();
         }
-        this._onGrabEnd();
         this._grabbing = false;
-        this.onGrabStateChangedObservable.notifyObservers(GrabState.DROP);
+        this.onGrabStateChangedObservable.notifyObservers([null, GrabState.DROP]);
     }
 
     protected _onActivationStart = (): void => {

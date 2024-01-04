@@ -5,6 +5,7 @@ import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
@@ -20,7 +21,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     mesh: Mesh;
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
-    #grabStateObserver: Observer<GrabState>;
+    #grabStateObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<Mesh>;
     onBeforePourObservable: Observable<Mesh>;
@@ -32,7 +33,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     onAnimationChangeObservable: Observable<Boolean>;
     
     constructor(targets: Mesh[], interactionXRManager?: InteractionXRManager) {
-        this.#interactableBehavior = new InteractableBehavior(false, interactionXRManager || undefined);
+        this.#interactableBehavior = new InteractableBehavior(false, true, interactionXRManager || undefined);
         this.#interactableBehavior.targets.push(...targets);
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
@@ -61,7 +62,7 @@ export class PouringBehavior implements Behavior<Mesh> {
 
         const scene = mesh.getScene();
         const targets = this.#interactableBehavior.targets as Mesh[];
-        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(grabState => {
+        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(([_, grabState]) => {
             if (grabState === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
