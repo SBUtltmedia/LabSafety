@@ -56,7 +56,7 @@ class GUIManager {
         this.screen.parent = this.camera;
 
         // need to add a vector because the origin of the camera is at top left
-        this.screen.position = new Vector3(0, 0, 1.2);
+        this.screen.position = new Vector3(0, 0, 0.5);
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(
             this.screen
         );
@@ -94,28 +94,11 @@ class GUIManager {
 
         let mesh = (this.scene as Scene).getMeshByName("Start");
 
-        let canvas = document.getElementsByTagName("canvas")[0];
-        canvas.addEventListener("pointerdown", function () {
-            xrDefaultExperience.baseExperience.onStateChangedObservable.add(
-                (state) => {
-                    if (state === WebXRState.IN_XR) {
-                        pointerUp();
-                    }
-                }
-            );
-        });
-
         function pointerUp() {
             container.dispose();
             mesh.dispose();
             if (buttonClickCallBack) {
                 buttonClickCallBack(...args);
-            }
-            if (xrDefaultExperience) {
-                xrDefaultExperience.pointerSelection.displayLaserPointer =
-                    false;
-                xrDefaultExperience.pointerSelection.displaySelectionMesh =
-                    false;
             }
         }
 
