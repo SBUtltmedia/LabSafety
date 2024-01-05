@@ -8,6 +8,7 @@ import { createCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
 import { createFireExtinguisher } from "./createFireExtinguisher";
+import { createFireExtinguisherCabinet } from "./createFireExtinguisherCabinet";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.
@@ -18,6 +19,7 @@ export function processMeshes(meshes: Mesh[]) {
     // @todo: Process the clipboard and fire extinguisher meshes.
     const clipboardMesh = meshes.find(mesh => mesh.name === "clipboard")!.getChildMeshes(true)[0] as AbstractMesh;
     const fireExtinguisherMesh = meshes.find(mesh => mesh.name === "fire-extinguisher");
+    const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === "FireCabinet");
 
     createRoom(roomMesh);
 
@@ -69,6 +71,8 @@ export function processMeshes(meshes: Mesh[]) {
     createCylinder(cylinderA, Color3.Red(), [cylinderB, cylinderC]);
 
     createFireExtinguisher(fireExtinguisherMesh);
+
+    createFireExtinguisherCabinet(fireExtinguisherCabinet);
 
     meshes.push(cylinderC, cylinderB);
 }
