@@ -121,7 +121,15 @@ export class InteractableBehavior implements Behavior<Mesh> {
                         if (this.#moveAttached) {
                             switch (this.#grabState) {
                                 case GrabState.GRAB:
+                                    const previousRotation = this.mesh.rotation.clone();
                                     this.mesh.setParent(grabbingMesh);
+                                    this.mesh.position.copyFromFloats(0, 0, 0);
+
+                                    // This is necessary because setParent converts the local rotation to the grabbing mesh's space
+                                    // such that the grabbed mesh's absolute rotation remains the same. We don't want the absolute
+                                    // rotation to stay the same; we want the *local* rotation to stay the same. Therefore, we store
+                                    // it before parenting and restore it after parenting.
+                                    this.mesh.rotation.copyFrom(previousRotation);
                                     break;
                                 case GrabState.DROP:
                                     this.mesh.setParent(null);
