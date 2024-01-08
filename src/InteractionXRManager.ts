@@ -24,7 +24,7 @@ interface ControllerGrabbedMeshMap {
 
 export class InteractionXRManager {
     // @todo: Add something that cleans up Observers if the instance is ever disposed of.
-    onGrabStateChangeObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
+    onGrabStateChangeObservable: Observable<[AbstractMesh, GrabState]> = new Observable();
     onActivationStateChangeObservable: Observable<[Nullable<AbstractMesh>, ActivationState]> = new Observable();
     xrExperience: WebXRDefaultExperience;
     grabbedMeshMap: ControllerGrabbedMeshMap = {};

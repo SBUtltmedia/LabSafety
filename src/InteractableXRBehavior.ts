@@ -15,7 +15,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     interactionManager: InteractionXRManager;
     grabObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
     activationObserver: Observer<[Nullable<AbstractMesh>, ActivationState]>;
-    onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
+    onGrabStateChangedObservable: Observable<[AbstractMesh, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #grabbingMesh: Nullable<AbstractMesh> = null;
     #activatable: boolean;

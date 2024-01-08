@@ -23,7 +23,7 @@ export class InteractableBehavior implements Behavior<Mesh> {
     #xrStateObserver?: Observer<WebXRState>;
     #grabStateObservers: Observer<any>[] = [];
     #activationStateObservers: Observer<any>[] = [];
-    onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
+    onGrabStateChangedObservable: Observable<[AbstractMesh, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #grabState: GrabState = GrabState.DROP;
     #activationState: ActivationState = ActivationState.INACTIVE;
