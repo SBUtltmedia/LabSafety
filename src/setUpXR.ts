@@ -94,29 +94,28 @@ function setUpController(controller: WebXRInputSource, leftHand: Mesh, rightHand
             return;
         }
 
-        setUpHandMesh(handMesh, controller.inputSource.handedness, new Color3(0 / 255, 128 / 255, 255 / 255));
-        addHandMesh(controller, handMesh);
+        setUpHandMesh(handMesh, new Color3(0 / 255, 128 / 255, 255 / 255));
+        addHandMesh(controller, handMesh, controller.inputSource.handedness);
 }
 
-function setUpHandMesh(handMesh: Mesh, handedness: XRHandedness, color: Color3): void {
+function setUpHandMesh(handMesh: Mesh, color: Color3): void {
     handMesh.isPickable = false;
     
     const handMaterial = new StandardMaterial("hand-material");
     handMaterial.diffuseColor.copyFrom(color);
     handMesh.material = handMaterial;
+}
 
+function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: XRHandedness): void {
+    handMesh.setParent(controller.grip || controller.pointer);
     handMesh.rotationQuaternion = null;
     if (handedness === "left") {
-        handMesh.rotation.copyFromFloats(Math.PI, 0, Math.PI);
+        handMesh.rotation.copyFromFloats(5 * Math.PI / 4, 0, Math.PI / 2);
     } else if (handedness === "right") {
-        handMesh.rotation.copyFromFloats(0, Math.PI, Math.PI);
+        handMesh.rotation.copyFromFloats(-Math.PI / 4, Math.PI, 3 * Math.PI / 2);
     } else {
         handMesh.rotation.copyFromFloats(0, 0, 0);
     }
-}
-
-function addHandMesh(controller: WebXRInputSource, handMesh: Mesh): void {
-    handMesh.setParent(controller.grip || controller.pointer);
     if (controller.motionController) {
         addHandAnimations(controller.motionController, handMesh);
     }
