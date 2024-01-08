@@ -17,6 +17,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
     activationObserver: Observer<[Nullable<AbstractMesh>, ActivationState]>;
     onGrabStateChangedObservable: Observable<[Nullable<AbstractMesh>, GrabState]> = new Observable();
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
+    #grabbingMesh: Nullable<AbstractMesh> = null;
     #activatable: boolean;
     #enabled: boolean = true;
     #grabbing: boolean = false;
@@ -62,8 +63,10 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
             }
             if (grabState === GrabState.GRAB) {
                 this.#grab(pointer);
+                this.#grabbingMesh = pointer;
             } else if (grabState === GrabState.DROP) {
-                this.#drop();
+                this.#drop(pointer);
+                this.#grabbingMesh = null;
             }
         });
         this.activationObserver = this.interactionManager.onActivationStateChangeObservable.add(([pointer, activationState]) => {
@@ -80,7 +83,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
 
     detach = (): void => {
         if (this.#grabbing) {
-            this.#drop();
+            this.#drop(this.#grabbingMesh);
         }
         if (this.#active) {
             this.#deactivate();
@@ -94,14 +97,14 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         this.onGrabStateChangedObservable.notifyObservers([grabbingMesh, GrabState.GRAB]);
     }
 
-    #drop = (): void => {
+    #drop = (grabbingMesh: AbstractMesh): void => {
         // I'm torn about whether deactivation should occur before, after, or mid-drop,
         // so we might want to change this.
         if (this.#active) {
             this.#deactivate();
         }
         this.#grabbing = false;
-        this.onGrabStateChangedObservable.notifyObservers([null, GrabState.DROP]);
+        this.onGrabStateChangedObservable.notifyObservers([grabbingMesh, GrabState.DROP]);
     }
 
     #onActivationStart = (): void => {
@@ -134,7 +137,7 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
 
     disable = (): void => {
         if (this.#grabbing) {
-            this.#drop();
+            this.#drop(this.#grabbingMesh);
         }
         if (this.#active) {
             this.#deactivate();
