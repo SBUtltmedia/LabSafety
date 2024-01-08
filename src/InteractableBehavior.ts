@@ -133,9 +133,21 @@ export class InteractableBehavior implements Behavior<Mesh> {
                                     // it before parenting and restore it after parenting, with an offset to account for the grip's
                                     // awkward orientation.
                                     this.mesh.rotation.copyFrom(targetRotation);
+
+                                    // Hide the hand
+                                    for (const childMesh of grabbingMesh.getChildMeshes(true)) {
+                                        if (childMesh !== this.mesh) {
+                                            childMesh.isVisible = false;
+                                        }
+                                    }
                                     break;
                                 case GrabState.DROP:
                                     this.mesh.setParent(null);
+
+                                    // Show the hand
+                                    for (const childMesh of grabbingMesh.getChildMeshes(true)) {
+                                        childMesh.isVisible = true;
+                                    }
                                     break;
                                 default:
                                     break;
