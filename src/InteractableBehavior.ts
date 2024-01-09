@@ -1,4 +1,3 @@
-import { Nullable } from "@babylonjs/core/types";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -121,8 +120,7 @@ export class InteractableBehavior implements Behavior<Mesh> {
                         if (this.#moveAttached) {
                             switch (this.#grabState) {
                                 case GrabState.GRAB:
-                                    const targetRotation = this.mesh.rotation.clone();
-                                    targetRotation.x += Math.PI / 4;
+                                    const targetRotation = this.mesh.rotation.clone().subtract(grabbingMesh.rotationQuaternion.toEulerAngles());
 
                                     this.mesh.setParent(grabbingMesh);
                                     this.mesh.position.copyFromFloats(0, 0, 0);
