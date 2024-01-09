@@ -79,6 +79,9 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
                 this.#deactivate();
             }
         });
+        if (!this.interactionManager.interactableMeshes.includes(this.mesh)) {
+            this.interactionManager.interactableMeshes.push(this.mesh);
+        }
     }
 
     detach = (): void => {
@@ -90,6 +93,10 @@ export class InteractableXRBehavior implements Behavior<AbstractMesh> {
         }
         this.grabObserver.remove();
         this.activationObserver.remove();
+        const meshIndex = this.interactionManager.interactableMeshes.findIndex(mesh => mesh === this.mesh);
+        if (meshIndex !== -1) {
+            this.interactionManager.interactableMeshes.splice(meshIndex, 1);
+        }
     }
 
     #grab = (grabbingMesh: AbstractMesh): void => {

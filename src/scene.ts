@@ -1,4 +1,5 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
+import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Light } from "@babylonjs/core/Lights/light";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -47,13 +48,12 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             doNotLoadControllerMeshes: true
         },
         pointerSelectionOptions: {
-            enablePointerSelectionOnAllControllers: true,
-            maxPointerDistance: MAX_XR_GRAB_DISTANCE
+            enablePointerSelectionOnAllControllers: true
         }
     };
 
     xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
-    interactionXRManager = new InteractionXRManager(xrExperience);
+    interactionXRManager = new InteractionXRManager(xrExperience, scene);
     setUpXR(xrExperience);
     
     log("createSceneAsync end WebXR initialization");

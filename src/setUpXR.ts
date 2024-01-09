@@ -10,6 +10,7 @@ import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
 import { loadXRHands } from "./loadXRHands";
+import { interactionXRManager } from "./scene";
 import { log } from "./utils";
 
 export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<void> {
@@ -122,6 +123,7 @@ function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: X
     controller.onMotionControllerInitObservable.add(motionController => {
         addHandAnimations(motionController, handMesh);
     });
+    interactionXRManager.handMeshMap[controller.uniqueId] = handMesh;
 }
 
 function addHandAnimations(motionController: WebXRAbstractMotionController, handMesh: Mesh) {

@@ -1,5 +1,9 @@
+import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
+import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
@@ -22,21 +26,32 @@ interface ControllerGrabbedMeshMap {
     [id: string]: Nullable<AbstractMesh>
 }
 
+interface ControllerHandMap {
+    [id: string]: Mesh
+}
+
+interface HandIntersectingMap {
+    [id: string]: Nullable<Mesh>
+}
+
 export class InteractionXRManager {
     // @todo: Add something that cleans up Observers if the instance is ever disposed of.
     onGrabStateChangeObservable: Observable<[AbstractMesh, GrabState]> = new Observable();
     onActivationStateChangeObservable: Observable<[Nullable<AbstractMesh>, ActivationState]> = new Observable();
     xrExperience: WebXRDefaultExperience;
     grabbedMeshMap: ControllerGrabbedMeshMap = {};
+    handMeshMap: ControllerHandMap = {};
+    handIntersectingMap: HandIntersectingMap = {};
+    interactableMeshes: AbstractMesh[] = [];
+    #scene: Scene;
+    #highlightLayer: HighlightLayer;
 
-    constructor(xrExperience: WebXRDefaultExperience) {
+    constructor(xrExperience: WebXRDefaultExperience, scene: Scene) {
         this.xrExperience = xrExperience;
         this.xrExperience.input.controllers.forEach(this.#setUpController);
         this.xrExperience.input.onControllerAddedObservable.add(this.#setUpController);
-    }
-
-    #grabPredicate(mesh: AbstractMesh): boolean {
-        return mesh.behaviors.some(b => b instanceof InteractableXRBehavior);
+        this.#scene = scene;
+        this.#highlightLayer = new HighlightLayer("interaction-highlight-layer");
     }
 
     #activatePredicate (mesh: AbstractMesh): boolean {
@@ -44,7 +59,41 @@ export class InteractionXRManager {
         return Boolean(behavior) && behavior.activatable;
     }
 
+    #unhighlightIfNotIntersecting = (mesh: Mesh) => {
+        if (!Object.values(this.handIntersectingMap).includes(mesh)) {
+            this.#highlightLayer.removeMesh(mesh);
+        }
+    }
+
+    #highlight = (mesh: Mesh, color: Color3) => {
+        if (!this.#highlightLayer.hasMesh(mesh)) {
+            this.#highlightLayer.addMesh(mesh, color);
+        }
+    }
+
     #setUpController = (controller: WebXRInputSource) => {
+        this.#scene.onBeforeRenderObservable.add(() => {
+            const handMesh = this.handMeshMap[controller.uniqueId];
+            if (handMesh) {
+                const mesh = this.interactableMeshes.find(mesh => handMesh.intersectsMesh(mesh));
+                const currentIntersectingMesh = this.handIntersectingMap[controller.uniqueId];
+                if (!this.grabbedMeshMap[controller.uniqueId] && mesh && mesh instanceof Mesh) {
+                    if (currentIntersectingMesh !== mesh) {
+                        this.handIntersectingMap[controller.uniqueId] = mesh;
+                        if (currentIntersectingMesh) {
+                            this.#unhighlightIfNotIntersecting(currentIntersectingMesh);
+                        }
+                        this.#highlight(mesh, Color3.Gray());
+                    }
+                } else {
+                    this.handIntersectingMap[controller.uniqueId] = null;
+                    if (currentIntersectingMesh) {
+                        this.#unhighlightIfNotIntersecting(currentIntersectingMesh);
+                    }
+                }
+            }
+        });
+
         if (controller.motionController) {
             this.#setUpMotionController(controller.motionController, controller);
         }
@@ -78,19 +127,22 @@ export class InteractionXRManager {
     
     #checkGrab = (grab: boolean, controller: WebXRInputSource) => {
         if (grab) {
-            const mesh = this.xrExperience.pointerSelection.getMeshUnderPointer(controller.uniqueId);
-            if (mesh && this.#grabPredicate(mesh)) {
-                // Check if a controller is already grabbing this mesh
-                const currentGrabberID = Object.keys(this.grabbedMeshMap).find(id => this.grabbedMeshMap[id] === mesh);
-                if (currentGrabberID) {
-                    // Drop mesh already grabbed. This could happen if, for example,
-                    // a player swaps which hand is holding the mesh.
-                    const currentGrabber = this.xrExperience.input.controllers.find(c => c.uniqueId === currentGrabberID);
-                    this.#notifyGrabMeshObserver(mesh, [currentGrabber.grip || currentGrabber.pointer, GrabState.DROP]);
-                    this.grabbedMeshMap[currentGrabberID] = null;
+            const handMesh = this.handMeshMap[controller.uniqueId];
+            if (handMesh) {
+                const mesh = this.interactableMeshes.find(mesh => handMesh.intersectsMesh(mesh));
+                if (mesh) {
+                    // Check if a controller is already grabbing this mesh
+                    const currentGrabberID = Object.keys(this.grabbedMeshMap).find(id => this.grabbedMeshMap[id] === mesh);
+                    if (currentGrabberID) {
+                        // Drop mesh already grabbed. This could happen if, for example,
+                        // a player swaps which hand is holding the mesh.
+                        const currentGrabber = this.xrExperience.input.controllers.find(c => c.uniqueId === currentGrabberID);
+                        this.#notifyGrabMeshObserver(mesh, [currentGrabber.grip || currentGrabber.pointer, GrabState.DROP]);
+                        this.grabbedMeshMap[currentGrabberID] = null;
+                    }
+                    this.grabbedMeshMap[controller.uniqueId] = mesh;
+                    this.#notifyGrabMeshObserver(mesh, [controller.grip || controller.pointer, GrabState.GRAB]);
                 }
-                this.grabbedMeshMap[controller.uniqueId] = mesh;
-                this.#notifyGrabMeshObserver(mesh, [controller.grip || controller.pointer, GrabState.GRAB]);
             }
         } else {
             if (this.grabbedMeshMap[controller.uniqueId]) {
