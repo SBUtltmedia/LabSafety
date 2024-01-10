@@ -37,8 +37,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
             observer = scene.onBeforeRenderObservable.add(() => {
                 // Check for hitting the fire
                 // @todo: The ray should originate from the nozzle mesh.
-                // @todo: The ray length is a magic number.
-                const ray = new Ray(childMesh.absolutePosition, childMesh.getDirection(Axis.X).normalize(), FIRE_EXTINGUISHER_RANGE);
+                const ray = new Ray(childMesh.absolutePosition, childMesh.getDirection(Axis.Y).negate().normalize(), FIRE_EXTINGUISHER_RANGE);
                 debugSphere1.setAbsolutePosition(ray.origin);
                 debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
                 const pickInfo = scene.pickWithRay(ray, mesh => {
