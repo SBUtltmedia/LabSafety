@@ -1,19 +1,16 @@
-import {
-    AdvancedDynamicTexture,
-    Rectangle,
-    TextBlock,
-    Button,
-    Container,
-} from "@babylonjs/gui";
-import {
-    Camera,
-    Mesh,
-    MeshBuilder,
-    Scene,
-    Vector3,
-    WebXRState,
-} from "@babylonjs/core";
-import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
+import { Scene } from "@babylonjs/core/scene";
+import { Nullable } from "@babylonjs/core/types";
+import { Camera } from "@babylonjs/core/Cameras/camera";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+
+import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
+import { Button } from "@babylonjs/gui/2D/controls/button";
+import { Container } from "@babylonjs/gui/2D/controls/container";
+import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
+import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 
 class PromptWithButton {
     rect: Rectangle;
@@ -140,7 +137,7 @@ export class GUIWindows {
     static createSuccessScreen(
         scene: Scene,
         xrDefaultExperience: WebXRDefaultExperience,
-        buttonClickCallBack: any = null,
+        buttonClickCallBack: Nullable<() => void> = null,
         ...args: any[]
     ) {
         let guiManager = new GUIManager(scene);
@@ -156,7 +153,7 @@ export class GUIWindows {
     static createFailureScreen(
         scene: Scene,
         xrDefaultExperience: WebXRDefaultExperience,
-        buttonClickCallBack: any = null,
+        buttonClickCallBack: Nullable<() => void> = null,
         ...args: any[]
     ) {
         let guiManager = new GUIManager(scene);
