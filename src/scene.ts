@@ -21,6 +21,7 @@ import { setUpXR } from "./setUpXR";
 import { log } from "./utils";
 import { GUIWindows } from "./GUIManager";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { sop } from "./SOP";
 
 export let xrExperience: WebXRDefaultExperience;
 export let interactionXRManager: InteractionXRManager;
@@ -122,4 +123,12 @@ function fadeIn(light: Light) {
             light.intensity += 0.1;
         }
     }, 60);
+}
+
+export async function resetScene(scene: Scene): Promise<void> {
+    const engine = scene.getEngine();
+    scene.dispose();
+    sop.reset();
+    const newScene = await createSceneAsync(engine);
+    engine.runRenderLoop(() => newScene.render());
 }

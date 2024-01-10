@@ -11,7 +11,7 @@ import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
 
 // TODO: is it fine to use global variable here?
-import { xrExperience } from "./scene";
+import { resetScene, xrExperience } from "./scene";
 
 export function enableTasks(scene: Scene): void {
     const pourers = scene.meshes.filter(mesh => {
@@ -42,9 +42,8 @@ export function enableTasks(scene: Scene): void {
     sop.onTaskStateChangeObservable.add(status => {
         switch (status) {
             case Status.SUCCESSFUL:
-                // TODO: Reset scene on button click callback
-                GUIWindows.createSuccessScreen(scene, xrExperience)
-                // Play fanfare, fade to black. After a few seconds, reset.
+                // Show success screen, play fanfare.
+                GUIWindows.createSuccessScreen(scene, xrExperience, () => resetScene(scene));
                 sounds.fanfare.stop();
                 sounds.fanfare.play();
                 break;
@@ -58,7 +57,9 @@ export function enableTasks(scene: Scene): void {
                 if (fireBehavior) {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {
-                            // Handle successful fire handling
+                            // Handle successful fire handling: show failure screen, play fanfare.
+                            GUIWindows.createFailureScreen(scene, xrExperience, () => resetScene(scene));
+                            // @todo: find a new sound for SOP failure.
                             sounds.fanfare.stop();
                             sounds.fanfare.play();
                         }
