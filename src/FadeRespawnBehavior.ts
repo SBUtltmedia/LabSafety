@@ -23,7 +23,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     #speedRatio: number
     #interactableBehavior: InteractableBehavior;
     #grabStateObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
-    #animationStateObserver: Observer<boolean>;
+    #animationStateObserver: Nullable<Observer<boolean>> = null;
     #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];
     #scene: Scene;
@@ -74,14 +74,14 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(([_, grabState]) => {
             if (grabState === GrabState.DROP) {
                 if (this.#pouringBehavior.animating) {
-                    if (this.#animationStateObserver) {
-                        this.#animationStateObserver.remove();
-                    }
-                    this.#animationStateObserver = this.#pouringBehavior.onAnimationChangeObservable.add(state => {
-                        if (state === false) {
-                            this.#fadeAndRespawn();
+                    this.#animationStateObserver = this.#pouringBehavior.onAnimationChangeObservable.addOnce(state => {
+                        // state should ALWAYS be false, but let's stay defensive and make a sanity check.
+                        if (state) {
+                            throw new Error("Received notication of starting animating before receiving notification of stopping animating.");
                         }
-                    })
+                        this.#fadeAndRespawn();
+                        this.#animationStateObserver = null;
+                    });
                 } else {
                     this.#fadeAndRespawn();
                 }
@@ -92,7 +92,9 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
     detach(): void {
         this.#grabStateObserver.remove();
-        this.#animationStateObserver.remove();
+        if (this.#animationStateObserver) {
+            this.#animationStateObserver.remove();
+        }
     }
 
     #fadeAndRespawn() {
