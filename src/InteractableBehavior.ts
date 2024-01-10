@@ -26,7 +26,7 @@ export class InteractableBehavior implements Behavior<Mesh> {
     onActivationStateChangedObservable: Observable<ActivationState> = new Observable();
     #grabState: GrabState = GrabState.DROP;
     #activationState: ActivationState = ActivationState.INACTIVE;
-    targets: AbstractMesh[];
+    targets: AbstractMesh[] = [];
     #moveAttached: boolean;  // Should the behavior use the default implementation of grabbing? If not, it should be user-defined by subscribing to the observable.
     // @todo: Currently does nothing for desktop, because I don't know how we should handle it.
     #activatable: boolean;
@@ -38,7 +38,6 @@ export class InteractableBehavior implements Behavior<Mesh> {
             this.#xrInteractionManager = xrInteractionManager;
             this.#xrExperience = this.#xrInteractionManager.xrExperience;
         }
-        this.targets = [];
     }
 
     get name() {
@@ -120,10 +119,12 @@ export class InteractableBehavior implements Behavior<Mesh> {
                         if (this.#moveAttached) {
                             switch (this.#grabState) {
                                 case GrabState.GRAB:
-                                    const targetRotation = this.mesh.rotation.clone().subtract(grabbingMesh.rotationQuaternion.toEulerAngles());
+                                    const targetRotation = this.mesh.rotation.subtract(grabbingMesh.rotationQuaternion.toEulerAngles());
 
                                     this.mesh.setParent(grabbingMesh);
-                                    this.mesh.position.copyFromFloats(0, 0, 0);
+
+                                    // Move the mesh to the hand's position
+                                    this.mesh.position.setAll(0);
 
                                     // This is necessary because setParent converts the local rotation to the grabbing mesh's space
                                     // such that the grabbed mesh's absolute rotation remains the same. We don't want the absolute
