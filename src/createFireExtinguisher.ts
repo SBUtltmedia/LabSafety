@@ -14,11 +14,8 @@ const FIRE_EXTINGUISHER_RANGE = 2;
 
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(true, true, interactionXRManager);
-    
-    // @todo: This is terrible. Collapse the root mesh.
-    const childMesh = mesh.getChildMeshes().find(mesh => mesh.id === "pCube10");
 
-    childMesh.addBehavior(interactableBehavior);
+    mesh.addBehavior(interactableBehavior);
 
     let observer: Nullable<Observer<Scene>> = null;
     const scene = mesh.getScene();
@@ -37,11 +34,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
             observer = scene.onBeforeRenderObservable.add(() => {
                 // Check for hitting the fire
                 // @todo: The ray should originate from the nozzle mesh.
-                const ray = new Ray(childMesh.absolutePosition, childMesh.getDirection(Axis.Y).negate().normalize(), FIRE_EXTINGUISHER_RANGE);
+                const ray = new Ray(mesh.absolutePosition, mesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
                 debugSphere1.setAbsolutePosition(ray.origin);
                 debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
-                const pickInfo = scene.pickWithRay(ray, mesh => {
-                    const fireBehavior = mesh.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                const pickInfo = scene.pickWithRay(ray, pickedMesh => {
+                    const fireBehavior = pickedMesh.getBehaviorByName(FireBehavior.name) as FireBehavior;
                     return Boolean(fireBehavior && !fireBehavior.extinguished);
                 });
                 if (pickInfo.hit) {

@@ -18,13 +18,12 @@ export function processMeshes(meshes: Mesh[]) {
     const cylinderMesh = meshes.find(mesh => mesh.name === "cylinder")!.getChildMeshes(true)[0] as Mesh;
     // @todo: Process the clipboard and fire extinguisher meshes.
     const clipboardMesh = meshes.find(mesh => mesh.name === "clipboard")!.getChildMeshes(true)[0] as AbstractMesh;
-    const fireExtinguisherMesh = meshes.find(mesh => mesh.name === "fire-extinguisher");
+    const fireExtinguisherMesh = meshes.find(mesh => mesh.name === "fire-extinguisher")!.getChildMeshes(true)[0] as Mesh;
     const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === "FireCabinet");
 
     createRoom(roomMesh);
 
     const clipboardRoot = clipboardMesh.parent;
-    // Because clipboardMesh is about to be renamed to "clipboard"
     clipboardRoot.id = "clipboard-root";
     clipboardRoot.name = clipboardRoot.id;
     clipboardMesh.setParent(null);
@@ -69,6 +68,16 @@ export function processMeshes(meshes: Mesh[]) {
     createCylinder(cylinderC, Color3.Blue(), [cylinderA, cylinderB]);
     createCylinder(cylinderB, Color3.Green(), [cylinderA, cylinderC]);
     createCylinder(cylinderA, Color3.Red(), [cylinderB, cylinderC]);
+
+    const fireExtinguisherRoot = fireExtinguisherMesh.parent;
+    // Because fireExtinguisherMesh is about to be renamed to "fire-extinguisher"
+    fireExtinguisherRoot.id = "fire-extinguisher-root";
+    fireExtinguisherRoot.name = fireExtinguisherRoot.id;
+    fireExtinguisherMesh.setParent(null);
+    fireExtinguisherRoot.dispose();
+
+    fireExtinguisherMesh.id = "fire-extinguisher";
+    fireExtinguisherMesh.name = fireExtinguisherMesh.id;
 
     createFireExtinguisher(fireExtinguisherMesh);
 
