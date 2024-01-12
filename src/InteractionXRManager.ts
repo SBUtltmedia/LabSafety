@@ -141,12 +141,12 @@ export class InteractionXRManager {
                         this.grabbedMeshMap[currentGrabberID] = null;
                     }
                     this.grabbedMeshMap[controller.uniqueId] = mesh;
-                    this.#notifyGrabMeshObserver(mesh, [controller.grip || controller.pointer, GrabState.GRAB]);
+                    this.#notifyGrabMeshObserver(mesh, [controller.pointer, GrabState.GRAB]);
                 }
             }
         } else {
             if (this.grabbedMeshMap[controller.uniqueId]) {
-                this.#notifyGrabMeshObserver(this.grabbedMeshMap[controller.uniqueId], [controller.grip || controller.pointer, GrabState.DROP]);
+                this.#notifyGrabMeshObserver(this.grabbedMeshMap[controller.uniqueId], [controller.pointer, GrabState.DROP]);
                 this.grabbedMeshMap[controller.uniqueId] = null;
             }
         }
@@ -161,7 +161,7 @@ export class InteractionXRManager {
                     // Stay defensive and deactivate the mesh if it is already active.
                     this.#notifyActivationMeshObserver(grabbedMesh, [null, ActivationState.INACTIVE]);
                 }
-                this.#notifyActivationMeshObserver(grabbedMesh, [controller.grip || controller.pointer, ActivationState.ACTIVE]);
+                this.#notifyActivationMeshObserver(grabbedMesh, [controller.pointer, ActivationState.ACTIVE]);
             } else {
                 if (behavior.active) {
                     this.#notifyActivationMeshObserver(grabbedMesh, [null, ActivationState.INACTIVE]);

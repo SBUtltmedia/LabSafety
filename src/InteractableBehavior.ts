@@ -119,7 +119,7 @@ export class InteractableBehavior implements Behavior<Mesh> {
                         if (this.#moveAttached) {
                             switch (this.#grabState) {
                                 case GrabState.GRAB:
-                                    const targetRotation = this.mesh.rotation.subtract(grabbingMesh.rotationQuaternion.toEulerAngles());
+                                    const previousRotation = this.mesh.rotation.clone();
 
                                     this.mesh.setParent(grabbingMesh);
 
@@ -129,9 +129,8 @@ export class InteractableBehavior implements Behavior<Mesh> {
                                     // This is necessary because setParent converts the local rotation to the grabbing mesh's space
                                     // such that the grabbed mesh's absolute rotation remains the same. We don't want the absolute
                                     // rotation to stay the same; we want the *local* rotation to stay the same. Therefore, we store
-                                    // it before parenting and restore it after parenting, with an offset to account for the grip's
-                                    // awkward orientation.
-                                    this.mesh.rotation.copyFrom(targetRotation);
+                                    // it before parenting and restore it after parenting.
+                                    this.mesh.rotation.copyFrom(previousRotation);
 
                                     // Hide the hand
                                     for (const childMesh of grabbingMesh.getChildMeshes(true)) {

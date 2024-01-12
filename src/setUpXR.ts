@@ -108,12 +108,10 @@ function setUpHandMesh(handMesh: Mesh, color: Color3): void {
 }
 
 function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: XRHandedness): void {
-    handMesh.setParent(controller.grip || controller.pointer);
+    handMesh.setParent(controller.pointer);
     handMesh.rotationQuaternion = null;
-    if (handedness === "left") {
-        handMesh.rotation.copyFromFloats(5 * Math.PI / 4, 0, Math.PI / 2);
-    } else if (handedness === "right") {
-        handMesh.rotation.copyFromFloats(-Math.PI / 4, Math.PI, 3 * Math.PI / 2);
+    if (handedness !== "none") {
+        handMesh.rotation.copyFromFloats(Math.PI, 0, Math.PI / 2);
     } else {
         handMesh.rotation.copyFromFloats(0, 0, 0);
     }
