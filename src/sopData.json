@@ -23,7 +23,28 @@
       "text": "CHEMICAL HANDLING PROCEDURES",
       "sublistType": "a",
       "sublist": [
-        
+        {
+          "taskName": "B -> C",
+          "text": "Pour the contents of cylinder B into cylinder C.",
+          "indicator": "empty",
+          "logic": {
+            "taskType": "pouring",
+            "from": "cylinder-b",
+            "to": "cylinder-c",
+            "subtasks": []
+          }
+        },
+        {
+          "taskName": "C -> A",
+          "text": "Pour the contents of cylinder C into cylinder A.",
+          "indicator": "empty",
+          "logic": {
+            "taskType": "pouring",
+            "from": "cylinder-c",
+            "to": "cylinder-a",
+            "subtasks": []
+          }
+        }
       ]
     },
     {

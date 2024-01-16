@@ -15,10 +15,17 @@ const indicatorClassMap = {
     [Status.RESET]: "empty"
 };
 
-interface ListItem {
+interface ILogic {
+    taskType: string,
+    subtasks: string[],
+    [otherOptions: string]: any
+}
+
+export interface ListItem {
     taskName: string;
-    text: string;
     indicator?: string;
+    logic?: ILogic;
+    text: string;
 }
 
 export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
@@ -64,17 +71,9 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
 
     attach = (mesh: AbstractMesh) => {
         this.mesh = mesh;
-        // Populate the list with tasks. Note: This does not modify the underlying JSON file; it only
-        // modifies the JavaScript object loaded from the JSON file.
-        for (const task of this.basicTasks) {
-            const item: ListItem = {
-                taskName: task.name,
-                text: task.description,
-                indicator: indicatorClassMap[task.status]
-            };
-            this.#listItems.push(item);
-        }
+
         this.#updateTextureFromData();
+
         this.#taskObservers.push(
             ...this.basicTasks.map(task => {
                 return task.onTaskStateChangeObservable.add(status => {
@@ -82,6 +81,7 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
                     // a checkbox for this task. If the task failed, update
                     // the data to have an X for this task. If the task was
                     // reset, update the data to be blank for this task.
+                    // log("task name: ", task.name);
                     const item = this.#getListItemByName(task.name)!;
                     item.indicator = indicatorClassMap[status];
                     this.#updateTextureFromData();

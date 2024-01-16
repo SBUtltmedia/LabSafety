@@ -2,8 +2,9 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
-import { bToCTask, cToATask, sop } from "./SOP";
-import { UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
+import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
+import { setupTasks } from "./GameTasks";
+import { global } from "./GlobalState";
 
 export function createClipboard(mesh: AbstractMesh, templateString: string): void {
     const scene = mesh.getScene();
@@ -18,7 +19,11 @@ export function createClipboard(mesh: AbstractMesh, templateString: string): voi
     fetch("./src/sopData.json")
         .then(r => r.json())
         .then(json => {
-            const updateClipboardBehavior = new UpdateClipboardBehavior(templateString, json, sop, [bToCTask, cToATask]);
+            let listItems: ListItem[] = json.items[1].sublist;
+
+            setupTasks(scene, listItems);
+
+            const updateClipboardBehavior = new UpdateClipboardBehavior(templateString, json, global.sop, global.taskList);
             plane.addBehavior(updateClipboardBehavior);
         });
 }

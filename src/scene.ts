@@ -91,10 +91,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
 
     fadeIn(light1);
-    
-    log("createSceneAsync enable tasks start");
-    enableTasks(scene);
-    log("createSceneAsync enable tasks end");
 
     GUIWindows.createWelcomeScreen(scene, xrExperience);
 
