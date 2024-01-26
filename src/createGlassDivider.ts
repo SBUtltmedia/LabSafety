@@ -21,7 +21,7 @@ const moveDivider = (dividerMesh: Mesh, yDelta: number) => {
 export const createGlassDivider = (dividerMesh: Mesh) => {
     const scene = dividerMesh.getScene();
     let renderObserver: Nullable<Observer<Scene>> = null;
-    let pointerDragObserver: Nullable<Observer<any>> = null;
+    let pointerDragObserver: Nullable<Observer<any>> = null; // TODO: Find the correct type here
 
     const interactableBehavior = new InteractableBehavior(false, false, interactionXRManager);
     dividerMesh.addBehavior(interactableBehavior);
@@ -38,6 +38,9 @@ export const createGlassDivider = (dividerMesh: Mesh) => {
             }
 
             if (grabbingMesh) {
+                // Do this because in VR, player can grab the glass divider from anywhere within it, and the y-position
+                // of the divider is much higher. So I made a variable that offsets it by the y-position of the
+                // hand.
                 let curDividerMeshPos = Vector3.Zero();
                 curDividerMeshPos.copyFrom(grabbingMesh.getAbsolutePosition());
                 renderObserver = scene.onBeforeRenderObservable.add(() => {
