@@ -6,7 +6,7 @@ import { GrabState } from "./InteractionXRManager";
 import { Observer } from "@babylonjs/core/Misc/observable";
 import { Nullable } from "@babylonjs/core/types";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 const topLimit = 1.93;
 const bottomLimit = 1.3;
