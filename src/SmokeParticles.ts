@@ -1,74 +1,61 @@
-import { BoxParticleEmitter, Color3, Color4, GPUParticleSystem, Mesh, MeshBuilder, ParticleSystem, SolidParticleSystem, Texture, Vector3 } from "@babylonjs/core";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
 export class SmokeParticles {
-    particleSystem: ParticleSystem
+    particleSystem: ParticleSystem | GPUParticleSystem;
+    #mesh: AbstractMesh;
 
-    constructor(sourceMesh: Mesh) {
-        let scene = sourceMesh.getScene();
+    constructor(sourceMesh: AbstractMesh) {
+        this.#mesh = sourceMesh;
 
-        // var particleSystem = new ParticleSystem("particles", 5000, scene);
+        this.#setupParticleSystem();
+    }
 
-        let particleSystem;
+    #setupParticleSystem() {
+        let scene = this.#mesh.getScene();
+
+        let particleSystem: ParticleSystem | GPUParticleSystem;
 
         if (GPUParticleSystem.IsSupported) {
-            particleSystem = new GPUParticleSystem("particles", { capacity:10000 }, scene);
-            particleSystem.activeParticleCount = 200000;
+            particleSystem = new GPUParticleSystem("particles", { capacity:15000 }, scene);
+            particleSystem.activeParticleCount = 2000;
         } else {
-            particleSystem = new ParticleSystem("particles", 2500 , scene); 
+            particleSystem = new ParticleSystem("particles", 2000 , scene);
         }
-            
 
-        //Texture of each particle
         particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
     
-        particleSystem.emitRate = 200;
-        particleSystem.particleEmitterType = new BoxParticleEmitter();
+        particleSystem.emitRate = 150;
 
-        particleSystem.gravity = new Vector3(-200, 0, 0);
+        particleSystem.createPointEmitter(new Vector3(-3.5, -4, 0), new Vector3(3.5,4, 0));
 
-        // how long before the particles dispose?
-        particleSystem.minLifeTime = 1;
-        particleSystem.maxLifeTime = 1;
+        particleSystem.gravity = new Vector3(0, 0, 10);
 
-        // how much "push" from the back of the rocket.
-        // Rocket forward movement also (seemingly) effects "push", but not really.
-        particleSystem.minEmitPower = 0.5;
+        // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
+        // along with the source mesh (fire extinguisher in this case).
+        particleSystem.isLocal = true;
+
+        // how long before the particles dispose
+        particleSystem.minLifeTime = 0.3;
+        particleSystem.maxLifeTime = 0.3;
+
+        particleSystem.minEmitPower = 0.7;
         particleSystem.maxEmitPower = 0.5;
 
         particleSystem.minSize = 0.01;
-        particleSystem.maxSize = 0.01;
-
-        // particleSystem.addColorGradient(0, new Color4(0.5, 0.5, 0.5, 0),  new Color4(0.8, 0.8, 0.8, 0));
-        // particleSystem.addColorGradient(0.4, new Color4(0.1, 0.1, 0.1, 0.1), new Color4(0.4, 0.4, 0.4, 0.4));
-        // particleSystem.addColorGradient(0.7, new Color4(0.03, 0.03, 0.03, 0.2), new Color4(0.3, 0.3, 0.3, 0.4));
-        // particleSystem.addColorGradient(1.0, new Color4(0.0, 0.0, 0.0, 0), new Color4(0.03, 0.03, 0.03, 0));      
-        
-        let gradientSize = 0.5
+        particleSystem.maxSize = 0.02;
+     
+        let gradientSize = 0.3;
 
         particleSystem.addSizeGradient(gradientSize, gradientSize, gradientSize);
 
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 
+        particleSystem.emitter = this.#mesh;
 
-        // adjust diections to aim out fat-bottom end of rocket, with slight spread.
-
-        let dirConstant = 7;
-
-        particleSystem.direction1 = new Vector3(dirConstant, dirConstant, dirConstant);
-        particleSystem.direction2 = new Vector3(-dirConstant, -dirConstant, -dirConstant);
-        particleSystem.emitter = sourceMesh;
-
-        // rocket length 4, so move emission point... 2 units toward wide end of rocket.
-        let emitBoxVector = new Vector3(0.3, 0.2, 0);
-        particleSystem.minEmitBox = emitBoxVector;
-        particleSystem.maxEmitBox = emitBoxVector;
-
-
-        // a few colors, based on age/lifetime.  Yellow to red, generally speaking.
-        // particleSystem.color1 = new Color3(0,0,0);
-        // particleSystem.color2 = new Color3(1, .5, 0);
-        // particleSystem.colorDead = new Color3(1, 0, 0);
-        
         this.particleSystem = particleSystem;
     }
 
@@ -77,6 +64,8 @@ export class SmokeParticles {
     }
 
     stop() {
+        // TODO: Find a way to let all the current particles disappear before stopping
+        // to prevent black particles that don't look like foam on the screen.
         this.particleSystem.stop();
     }
 }
