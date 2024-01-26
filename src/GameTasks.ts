@@ -11,7 +11,9 @@ import { Sound } from "@babylonjs/core/Audio/sound";
 import { COMPLETION_SOUND_PATH, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from "./Constants";
 import { resetScene, xrExperience } from "./scene";
 import { global } from "./GlobalState";
-
+import { setColor } from "./createCylinder";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 
 interface ITaskMap {
     [key: string]: Task
@@ -62,6 +64,14 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     global.taskList = taskList;
 }
 
+const processTask = (targetName: string, toName: string, task: Task) => {
+    if (targetName === toName) {
+        task.succeed();
+    } else {
+        task.fail();
+    }
+}
+
 const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pouringTasks: Task[], taskMap: ITaskMap) => {
     let name = item.taskName;
     let text = item.text;
@@ -93,10 +103,19 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
         log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
         log(`Poured mesh name: ${target.name}`);
 
-        if (target.name === logic.to) {
-            task.succeed();
+        const targetColor = (target.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
+        const sourceColor = (pouringBehavior.mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
+
+        const mixedColor = new Color3((targetColor.r + sourceColor.r) / 2, (targetColor.g + sourceColor.g) / 2, (targetColor.b + sourceColor.b) / 2);
+
+        setColor(target, mixedColor);
+
+        if (pouringBehavior.animating) {
+            pouringBehavior.onAnimationChangeObservable.addOnce(() => {
+                processTask(target.name, logic.to, task);
+            })
         } else {
-            task.fail();
+            processTask(target.name, logic.to, task);
         }
     })
 

@@ -9,11 +9,15 @@ import { PouringBehavior } from "./PouringBehavior";
 import { interactionXRManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
-export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
+export function setColor(mesh: Mesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
     const liquidMaterial = new StandardMaterial("liquid-material");
     liquidMaterial.diffuseColor = color;
     liquidMesh.material = liquidMaterial;
+}
+
+export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
+    setColor(mesh, color);
 
     const texture = new DynamicTexture("dynamic-texture", 256, null, true, Texture.LINEAR_LINEAR_MIPNEAREST);
     texture.uAng = Math.PI;
