@@ -137,7 +137,7 @@ export class InteractionXRManager {
                         // Drop mesh already grabbed. This could happen if, for example,
                         // a player swaps which hand is holding the mesh.
                         const currentGrabber = this.xrExperience.input.controllers.find(c => c.uniqueId === currentGrabberID);
-                        this.#notifyGrabMeshObserver(mesh, [currentGrabber.grip || currentGrabber.pointer, GrabState.DROP]);
+                        this.#notifyGrabMeshObserver(mesh, [currentGrabber.pointer, GrabState.DROP]);
                         this.grabbedMeshMap[currentGrabberID] = null;
                     }
                     this.grabbedMeshMap[controller.uniqueId] = mesh;
@@ -171,6 +171,13 @@ export class InteractionXRManager {
     }
 
     #notifyGrabMeshObserver = (mesh: AbstractMesh, data: any) => {
+        if (mesh.isDisposed()) {
+            const currentGrabberID = Object.keys(this.grabbedMeshMap).find(id => this.grabbedMeshMap[id] === mesh);
+            if (currentGrabberID) {
+                this.handMeshMap[currentGrabberID] = null;
+            }
+            return;
+        }
         const behavior = mesh.behaviors.find(b => b instanceof InteractableXRBehavior) as InteractableXRBehavior;
         if (!behavior) {
             throw new Error("InteractionXRManager: mesh must have an instance of InteractableXRBehavior.");
@@ -180,6 +187,13 @@ export class InteractionXRManager {
     }
 
     #notifyActivationMeshObserver = (mesh: AbstractMesh, data: any) => {
+        if (mesh.isDisposed()) {
+            const currentGrabberID = Object.keys(this.grabbedMeshMap).find(id => this.grabbedMeshMap[id] === mesh);
+            if (currentGrabberID) {
+                this.handMeshMap[currentGrabberID] = null;
+            }
+            return;
+        }
         const behavior = mesh.getBehaviorByName(InteractableXRBehavior.name) as InteractableXRBehavior;
         if (!behavior) {
             throw new Error("InteractionXRManager: mesh must have an instance of InteractableXRBehavior.");

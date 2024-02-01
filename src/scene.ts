@@ -1,5 +1,4 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
-import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Light } from "@babylonjs/core/Lights/light";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -8,8 +7,6 @@ import { Scene } from "@babylonjs/core/scene";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { WebXRDefaultExperience, WebXRDefaultExperienceOptions } from "@babylonjs/core/XR/webXRDefaultExperience";
 
-import { MAX_XR_GRAB_DISTANCE } from "./Constants";
-import { enableTasks } from "./enableTasks";
 import { InteractionXRManager } from "./InteractionXRManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
@@ -21,10 +18,12 @@ import { setUpXR } from "./setUpXR";
 import { log } from "./utils";
 import { GUIWindows } from "./GUIManager";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
-import { sop } from "./SOP";
 
 export let xrExperience: WebXRDefaultExperience;
 export let interactionXRManager: InteractionXRManager;
+
+// Names of meshes not to dispose on scene reset
+export const meshesToPreserveNames: string[] = [];
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
@@ -56,41 +55,40 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
     interactionXRManager = new InteractionXRManager(xrExperience, scene);
     setUpXR(xrExperience);
-    
-    log("createSceneAsync end WebXR initialization");
 
-    // Imports the meshes and renames the "__root__" mesh names and ids to the filename (minus the file extension).
-    // Results is an array of results, where each element is the result from importing a particular file.
-    const results = await loadMeshes();
-    // Flatten the mesh so we have a single-dimensional array of all the meshes in the scene.
-    // It might be that we don't need the results from loadMeshes() at all, because we could just retrieve the
-    // meshes from the Scene object. I don't see much reason to do one in favor of the other.
-    const meshes = results.map(result => result.meshes).flat() as Mesh[];
-
-    // Establishes behaviors, observables, hooks, materials, etc. to each mesh. Does not move or rotate.
-    processMeshes(meshes);
-    
-    // Places meshes to their proper places in the scene, including rotation.
-    placeMeshes(meshes);
-
-    // Places the camera at the starting position.
-    placeCamera(camera);
-
-    // for every cylinder's FadeRespawnBehavior, set the start pos
-
-    const cylinders = meshes.filter(mesh => {
-        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
+    // Collect names of meshes that should be instantiated only once, even across
+    // scene resets. These are things like the XR teleportation marker, XR hand
+    // meshes, and XR controller pointers and grips.
+    meshesToPreserveNames.push(...scene.meshes.map(mesh => mesh.name));
+    for (const controller of xrExperience.input.controllers) {
+        meshesToPreserveNames.push(controller.pointer.name);
+        if (controller.grip) {
+            meshesToPreserveNames.push(controller.grip.name);
+        }
+    }
+    xrExperience.input.onControllerAddedObservable.add(controller => {
+        meshesToPreserveNames.push(controller.pointer.name);
+        if (controller.grip) {
+            meshesToPreserveNames.push(controller.grip.name);
+        }
+    });
+    xrExperience.input.onControllerRemovedObservable.add(controller => {
+        let index = meshesToPreserveNames.findIndex(name => name === controller.pointer.name);
+        if (index !== -1) {
+            meshesToPreserveNames.splice(index, 1);
+        }
+        if (controller.grip) {
+            index = meshesToPreserveNames.findIndex(name => name === controller.grip.name);
+            if (index !== -1) {
+                meshesToPreserveNames.splice(index, 1);
+            }
+        }
     });
 
-    cylinders.forEach(cylinder => {
-        let fadeRespawnBehavior: FadeRespawnBehavior = cylinder.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
-        fadeRespawnBehavior.startPos.copyFrom(cylinder.position);
-    })   
-    
+    // Hand meshes and laser pointers
+    meshesToPreserveNames.push("left", "right", "laserPointer");
 
-    xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
-
-    fadeIn(light1);
+    await resetScene(scene);
 
     GUIWindows.createWelcomeScreen(scene, xrExperience);
 
@@ -121,10 +119,49 @@ function fadeIn(light: Light) {
     }, 60);
 }
 
-export async function resetScene(scene: Scene): Promise<void> {
-    const engine = scene.getEngine();
-    scene.dispose();
-    sop.reset();
-    const newScene = await createSceneAsync(engine);
-    engine.runRenderLoop(() => newScene.render());
+export async function resetScene(scene: Scene): Promise<Scene> {
+    const light = scene.getLightByName("light1");
+    light.intensity = 0;
+    const camera = scene.activeCamera;
+    const meshesToDispose = scene.meshes.filter(mesh => !meshesToPreserveNames.includes(mesh.name));
+    for (const mesh of meshesToDispose) {
+        mesh.dispose();
+    }
+    
+    // Imports the meshes and renames the "__root__" mesh names and ids to the filename (minus the file extension).
+    // Results is an array of results, where each element is the result from importing a particular file.
+    const results = await loadMeshes();
+
+    // Flatten the mesh so we have a single-dimensional array of all the meshes in the scene.
+    // It might be that we don't need the results from loadMeshes() at all, because we could just retrieve the
+    // meshes from the Scene object. I don't see much reason to do one in favor of the other.
+    const meshes = results.map(result => result.meshes).flat() as Mesh[];
+
+    // Establishes behaviors, observables, hooks, materials, etc. to each mesh. Does not move or rotate.
+    processMeshes(meshes);
+
+    // Places meshes to their proper places in the scene, including rotation.
+    placeMeshes(meshes);
+
+    // Places the camera at the starting position.
+    placeCamera(camera);
+
+    // for every cylinder's FadeRespawnBehavior, set the start pos
+    const cylinders = meshes.filter(mesh => {
+        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
+    });
+
+    cylinders.forEach(cylinder => {
+        let fadeRespawnBehavior: FadeRespawnBehavior = cylinder.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
+        if (fadeRespawnBehavior) {
+            fadeRespawnBehavior.startPos.copyFrom(cylinder.position);
+        }
+    })   
+    
+    xrExperience.teleportation.removeFloorMeshByName("Floor");
+    xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+
+    fadeIn(light);
+
+    return scene;
 }
