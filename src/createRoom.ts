@@ -2,7 +2,6 @@ import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import { enableCameraControls } from "./enableCameraControls";
-import { enableCameraSnappingWorkaround } from "./enableCameraSnappingWorkaround";
 import { enableMeshCollisions } from "./enableCollisions";
 import { placeCamera } from "./placeCamera";
 
@@ -15,5 +14,4 @@ export function createRoom(roomMesh: Mesh) {
 
     // Enable controls here so we have the room loaded before the user can move around.
     enableCameraControls(camera);
-    enableCameraSnappingWorkaround(camera);
 }
