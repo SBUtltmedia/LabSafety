@@ -27,7 +27,6 @@ export const meshesToPreserveNames: string[] = [];
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     const scene = new Scene(engine);
     const camera = new UniversalCamera("camera", new Vector3(0, 1, -1.134), scene);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);

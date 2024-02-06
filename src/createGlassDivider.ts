@@ -7,9 +7,19 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 import { Nullable } from "@babylonjs/core/types";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 
 const topLimit = 1.93;
 const bottomLimit = 1.3;
+
+interface IEventInfo {
+    delta: Vector3;
+    dragPlanePoint: Vector3;
+    dragPlaneNormal: Vector3;
+    dragDistance: number;
+    pointerId: number;
+    pointerInfo: PointerInfo;    
+}
 
 const moveDivider = (dividerMesh: Mesh, yDelta: number) => {
     let dividerPosition = Math.floor(dividerMesh.position.y * 100) / 100; // round down to 2 decimal places
@@ -21,7 +31,7 @@ const moveDivider = (dividerMesh: Mesh, yDelta: number) => {
 export const createGlassDivider = (dividerMesh: Mesh) => {
     const scene = dividerMesh.getScene();
     let renderObserver: Nullable<Observer<Scene>> = null;
-    let pointerDragObserver: Nullable<Observer<any>> = null; // TODO: Find the correct type here
+    let pointerDragObserver: Nullable<Observer<IEventInfo>> = null;
 
     const interactableBehavior = new InteractableBehavior(false, false, interactionXRManager);
     dividerMesh.addBehavior(interactableBehavior);
@@ -31,8 +41,8 @@ export const createGlassDivider = (dividerMesh: Mesh) => {
             const pointerDragBehavior = dividerMesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
 
             if (pointerDragBehavior) {
-                pointerDragObserver = pointerDragBehavior.onDragObservable.add((pointerInfo) => {
-                    let yDelta = pointerInfo.delta.y;
+                pointerDragObserver = pointerDragBehavior.onDragObservable.add((eventInfo) => {
+                    let yDelta = eventInfo.delta.y;
                     moveDivider(dividerMesh, yDelta);
                 })
             }
