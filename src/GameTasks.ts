@@ -9,7 +9,7 @@ import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
 import { Sound } from "@babylonjs/core/Audio/sound";
 import { COMPLETION_SOUND_PATH, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from "./Constants";
-import { resetScene, xrExperience } from "./scene";
+import { resetScene } from "./scene";
 import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -128,7 +128,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], sounds: ISounds) => {
         switch (status) {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
-                GUIWindows.createSuccessScreen(scene, xrExperience, () => resetScene(scene));
+                GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
                 sounds.fanfare.stop();
                 sounds.fanfare.play();
                 break;
@@ -143,7 +143,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], sounds: ISounds) => {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {
                             // Handle successful fire handling: show failure screen, play fanfare.
-                            GUIWindows.createFailureScreen(scene, xrExperience, () => resetScene(scene));
+                            GUIWindows.createFailureScreen(scene, () => resetScene(scene));
                             // @todo: find a new sound for SOP failure.
                             sounds.fanfare.stop();
                             sounds.fanfare.play();

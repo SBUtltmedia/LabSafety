@@ -4,8 +4,6 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
-
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Button } from "@babylonjs/gui/2D/controls/button";
 import { Container } from "@babylonjs/gui/2D/controls/container";
@@ -45,7 +43,6 @@ class GUIManager {
 
     createPromptWithButton(
         text: string,
-        xrDefaultExperience: WebXRDefaultExperience = null,
         buttonClickCallBack: any = null,
         ...args: any[]
     ) {
@@ -117,33 +114,25 @@ class GUIManager {
     }
 }
 
-interface IWindows {
-    [key: string]: PromptWithButton;
-}
-
 export class GUIWindows {
     static createWelcomeScreen(
-        scene: Scene,
-        xrDefaultExperience: WebXRDefaultExperience
+        scene: Scene
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
             "Welcome to the game. Please click on the clipboard on the table to get started.",
-            xrDefaultExperience
         );
         prompt.setVisible(true);
     }
 
     static createSuccessScreen(
         scene: Scene,
-        xrDefaultExperience: WebXRDefaultExperience,
         buttonClickCallBack: Nullable<() => void> = null,
         ...args: any[]
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
             "Congratulations! You have completed the SOP",
-            xrDefaultExperience,
             buttonClickCallBack,
             ...args
         );
@@ -152,14 +141,12 @@ export class GUIWindows {
 
     static createFailureScreen(
         scene: Scene,
-        xrDefaultExperience: WebXRDefaultExperience,
         buttonClickCallBack: Nullable<() => void> = null,
         ...args: any[]
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
             "Oops! You mixed the wrong chemicals which resulted in a fire",
-            xrDefaultExperience,
             buttonClickCallBack,
             ...args
         );

@@ -52,45 +52,47 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         }
     };
 
-    xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
-    interactionXRManager = new InteractionXRManager(xrExperience, scene);
-    setUpXR(xrExperience);
+    if ("xr" in window.navigator) {
+        xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
+        interactionXRManager = new InteractionXRManager(xrExperience, scene);
+        setUpXR(xrExperience);
 
-    // Collect names of meshes that should be instantiated only once, even across
-    // scene resets. These are things like the XR teleportation marker, XR hand
-    // meshes, and XR controller pointers and grips.
-    meshesToPreserveNames.push(...scene.meshes.map(mesh => mesh.name));
-    for (const controller of xrExperience.input.controllers) {
-        meshesToPreserveNames.push(controller.pointer.name);
-        if (controller.grip) {
-            meshesToPreserveNames.push(controller.grip.name);
+        // Collect names of meshes that should be instantiated only once, even across
+        // scene resets. These are things like the XR teleportation marker, XR hand
+        // meshes, and XR controller pointers and grips.
+        meshesToPreserveNames.push(...scene.meshes.map(mesh => mesh.name));
+        for (const controller of xrExperience.input.controllers) {
+            meshesToPreserveNames.push(controller.pointer.name);
+            if (controller.grip) {
+                meshesToPreserveNames.push(controller.grip.name);
+            }
         }
-    }
-    xrExperience.input.onControllerAddedObservable.add(controller => {
-        meshesToPreserveNames.push(controller.pointer.name);
-        if (controller.grip) {
-            meshesToPreserveNames.push(controller.grip.name);
-        }
-    });
-    xrExperience.input.onControllerRemovedObservable.add(controller => {
-        let index = meshesToPreserveNames.findIndex(name => name === controller.pointer.name);
-        if (index !== -1) {
-            meshesToPreserveNames.splice(index, 1);
-        }
-        if (controller.grip) {
-            index = meshesToPreserveNames.findIndex(name => name === controller.grip.name);
+        xrExperience.input.onControllerAddedObservable.add(controller => {
+            meshesToPreserveNames.push(controller.pointer.name);
+            if (controller.grip) {
+                meshesToPreserveNames.push(controller.grip.name);
+            }
+        });
+        xrExperience.input.onControllerRemovedObservable.add(controller => {
+            let index = meshesToPreserveNames.findIndex(name => name === controller.pointer.name);
             if (index !== -1) {
                 meshesToPreserveNames.splice(index, 1);
             }
-        }
-    });
+            if (controller.grip) {
+                index = meshesToPreserveNames.findIndex(name => name === controller.grip.name);
+                if (index !== -1) {
+                    meshesToPreserveNames.splice(index, 1);
+                }
+            }
+        });
 
-    // Hand meshes and laser pointers
-    meshesToPreserveNames.push("left", "right", "laserPointer");
+        // Hand meshes and laser pointers
+        meshesToPreserveNames.push("plasticGlovesTexturedLeft", "plasticGlovesTexturedRight", "laserPointer");
+    }
 
     await resetScene(scene);
 
-    GUIWindows.createWelcomeScreen(scene, xrExperience);
+    GUIWindows.createWelcomeScreen(scene);
 
     const splashScreen = document.querySelector("div.splash");
     splashScreen.textContent = "Click to start!";
@@ -158,8 +160,10 @@ export async function resetScene(scene: Scene): Promise<Scene> {
         }
     })   
     
-    xrExperience.teleportation.removeFloorMeshByName("Floor");
-    xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+    if ("xr" in window.navigator) {
+        xrExperience.teleportation.removeFloorMeshByName("Floor");
+        xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+    }
 
     fadeIn(light);
 
