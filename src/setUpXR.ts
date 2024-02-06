@@ -1,5 +1,4 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Nullable } from "@babylonjs/core/types";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -35,9 +34,11 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         }
     });
 
-    const leftHandName = "left";
-    const rightHandName = "right";
-    const [leftHand, rightHand] = await loadXRHands(leftHandName, rightHandName);
+    const leftHandName = "plasticGlovesTexturedLeft";
+    const rightHandName = "plasticGlovesTexturedRight";
+    const hands = await loadXRHands(leftHandName, rightHandName);
+
+
 
     xrExperience.baseExperience.onStateChangedObservable.add(state => {
         if (state === WebXRState.IN_XR) {
@@ -53,11 +54,8 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
     
-    for (const controller of xrExperience.input.controllers) {
-        setUpController(controller, leftHand, rightHand);
-    }
     xrExperience.input.onControllerAddedObservable.add(controller => {
-        setUpController(controller, leftHand, rightHand);
+        setUpController(controller, hands[`${controller.inputSource.handedness}`]);
     });
 
     log("setUpXR end");
@@ -85,26 +83,9 @@ function displayXRSplashScreen(xrExperience: WebXRDefaultExperience, scene: Scen
     }
 }
 
-function setUpController(controller: WebXRInputSource, leftHand: Mesh, rightHand: Mesh): void {
-    let handMesh: Nullable<Mesh> = null;
-        if (controller.inputSource.handedness === "left") {
-            handMesh = leftHand;
-        } else if (controller.inputSource.handedness === "right") {
-            handMesh = rightHand;
-        } else {
-            return;
-        }
-
-        setUpHandMesh(handMesh, new Color3(0 / 255, 128 / 255, 255 / 255));
-        addHandMesh(controller, handMesh, controller.inputSource.handedness);
-}
-
-function setUpHandMesh(handMesh: Mesh, color: Color3): void {
+function setUpController(controller: WebXRInputSource, handMesh: Mesh): void {
     handMesh.isPickable = false;
-    
-    const handMaterial = new StandardMaterial("hand-material");
-    handMaterial.diffuseColor.copyFrom(color);
-    handMesh.material = handMaterial;
+    addHandMesh(controller, handMesh, controller.inputSource.handedness);
 }
 
 function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: XRHandedness): void {

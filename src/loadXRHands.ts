@@ -2,7 +2,11 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import { loadMeshes } from "./loadMeshes";
 
-export async function loadXRHands(leftHandName: string, rightHandName: string): Promise<Mesh[]> {
+interface IHands {
+    [key: string]: Mesh,
+}
+
+export async function loadXRHands(leftHandName: string, rightHandName: string): Promise<IHands> {
     const results = await loadMeshes([leftHandName, rightHandName]);
 
     let leftHand: Mesh = null;
@@ -48,5 +52,5 @@ export async function loadXRHands(leftHandName: string, rightHandName: string): 
         throw new Error("No right hand mesh found.");
     }
 
-    return [leftHand, rightHand];
+    return {left: leftHand, right: rightHand};
 }
