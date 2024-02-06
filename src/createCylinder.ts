@@ -26,11 +26,14 @@ export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void
 
     const font = "bold 250px monospace";
 
-    const label = mesh.getChildMeshes().find(childMesh => {
-        return childMesh.id.split("-").pop() === "label";
+    const labels = mesh.getChildMeshes().filter(childMesh => {
+        const suffix = childMesh.id.split("-").pop();
+        return suffix === "label" || suffix === "labelback";
     });
-    label.material = material;
-    texture.drawText(mesh.id.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
+    for (const label of labels) {
+        label.material = material;
+        texture.drawText(mesh.id.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
+    }
 
     // log("cylinder pos: ", mesh.position);
 
