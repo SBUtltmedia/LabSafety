@@ -30,9 +30,9 @@ export class SmokeParticles {
     
         particleSystem.emitRate = 150;
 
-        particleSystem.createPointEmitter(new Vector3(-3.5, -4, 0), new Vector3(3.5,4, 0));
+        particleSystem.createPointEmitter(new Vector3(-3.5, -3.5, 0), new Vector3(3.5,3.5, 0));
 
-        particleSystem.gravity = new Vector3(0, 0, 10);
+        particleSystem.gravity = new Vector3(0, 0, 20);
 
         // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
         // along with the source mesh (fire extinguisher in this case).

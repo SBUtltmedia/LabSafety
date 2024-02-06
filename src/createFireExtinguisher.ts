@@ -9,11 +9,14 @@ import { Ray } from "@babylonjs/core/Culling/ray";
 import { Axis } from "@babylonjs/core/Maths/math.axis";
 import { FireBehavior } from "./FireBehavior";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { SmokeParticles } from "./SmokeParticles";
 
 const FIRE_EXTINGUISHER_RANGE = 2;
 
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(true, true, interactionXRManager);
+
+    let smokeSystem = new SmokeParticles(mesh);
 
     mesh.addBehavior(interactableBehavior);
 
@@ -29,8 +32,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
     debugSphere2.isVisible = false;
     interactableBehavior.onActivationStateChangedObservable.add(activationState => {
         if (activationState === ActivationState.ACTIVE) {
-            debugSphere1.isVisible = true;
-            debugSphere2.isVisible = true;
+            smokeSystem.start();
             observer = scene.onBeforeRenderObservable.add(() => {
                 // Check for hitting the fire
                 // @todo: The ray should originate from the nozzle mesh.
@@ -50,8 +52,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
             });
             // @todo: Activate particles
         } else if (activationState === ActivationState.INACTIVE) {
-            debugSphere1.isVisible = false;
-            debugSphere2.isVisible = false;
+            smokeSystem.stop();
             // Remove observer
             if (observer) {
                 observer.remove();
