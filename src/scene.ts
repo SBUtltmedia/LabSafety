@@ -5,16 +5,15 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene } from "@babylonjs/core/scene";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { WebXRDefaultExperience, WebXRDefaultExperienceOptions } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 
 import { InteractionXRManager } from "./InteractionXRManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
-import { setUpCamera } from "./setUpCamera";
-import { setUpScene } from "./setUpScene";
-import { setUpXR } from "./setUpXR";
+import { STARTING_POSITION, configureCamera } from "./camera";
+import { XR_OPTIONS, configureXR } from "./xr";
 import { log } from "./utils";
 import { GUIWindows } from "./GUIManager";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
@@ -28,33 +27,22 @@ export const meshesToPreserveNames: string[] = [];
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
     const scene = new Scene(engine);
-    const camera = new UniversalCamera("camera", new Vector3(0, 1, -1.134), scene);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
+    const camera = new UniversalCamera("camera", STARTING_POSITION);
 
-    setUpScene(scene, true);
-    setUpCamera(camera);
+    configureScene(scene, true);
+    configureCamera(camera);
     scene.activeCamera = camera;
     scene.activeCamera.attachControl(true);
+    light1.intensity = 0;
 
     // Enable audio
     Engine.audioEngine.useCustomUnlockedButton = true;
-    
-    light1.intensity = 0;
-
-    log("createSceneAsync start WebXR initialization");
-    const xrOptions: WebXRDefaultExperienceOptions = {
-        inputOptions: {
-            doNotLoadControllerMeshes: true
-        },
-        pointerSelectionOptions: {
-            enablePointerSelectionOnAllControllers: true
-        }
-    };
 
     if ("xr" in window.navigator) {
-        xrExperience = await scene.createDefaultXRExperienceAsync(xrOptions);
+        xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
         interactionXRManager = new InteractionXRManager(xrExperience, scene);
-        setUpXR(xrExperience);
+        await configureXR(xrExperience);
 
         // Collect names of meshes that should be instantiated only once, even across
         // scene resets. These are things like the XR teleportation marker, XR hand
@@ -85,10 +73,10 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             }
         });
 
-        // Hand meshes and laser pointers
-        meshesToPreserveNames.push("plasticGlovesTexturedLeft", "plasticGlovesTexturedRight", "laserPointer");
+        // XR laser pointers
+        meshesToPreserveNames.push("laserPointer");
     }
-
+    
     await resetScene(scene);
 
     GUIWindows.createWelcomeScreen(scene);
@@ -100,7 +88,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         Engine.audioEngine.audioContext.resume();
     }, false);
 
-    log("createSceneAsync end");
     return scene;
 }
 
@@ -167,4 +154,24 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     fadeIn(light);
 
     return scene;
+}
+
+function configureScene(scene: Scene, debug: boolean): void {
+    scene.collisionsEnabled = true;
+
+    if (debug && import.meta.env.DEV) {
+        import("@babylonjs/inspector").then(({ Inspector }) => {
+            Inspector.Hide();
+            window.addEventListener("keydown", (ev) => {
+                // Shift+Ctrl+Alt+I
+                if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+                    if (Inspector.IsVisible) {
+                        Inspector.Hide();
+                    } else {
+                        Inspector.Show(scene, {});
+                    }
+                }
+            });
+        });
+    }
 }
