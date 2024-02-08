@@ -51,7 +51,11 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         // it would just be nice to know why it's necessary.
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
-    
+
+    for (const controller of xrExperience.input.controllers) {
+        setUpController(controller, hands[`${controller.inputSource.handedness}`]);
+    }    
+
     xrExperience.input.onControllerAddedObservable.add(controller => {
         setUpController(controller, hands[`${controller.inputSource.handedness}`]);
     });
