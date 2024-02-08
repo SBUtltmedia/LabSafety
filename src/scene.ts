@@ -86,7 +86,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         });
 
         // Hand meshes and laser pointers
-        meshesToPreserveNames.push("plasticGlovesTexturedLeft", "plasticGlovesTexturedRight", "laserPointer");
+        meshesToPreserveNames.push("left", "right", "laserPointer");
     }
 
     await resetScene(scene);
