@@ -34,11 +34,9 @@ export async function setUpXR(xrExperience: WebXRDefaultExperience): Promise<voi
         }
     });
 
-    const leftHandName = "plasticGlovesTexturedLeft";
-    const rightHandName = "plasticGlovesTexturedRight";
+    const leftHandName = "left";
+    const rightHandName = "right";
     const hands = await loadXRHands(leftHandName, rightHandName);
-
-
 
     xrExperience.baseExperience.onStateChangedObservable.add(state => {
         if (state === WebXRState.IN_XR) {
