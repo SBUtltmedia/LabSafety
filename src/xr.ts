@@ -54,8 +54,8 @@ export async function configureXR(xrExperience: WebXRDefaultExperience): Promise
         xrExperience.baseExperience.camera.position.y = xrExperience.baseExperience.camera.realWorldHeight;
     });
     
-    const leftHandName = "plasticGlovesTexturedLeft";
-    const rightHandName = "plasticGlovesTexturedRight";
+    const leftHandName = "left";
+    const rightHandName = "right";
     const hands = await loadXRHands(leftHandName, rightHandName);
 
     for (const controller of xrExperience.input.controllers) {
