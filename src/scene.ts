@@ -1,22 +1,26 @@
+import { Scene } from "@babylonjs/core/scene";
+import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Light } from "@babylonjs/core/Lights/light";
+import { Axis } from "@babylonjs/core/Maths/math.axis"
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Scene } from "@babylonjs/core/scene";
-import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
+import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
+import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 
+import { STARTING_POSITION, configureCamera } from "./camera";
+import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { GUIWindows } from "./GUIManager";
 import { InteractionXRManager } from "./InteractionXRManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
-import { STARTING_POSITION, configureCamera } from "./camera";
-import { XR_OPTIONS, configureXR } from "./xr";
+import { CreateReticle } from "./reticle";
 import { log } from "./utils";
-import { GUIWindows } from "./GUIManager";
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { XR_OPTIONS, configureXR } from "./xr";
 
 export let xrExperience: WebXRDefaultExperience;
 export let interactionXRManager: InteractionXRManager;
@@ -39,6 +43,14 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // Enable audio
     Engine.audioEngine.useCustomUnlockedButton = true;
 
+    // To prevent the reticle clipping through objects in the scene
+    const utilityLayer = new UtilityLayerRenderer(scene);
+
+    const reticle = CreateReticle("reticle", utilityLayer.utilityLayerScene);
+    reticle.setParent(camera);
+    reticle.position.copyFrom(Axis.Z);
+    meshesToPreserveNames.push(reticle.name);
+    
     if ("xr" in window.navigator) {
         xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
         interactionXRManager = new InteractionXRManager(xrExperience, scene);
@@ -75,6 +87,12 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
         // XR laser pointers
         meshesToPreserveNames.push("laserPointer");
+
+        // Hide the reticle in XR
+        reticle.isVisible = xrExperience.baseExperience.state !== WebXRState.IN_XR;
+        xrExperience.baseExperience.onStateChangedObservable.add(state => {
+            reticle.isVisible = state !== WebXRState.IN_XR;
+        });
     }
     
     await resetScene(scene);
