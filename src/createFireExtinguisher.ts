@@ -1,7 +1,4 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { interactionXRManager } from "./scene";
-import { InteractableBehavior } from "./InteractableBehavior";
-import { ActivationState } from "./InteractionXRManager";
 import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
 import { Nullable } from "@babylonjs/core/types";
@@ -11,10 +8,14 @@ import { FireBehavior } from "./FireBehavior";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { SmokeParticles } from "./SmokeParticles";
 
+import { InteractableBehavior } from "./interactableBehavior";
+import { ActivationState } from "./interactionManager";
+import { interactionManager } from "./scene";
+
 const FIRE_EXTINGUISHER_RANGE = 2;
 
 export function createFireExtinguisher(mesh: Mesh): void {
-    const interactableBehavior = new InteractableBehavior(true, true, interactionXRManager);
+    const interactableBehavior = new InteractableBehavior(interactionManager, true);
 
     let smokeSystem = new SmokeParticles(mesh);
 
@@ -30,8 +31,8 @@ export function createFireExtinguisher(mesh: Mesh): void {
     });
     debugSphere1.isVisible = false;
     debugSphere2.isVisible = false;
-    interactableBehavior.onActivationStateChangedObservable.add(activationState => {
-        if (activationState === ActivationState.ACTIVE) {
+    interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
+        if (state === ActivationState.ACTIVE) {
             smokeSystem.start();
             observer = scene.onBeforeRenderObservable.add(() => {
                 // Check for hitting the fire
@@ -51,7 +52,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 }
             });
             // @todo: Activate particles
-        } else if (activationState === ActivationState.INACTIVE) {
+        } else if (state === ActivationState.INACTIVE) {
             smokeSystem.stop();
             // Remove observer
             if (observer) {

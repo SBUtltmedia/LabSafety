@@ -97,9 +97,9 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
 
     let fromMesh = scene.getMeshByName(logic.from);
 
-    let pouringBehavior = fromMesh.getBehaviorByName(PouringBehavior.name) as PouringBehavior;
+    let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
 
-    pouringBehavior.onMidPourObservable.add(target => {
+    pouringBehavior.onAfterPourObservable.add(target => {
         log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
         log(`Poured mesh name: ${target.name}`);
 

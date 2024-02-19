@@ -13,7 +13,7 @@ import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { GUIWindows } from "./GUIManager";
-import { InteractionXRManager } from "./InteractionXRManager";
+import { InteractionManager } from "./interactionManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
@@ -23,7 +23,7 @@ import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 
 export let xrExperience: WebXRDefaultExperience;
-export let interactionXRManager: InteractionXRManager;
+export let interactionManager: InteractionManager;
 
 // Names of meshes not to dispose on scene reset
 export const meshesToPreserveNames: string[] = [];
@@ -33,6 +33,10 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     const scene = new Scene(engine);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
     const camera = new UniversalCamera("camera", STARTING_POSITION);
+    const canvas = document.getElementById("canvas");
+    canvas.addEventListener("click", () => {
+        canvas.requestPointerLock();
+    });
 
     configureScene(scene, true);
     configureCamera(camera);
@@ -53,7 +57,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     
     if ("xr" in window.navigator) {
         xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
-        interactionXRManager = new InteractionXRManager(xrExperience, scene);
+        interactionManager = new InteractionManager(scene, xrExperience); // @todo; Move outside this conditional
         await configureXR(xrExperience);
 
         // Collect names of meshes that should be instantiated only once, even across

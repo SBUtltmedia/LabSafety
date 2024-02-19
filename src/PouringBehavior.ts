@@ -10,9 +10,10 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./HighlightBehavior";
-import { InteractableBehavior } from "./InteractableBehavior";
-import { GrabState, InteractionXRManager } from "./InteractionXRManager";
+import { InteractableBehavior } from "./interactableBehavior";
+import { ActivationState, GrabState, IGrabInfo, InteractionManager } from "./interactionManager";
 import { PourableBehavior } from "./PourableBehavior";
+import { log } from "./utils";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -21,20 +22,19 @@ export class PouringBehavior implements Behavior<Mesh> {
     mesh: Mesh;
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
-    #grabStateObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
+    #grabStateObserver: Observer<IGrabInfo>;
     #renderObserver: Nullable<Observer<Scene>>;
-    #currentTarget: Nullable<Mesh>;
-    onBeforePourObservable: Observable<Mesh>;
-    onMidPourObservable: Observable<Mesh>;
-    onAfterPourObservable: Observable<Mesh>;
+    #currentTarget: Nullable<AbstractMesh>;
+    onBeforePourObservable: Observable<AbstractMesh>;
+    onMidPourObservable: Observable<AbstractMesh>;
+    onAfterPourObservable: Observable<AbstractMesh>;
     pourDelay: number = 1000;
     #delayTimeoutID: number = 0;
     animating: boolean = false;
     onAnimationChangeObservable: Observable<Boolean>;
     
-    constructor(targets: Mesh[], interactionXRManager?: InteractionXRManager) {
-        this.#interactableBehavior = new InteractableBehavior(false, true, interactionXRManager || undefined);
-        this.#interactableBehavior.targets.push(...targets);
+    constructor(interactionManager: InteractionManager) {
+        this.#interactableBehavior = new InteractableBehavior(interactionManager, true);
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
         this.onMidPourObservable = new Observable();
@@ -56,19 +56,18 @@ export class PouringBehavior implements Behavior<Mesh> {
 
     attach = (mesh: Mesh) => {
         this.mesh = mesh;
-        
         this.mesh.addBehavior(this.#interactableBehavior);
         this.mesh.addBehavior(this.#highlightBehavior);
 
         const scene = mesh.getScene();
-        const targets = this.#interactableBehavior.targets as Mesh[];
-        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(([_, grabState]) => {
-            if (grabState === GrabState.GRAB) {
+        const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
+        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
+            if (state === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
                     this.#changeTarget(target);
                 });
-            } else if (grabState === GrabState.DROP) {
+            } else if (state === GrabState.DROP) {
                 this.#changeTarget(null);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
@@ -88,11 +87,11 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
     }
 
-    #checkNearTarget(targets: Mesh[]): Nullable<Mesh> {
+    #checkNearTarget(targets: AbstractMesh[]): Nullable<AbstractMesh> {
         const validTargets = targets.filter(target => {
             const isTargetBelow = this.mesh.absolutePosition.y > target.absolutePosition.y;
-            const isPourable = Boolean(target.getBehaviorByName(PourableBehavior.name));
-            const targetNotGrabbed = (target.getBehaviorByName(InteractableBehavior.name) as InteractableBehavior)?.grabState !== GrabState.GRAB;
+            const isPourable = Boolean(target.getBehaviorByName("Pourable"));
+            const targetNotGrabbed = !(target.getBehaviorByName("Interactable") as InteractableBehavior).grabbing;
             const intersectingTarget = this.mesh.intersectsMesh(target);
             return isTargetBelow && isPourable && targetNotGrabbed && intersectingTarget;
         });
@@ -110,13 +109,15 @@ export class PouringBehavior implements Behavior<Mesh> {
         return bestTarget;
     }
 
-    #changeTarget(target: Nullable<Mesh>) {
+    #changeTarget(target: Nullable<AbstractMesh>) {
         if (this.#currentTarget === target) {
             return;
         }
 
         if (this.#currentTarget) {
-            this.#highlightBehavior.unhighlightAll();
+            if (this.#currentTarget instanceof Mesh) {
+                this.#highlightBehavior.unhighlightAll();
+            }
             if (this.#delayTimeoutID) {
                 clearTimeout(this.#delayTimeoutID);
                 this.#delayTimeoutID = 0;
@@ -126,14 +127,22 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.#currentTarget = target;
         
         if (this.#currentTarget) {
-            this.#highlightBehavior.highlightSelf();
-            this.#highlightBehavior.highlightOther(this.#currentTarget);
+            if (this.#currentTarget instanceof Mesh) {
+                this.#highlightBehavior.highlightSelf();
+                this.#highlightBehavior.highlightOther(this.#currentTarget);
+            }
+
+            this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
+                if (state === ActivationState.ACTIVE) {
+                    this.pour();
+                }
+            });
 
             // @todo: Use something other than setTimeout?
-            this.#delayTimeoutID = setTimeout(() => {
-                this.#delayTimeoutID = 0;
-                this.pour();
-            }, this.pourDelay);
+            // this.#delayTimeoutID = setTimeout(() => {
+            //     this.#delayTimeoutID = 0;
+            //     this.pour();
+            // }, this.pourDelay);
         }
     }
 
@@ -141,36 +150,42 @@ export class PouringBehavior implements Behavior<Mesh> {
         if (!this.#currentTarget) {
             throw new Error("PouringBehavior: attempted pour with no current target.");
         }
-        const pourableBehavior = this.#currentTarget.getBehaviorByName(PourableBehavior.name) as PourableBehavior;
+        const pourableBehavior = this.#currentTarget.getBehaviorByName("Pourable") as PourableBehavior;
         if (!pourableBehavior) {
             throw new Error("PouringBehavior: target is not pourable.");
         }
-        
-        const checkCollisions = this.mesh.checkCollisions;
-        const target = this.#currentTarget;
-        this.onBeforePourObservable.notifyObservers(target);
-        this.mesh.checkCollisions = false;
-        const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
-        const keyFrames = animation.getKeys();
-        const start = getFirstKeyFrame(keyFrames).frame;
-        const mid = getMidKeyFrame(keyFrames).frame;
-        const end = getLastKeyFrame(keyFrames).frame;
 
-        const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
-        this.mesh.setAbsolutePosition(pouringPosition);
-        this.animating = true;
-        this.onAnimationChangeObservable.notifyObservers(this.animating);
-        this.#interactableBehavior.disable();
-        this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], start, mid, false, 1, () => {
-            this.onMidPourObservable.notifyObservers(target);
-            this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], mid, end, false, 1, () => {
-                this.#interactableBehavior.enable();
-                this.animating = false;
-                this.onAnimationChangeObservable.notifyObservers(this.animating);
-                this.mesh.checkCollisions = checkCollisions;
-                this.onAfterPourObservable.notifyObservers(target);
-            });
-        });
+        const target = this.#currentTarget;
+        log(target.id);
+        this.onBeforePourObservable.notifyObservers(target);
+        this.onMidPourObservable.notifyObservers(target);
+        this.onAfterPourObservable.notifyObservers(target);
+        
+        // const checkCollisions = this.mesh.checkCollisions;
+        // const target = this.#currentTarget;
+        // this.onBeforePourObservable.notifyObservers(target);
+        // this.mesh.checkCollisions = false;
+        // const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
+        // const keyFrames = animation.getKeys();
+        // const start = getFirstKeyFrame(keyFrames).frame;
+        // const mid = getMidKeyFrame(keyFrames).frame;
+        // const end = getLastKeyFrame(keyFrames).frame;
+
+        // const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
+        // this.mesh.setAbsolutePosition(pouringPosition);
+        // this.animating = true;
+        // this.onAnimationChangeObservable.notifyObservers(this.animating);
+        // this.#interactableBehavior.disable();
+        // this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], start, mid, false, 1, () => {
+        //     this.onMidPourObservable.notifyObservers(target);
+        //     this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], mid, end, false, 1, () => {
+        //         this.#interactableBehavior.enable();
+        //         this.animating = false;
+        //         this.onAnimationChangeObservable.notifyObservers(this.animating);
+        //         this.mesh.checkCollisions = checkCollisions;
+        //         this.onAfterPourObservable.notifyObservers(target);
+        //     });
+        // });
     }
 }
 

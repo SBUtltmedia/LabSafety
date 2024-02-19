@@ -1,14 +1,15 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { WebXRDefaultExperience, WebXRDefaultExperienceOptions } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
 import { loadXRHands } from "./loadXRHands";
-import { interactionXRManager, meshesToPreserveNames } from "./scene";
+import { interactionManager, meshesToPreserveNames } from "./scene";
+import { InteractionMode } from "./interactionManager";
 
 export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
     inputOptions: {
@@ -100,7 +101,7 @@ function displayXRSplashScreen(xrExperience: WebXRDefaultExperience, scene: Scen
     }
 }
 
-function configureController(controller: WebXRInputSource, handMesh: Mesh): void {
+function configureController(controller: WebXRInputSource, handMesh: AbstractMesh): void {
     meshesToPreserveNames.push(controller.pointer.name);
     if (controller.grip) {
         meshesToPreserveNames.push(controller.grip.name);
@@ -109,7 +110,7 @@ function configureController(controller: WebXRInputSource, handMesh: Mesh): void
     addHandMesh(controller, handMesh, controller.inputSource.handedness);
 }
 
-function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: XRHandedness): void {
+function addHandMesh(controller: WebXRInputSource, handMesh: AbstractMesh, handedness: XRHandedness): void {
     handMesh.setParent(controller.pointer);
     handMesh.rotationQuaternion = null;
     if (handedness !== "none") {
@@ -123,11 +124,11 @@ function addHandMesh(controller: WebXRInputSource, handMesh: Mesh, handedness: X
     controller.onMotionControllerInitObservable.add(motionController => {
         addHandAnimations(motionController, handMesh);
     });
-    interactionXRManager.handMeshMap[controller.uniqueId] = handMesh;
+    interactionManager.addSelector(controller.pointer, handMesh, [InteractionMode.XR]);
     meshesToPreserveNames.push(handMesh.name);
 }
 
-function addHandAnimations(motionController: WebXRAbstractMotionController, handMesh: Mesh) {
+function addHandAnimations(motionController: WebXRAbstractMotionController, handMesh: AbstractMesh) {
     const squeezeComponent = motionController.getComponentOfType("squeeze");
     const squeezeAnimation = handMesh.getScene().animationGroups.find(animGroup => animGroup.name === `Fist-${handMesh.name}`);
     squeezeComponent.onButtonStateChangedObservable.add(component => {

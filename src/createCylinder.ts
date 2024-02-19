@@ -1,4 +1,5 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
@@ -6,17 +7,17 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
 import { PourableBehavior } from "./PourableBehavior";
 import { PouringBehavior } from "./PouringBehavior";
-import { interactionXRManager } from "./scene";
+import { interactionManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
-export function setColor(mesh: Mesh, color: Color3) {
+export function setColor(mesh: AbstractMesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
     const liquidMaterial = new StandardMaterial("liquid-material");
     liquidMaterial.diffuseColor = color;
     liquidMesh.material = liquidMaterial;
 }
 
-export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void {
+export function createCylinder(mesh: Mesh, color: Color3): void {
     setColor(mesh, color);
 
     const texture = new DynamicTexture("dynamic-texture", 256, null, true, Texture.LINEAR_LINEAR_MIPNEAREST);
@@ -37,7 +38,7 @@ export function createCylinder(mesh: Mesh, color: Color3, targets: Mesh[]): void
 
     // log("cylinder pos: ", mesh.position);
 
-    const pouringBehavior = new PouringBehavior(targets, interactionXRManager);
+    const pouringBehavior = new PouringBehavior(interactionManager);
     const pourableBehavior = new PourableBehavior();
     const fadeRespawnBehavior = new FadeRespawnBehavior();
 

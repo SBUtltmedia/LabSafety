@@ -3,12 +3,11 @@ import { Nullable } from "@babylonjs/core/types";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observer } from "@babylonjs/core/Misc/observable";
 
-import { InteractableBehavior } from "./InteractableBehavior";
-import { GrabState } from "./InteractionXRManager";
+import { InteractableBehavior } from "./interactableBehavior";
+import { GrabState, IGrabInfo } from "./interactionManager";
 import { PouringBehavior } from "./PouringBehavior";
 
 interface IAnimation {
@@ -22,7 +21,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     startPos: Vector3
     #speedRatio: number
     #interactableBehavior: InteractableBehavior;
-    #grabStateObserver: Observer<[Nullable<AbstractMesh>, GrabState]>;
+    #grabStateObserver: Observer<IGrabInfo>;
     #animationStateObserver: Nullable<Observer<boolean>> = null;
     #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];
@@ -71,8 +70,8 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.#pouringBehavior = this.mesh.getBehaviorByName("Pouring") as PouringBehavior;
         this.#scene = this.mesh.getScene();
 
-        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(([_, grabState]) => {
-            if (grabState === GrabState.DROP) {
+        this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
+            if (state === GrabState.DROP) {
                 if (this.#pouringBehavior.animating) {
                     this.#animationStateObserver = this.#pouringBehavior.onAnimationChangeObservable.addOnce(state => {
                         // state should ALWAYS be false, but let's stay defensive and make a sanity check.
@@ -98,16 +97,15 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     }
 
     #fadeAndRespawn() {
-        let dist = Math.abs(Vector3.Distance(this.mesh.position, this.startPos));
+        let dist = Math.abs(Vector3.Distance(this.mesh.getAbsolutePosition(), this.startPos));
 
         if (dist <= 0.15) { 
             this.#placeMeshAtSpawn();
             return;
         }
 
-        this.#scene.beginDirectHierarchyAnimation(this.mesh, false, [this.#animations.find(animation => {
-                    return animation.name === "Invisibility"
-        }).animation], 0, 60, false, this.#speedRatio, () => {
+        this.#scene.beginDirectHierarchyAnimation(this.mesh, false, [this.#animations.find(animation => animation.name === "Invisibility").animation],
+        0, 60, false, this.#speedRatio, () => {
             this.#placeMeshAtSpawn();
             this.#reappear();            
         });

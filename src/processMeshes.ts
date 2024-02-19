@@ -70,9 +70,9 @@ export function processMeshes(meshes: Mesh[]) {
 
     renameCylinders([cylinderA, cylinderB, cylinderC], ["a", "b", "c"]);
 
-    createCylinder(cylinderC, Color3.Blue(), [cylinderA, cylinderB]);
-    createCylinder(cylinderB, Color3.Green(), [cylinderA, cylinderC]);
-    createCylinder(cylinderA, Color3.Red(), [cylinderB, cylinderC]);
+    createCylinder(cylinderC, Color3.Blue());
+    createCylinder(cylinderB, Color3.Green());
+    createCylinder(cylinderA, Color3.Red());
 
     const fireExtinguisherRoot = fireExtinguisherMesh.parent;
     // Because fireExtinguisherMesh is about to be renamed to "fire-extinguisher"
