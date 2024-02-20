@@ -1,3 +1,4 @@
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
@@ -15,7 +16,10 @@ import { interactionManager } from "./scene";
 const FIRE_EXTINGUISHER_RANGE = 2;
 
 export function createFireExtinguisher(mesh: Mesh): void {
-    const interactableBehavior = new InteractableBehavior(interactionManager, true);
+    const interactableBehavior = new InteractableBehavior(interactionManager, {
+        activatable: true,
+        defaultRotation: new Vector3(0, 0, Math.PI)
+    });
 
     let smokeSystem = new SmokeParticles(mesh);
 

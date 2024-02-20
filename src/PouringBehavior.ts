@@ -34,7 +34,10 @@ export class PouringBehavior implements Behavior<Mesh> {
     onAnimationChangeObservable: Observable<Boolean>;
     
     constructor(interactionManager: InteractionManager) {
-        this.#interactableBehavior = new InteractableBehavior(interactionManager, true);
+        this.#interactableBehavior = new InteractableBehavior(interactionManager, {
+            activatable: true,
+            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI) // @todo: hard-coded
+        });
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
         this.onMidPourObservable = new Observable();

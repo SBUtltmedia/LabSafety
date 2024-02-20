@@ -1,6 +1,7 @@
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Nullable } from "@babylonjs/core/types";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager } from "./interactionManager";
@@ -19,6 +20,13 @@ import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionMana
 // These conditions should be upheld *before* calling the method or changing the attribute:
 // they are *not* checked within the methods.
 
+export interface IInteractableOptions {
+    activatable?: boolean, // Specifies whether a mesh is activatable (default false)
+    moveAttached?: boolean, // Specifies whether the default grab implementation is used (default true)
+    defaultPosition?: Vector3 // The position (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+    defaultRotation?: Vector3, // The rotation (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+}
+
 export class InteractableBehavior implements Behavior<AbstractMesh> {
     #mesh: Nullable<AbstractMesh>;
     interactionManager: InteractionManager;
@@ -26,8 +34,10 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
     onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
     onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
+    defaultPosition: Vector3;
+    defaultRotation: Vector3;
     hideGrabber: boolean = true;
-    #moveAttached: boolean = true;
+    #moveAttached: boolean;
     #grabberWasVisible: boolean = false;
     #activatable: boolean;
     #active: boolean = false; // Precondition: this.#activatable && this.grabbing
@@ -36,9 +46,12 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #defaultGrabObserver: Nullable<Observer<IGrabInfo>> = null;
     #enabled: boolean = true;
     
-    constructor(interactionManager: InteractionManager, activatable: boolean = false) {
+    constructor(interactionManager: InteractionManager, options?: IInteractableOptions) {
         this.interactionManager = interactionManager;
-        this.#activatable = activatable;
+        this.#activatable = Boolean(options?.activatable);
+        this.#moveAttached = options?.moveAttached === false ? false : true;
+        this.defaultPosition = options?.defaultPosition || Vector3.Zero();
+        this.defaultRotation = options?.defaultRotation || Vector3.Zero();
     }
 
     get name(): string {
@@ -75,17 +88,9 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #enableDefaultGrab = (): void => {
         this.#defaultGrabObserver = this.onGrabStateChangedObservable.add(({ anchor, state }) => {
             if (state === GrabState.GRAB) {
-                const previousRotation = this.#mesh.rotation.clone();
                 this.#mesh.setParent(anchor);
-    
-                // Move the mesh to the hand's position
-                this.#mesh.position.setAll(0);
-    
-                // This is necessary because setParent converts the local rotation to the grabbing mesh's space
-                // such that the grabbed mesh's absolute rotation remains the same. We don't want the absolute
-                // rotation to stay the same; we want the *local* rotation to stay the same. Therefore, we store
-                // it before parenting and restore it after parenting.
-                this.#mesh.rotation.copyFrom(previousRotation);
+                this.#mesh.position.copyFrom(this.defaultPosition);
+                this.#mesh.rotation.copyFrom(this.defaultRotation);
             } else if (state === GrabState.DROP) {
                 this.#mesh.setParent(null);
             }

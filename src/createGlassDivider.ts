@@ -34,8 +34,9 @@ export const createGlassDivider = (dividerMesh: Mesh) => {
     let renderObserver: Nullable<Observer<Scene>> = null;
     let pointerDragObserver: Nullable<Observer<IEventInfo>> = null;
 
-    const interactableBehavior = new InteractableBehavior(interactionManager, false);
-    interactableBehavior.moveAttached = false;
+    const interactableBehavior = new InteractableBehavior(interactionManager, {
+        moveAttached: false
+    });
     dividerMesh.addBehavior(interactableBehavior);
 
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, state }) => {

@@ -13,8 +13,9 @@ export function createFireExtinguisherCabinet(mesh: Mesh) {
     doorMesh.rotationQuaternion = null;
     // @todo: I think there are issues here with the observers being cleared on switching XR mode - probably
     // want to find some way to save them.
-    const interactableBehavior = new InteractableBehavior(interactionManager, false);
-    interactableBehavior.moveAttached = false;
+    const interactableBehavior = new InteractableBehavior(interactionManager, {
+        moveAttached: false
+    });
     let renderObserver: Nullable<Observer<Scene>> = null;
     const scene = mesh.getScene();
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, state }) => {
