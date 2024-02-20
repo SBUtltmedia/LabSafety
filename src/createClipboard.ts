@@ -16,7 +16,7 @@ export function createClipboard(mesh: AbstractMesh, templateString: string): voi
     const plane = mesh.getChildMeshes().find(childMesh => childMesh.name === `${mesh.id}-plane`);
     plane.material = material;
 
-    fetch("./src/sopData.json")
+    fetch("./json/sopData.json")
         .then(r => r.json())
         .then(json => {
             let listItems: ListItem[] = json.items[1].sublist;
