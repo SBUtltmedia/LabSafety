@@ -56,10 +56,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         
     }
 
-    static get name() {
-        return "FadeAndRespawn";
-    }
-
     get name() {
         return "FadeAndRespawn";
     }    

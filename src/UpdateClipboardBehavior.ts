@@ -49,12 +49,8 @@ export class UpdateClipboardBehavior implements Behavior<AbstractMesh> {
         this.#counter = 0;
     }
 
-    static get name() {
-        return "UpdateClipboard";
-    }
-
     get name() {
-        return UpdateClipboardBehavior.name;
+        return "UpdateClipboard";
     }
 
     init() {

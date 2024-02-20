@@ -45,11 +45,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 debugSphere1.setAbsolutePosition(ray.origin);
                 debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
                 const pickInfo = scene.pickWithRay(ray, pickedMesh => {
-                    const fireBehavior = pickedMesh.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                    const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                     return Boolean(fireBehavior && !fireBehavior.extinguished);
                 });
                 if (pickInfo.hit) {
-                    const fireBehavior = pickInfo.pickedMesh.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                    const fireBehavior = pickInfo.pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                     if (!fireBehavior.extinguished) {
                         fireBehavior.extinguish();
                     }

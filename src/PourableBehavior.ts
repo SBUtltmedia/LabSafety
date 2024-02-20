@@ -9,10 +9,6 @@ export class PourableBehavior implements Behavior<Mesh> {
 
     }
 
-    static get name() {
-        return "Pourable";
-    }
-
     get name() {
         return "Pourable";
     }

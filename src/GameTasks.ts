@@ -138,7 +138,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], sounds: ISounds) => {
                 sounds.explosion.stop();
                 sounds.explosion.play();
                 const fire = startFire();
-                const fireBehavior = fire.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                const fireBehavior = fire.getBehaviorByName("Fire") as FireBehavior;
                 if (fireBehavior) {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {

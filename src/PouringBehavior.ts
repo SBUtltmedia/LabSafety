@@ -45,10 +45,6 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.onAnimationChangeObservable = new Observable();
     }
 
-    static get name() {
-        return "Pouring";
-    }
-
     get name() {
         return "Pouring";
     }

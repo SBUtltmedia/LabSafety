@@ -11,12 +11,8 @@ export class FireBehavior implements Behavior<Mesh> {
 
     }
 
-    static get name() {
-        return "Fire";
-    }
-
     get name() {
-        return FireBehavior.name;
+        return "Fire";
     }
 
     init() {
