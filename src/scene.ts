@@ -9,6 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
+import { VirtualTouchJoystick } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
@@ -34,14 +35,27 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
     const camera = new UniversalCamera("camera", STARTING_POSITION);
     const canvas = document.getElementById("canvas");
-    canvas.addEventListener("click", () => {
-        canvas.requestPointerLock();
-    });
+
+    let isTouchDevice = false;
+
+    if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
+      isTouchDevice = true;
+    }
+
+    if (!isTouchDevice) {
+        canvas.addEventListener("click", () => {
+            canvas.requestPointerLock();
+        });
+    } else {
+        console.log("MOBILE");
+        camera.inputs.clear();
+        camera.inputs.add(new VirtualTouchJoystick())        
+    }
 
     configureScene(scene, true);
     configureCamera(camera);
     scene.activeCamera = camera;
-    scene.activeCamera.attachControl(true);
+    scene.activeCamera.attachControl(canvas, true);
     light1.intensity = 0;
 
     // Enable audio
