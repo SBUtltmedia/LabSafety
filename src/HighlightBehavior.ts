@@ -16,10 +16,6 @@ export class HighlightBehavior implements Behavior<Mesh> {
         this.color = color;
     }
 
-    static get name() {
-        return "Highlight";
-    }
-
     get name() {
         return "Highlight";
     }
