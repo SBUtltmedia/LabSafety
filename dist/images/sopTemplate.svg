@@ -1,5 +1,5 @@
 <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-    viewBox="0 0 85 110" width="8500" height="11000" dominant-baseline="middle" text-anchor="middle">
+    viewBox="0 0 85 110" width="850" height="1100" dominant-baseline="middle" text-anchor="middle">
     <style>
     div{
         background-color: white;
@@ -53,6 +53,34 @@
         margin: 2px 3px;
     }
 
+
+    .empty::before{
+    content:"&#9744;"
+    }
+
+    .incorrect::before{
+    content:"&#9746;"
+    }
+
+    .incorrect {
+        color: red;
+    }
+
+    .correct::before{
+        content:"&#9745;"
+    }
+
+    .correct {
+        color: green;
+    }
+
+    .checkpad {
+        margin-right: 1px;
+    }
+
+    .todo {
+        list-style-type: "";
+    }
   </style>
     <foreignObject x="0" y="0" width="85" height="110">
     <!--
@@ -83,7 +111,7 @@
                     <li>{{text}}</li>
                     <ol type="{{sublistType}}">
                         {{#each sublist}}
-                        <li>{{text}}</li>
+                        <li class="todo"><span class="{{indicator}} checkpad"></span>{{text}}</li>
                         {{/each}}
                     </ol>
                     {{else}}

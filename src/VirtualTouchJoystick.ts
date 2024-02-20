@@ -6,7 +6,8 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import { Container } from "@babylonjs/gui/2D/controls/container";
 import { Ellipse } from "@babylonjs/gui/2D/controls/ellipse";
 import { Control } from "@babylonjs/gui/2D/controls/control";
-import { DeepImmutableObject } from "@babylonjs/core";
+import { DeepImmutableObject, Nullable } from "@babylonjs/core/types";
+import { PointerTouch } from "@babylonjs/core/Events/pointerEvents";
 
 
 export class VirtualTouchJoystick extends BaseCameraPointersInput {
@@ -32,6 +33,11 @@ export class VirtualTouchJoystick extends BaseCameraPointersInput {
     joystickPuck: Ellipse;
     joystickCircleRadius: number;
     joystickPuckRadius: number;
+
+    // constructor(isLeftHand: boolean = true) {
+    //     super();
+        
+    // }
 
     getClassName = () => this.constructor.name;
 
@@ -120,8 +126,15 @@ export class VirtualTouchJoystick extends BaseCameraPointersInput {
         );
     }
 
-    onTouch(point: any, offsetX: number, offsetY: number) {
-        this.onTouchSwipe(new Vector2(offsetX, offsetY));
+    onTouch(point: Nullable<PointerTouch>, offsetX: number, offsetY: number) {
+        if (point.pointerId === this.joystickPointerId) {
+            // point refer to global inner window canvas, we need to convert it to local render canvas
+            this.onTouchJoystick(
+                new Vector2(point.x, point.y).subtractInPlace(this.joystickButtonDownPosOffset),
+            );
+        } else {
+            this.onTouchSwipe(new Vector2(offsetX, offsetY));
+        }
     }
 
     onTouchJoystick(touchPoint: Vector2) {
@@ -146,8 +159,9 @@ export class VirtualTouchJoystick extends BaseCameraPointersInput {
     }
 
     onButtonDown(evt: { offsetX: number; }) {
-        if (evt.offsetX < this.screenSize.x * this.JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE)
+        if (evt.offsetX < this.screenSize.x * this.JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE) {
             this.onButtonDownJoystick(evt);
+        }
     }
 
     onButtonDownJoystick(evt: { offsetX: number; offsetY?: number; pointerId?: number; clientX?: number; clientY?: number; }) {
