@@ -25,6 +25,7 @@ class PromptWithButton {
         this.rect.isVisible = visible;
         this.text.isVisible = visible;
         this.button.isVisible = visible;
+        document.exitPointerLock();
     }
 }
 
