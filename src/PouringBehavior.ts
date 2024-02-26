@@ -12,7 +12,6 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager } from "./interactionManager";
-import { PourableBehavior } from "./PourableBehavior";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -28,6 +27,8 @@ export class PouringBehavior implements Behavior<Mesh> {
     onBeforePourObservable: Observable<AbstractMesh>;
     onMidPourObservable: Observable<AbstractMesh>;
     onAfterPourObservable: Observable<AbstractMesh>;
+    liquidMesh?: AbstractMesh; // If this is set, setting empty to true will make this mesh invisible, and setting empty to false will make it visible.
+    #empty: boolean = false;
     pourDelay: number = 1000;
     animating: boolean = false;
     onAnimationChangeObservable: Observable<Boolean>;
@@ -85,10 +86,28 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
     }
 
+    get empty(): boolean {
+        return this.#empty;
+    }
+
+    set empty(value: boolean) {
+        if (this.#empty && !value) {
+            if (this.liquidMesh) {
+                this.liquidMesh.isVisible = true;
+            }
+            this.#empty = value;
+        } else if (!this.#empty && value) {
+            if (this.liquidMesh) {
+                this.liquidMesh.isVisible = false;
+            }
+            this.#empty = value;
+        }
+    }
+
     #checkNearTarget(targets: AbstractMesh[]): Nullable<AbstractMesh> {
         const validTargets = targets.filter(target => {
             const isTargetBelow = this.mesh.absolutePosition.y > target.absolutePosition.y;
-            const isPourable = Boolean(target.getBehaviorByName("Pourable"));
+            const isPourable = Boolean(target.getBehaviorByName("Pouring"));
             const targetNotGrabbed = !(target.getBehaviorByName("Interactable") as InteractableBehavior).grabbing;
             const intersectingTarget = this.mesh.intersectsMesh(target);
             return isTargetBelow && isPourable && targetNotGrabbed && intersectingTarget;
@@ -132,7 +151,10 @@ export class PouringBehavior implements Behavior<Mesh> {
 
             this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
                 if (state === ActivationState.ACTIVE) {
-                    this.pour();
+                    // this.mesh.rotation.z += Math.PI / 4; // only if desktop mode
+                    if (!this.#empty) {
+                        this.pour();
+                    }
                 }
             });
         }
@@ -142,15 +164,18 @@ export class PouringBehavior implements Behavior<Mesh> {
         if (!this.#currentTarget) {
             throw new Error("PouringBehavior: attempted pour with no current target.");
         }
-        const pourableBehavior = this.#currentTarget.getBehaviorByName("Pourable") as PourableBehavior;
-        if (!pourableBehavior) {
+        const pouringBehavior = this.#currentTarget.getBehaviorByName("Pouring") as PouringBehavior;
+        if (!pouringBehavior) {
             throw new Error("PouringBehavior: target is not pourable.");
         }
+
+        pouringBehavior.empty = false;
 
         const target = this.#currentTarget;
         this.onBeforePourObservable.notifyObservers(target);
         this.onMidPourObservable.notifyObservers(target);
         this.onAfterPourObservable.notifyObservers(target);
+        this.empty = true;
     }
 }
 

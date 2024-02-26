@@ -5,10 +5,9 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
-import { PourableBehavior } from "./PourableBehavior";
+import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { PouringBehavior } from "./PouringBehavior";
 import { interactionManager } from "./scene";
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
 export function setColor(mesh: AbstractMesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
@@ -39,11 +38,10 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     // log("cylinder pos: ", mesh.position);
 
     const pouringBehavior = new PouringBehavior(interactionManager);
-    const pourableBehavior = new PourableBehavior();
     const fadeRespawnBehavior = new FadeRespawnBehavior();
 
     mesh.addBehavior(pouringBehavior);
-    mesh.addBehavior(pourableBehavior);
+    pouringBehavior.liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
     mesh.addBehavior(fadeRespawnBehavior);
     
 }
