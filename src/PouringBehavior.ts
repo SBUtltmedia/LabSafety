@@ -11,9 +11,8 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState, GrabState, IGrabInfo, InteractionManager } from "./interactionManager";
+import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager } from "./interactionManager";
 import { PourableBehavior } from "./PourableBehavior";
-import { log } from "./utils";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -23,13 +22,13 @@ export class PouringBehavior implements Behavior<Mesh> {
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
     #grabStateObserver: Observer<IGrabInfo>;
+    #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<AbstractMesh>;
     onBeforePourObservable: Observable<AbstractMesh>;
     onMidPourObservable: Observable<AbstractMesh>;
     onAfterPourObservable: Observable<AbstractMesh>;
     pourDelay: number = 1000;
-    #delayTimeoutID: number = 0;
     animating: boolean = false;
     onAnimationChangeObservable: Observable<Boolean>;
     
@@ -117,9 +116,9 @@ export class PouringBehavior implements Behavior<Mesh> {
             if (this.#currentTarget instanceof Mesh) {
                 this.#highlightBehavior.unhighlightAll();
             }
-            if (this.#delayTimeoutID) {
-                clearTimeout(this.#delayTimeoutID);
-                this.#delayTimeoutID = 0;
+            if (this.#activationStateObserver) {
+                this.#activationStateObserver.remove();
+                this.#activationStateObserver = null;
             }
         }
 
@@ -131,17 +130,11 @@ export class PouringBehavior implements Behavior<Mesh> {
                 this.#highlightBehavior.highlightOther(this.#currentTarget);
             }
 
-            this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
+            this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
                 if (state === ActivationState.ACTIVE) {
                     this.pour();
                 }
             });
-
-            // @todo: Use something other than setTimeout?
-            // this.#delayTimeoutID = setTimeout(() => {
-            //     this.#delayTimeoutID = 0;
-            //     this.pour();
-            // }, this.pourDelay);
         }
     }
 
@@ -155,36 +148,9 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
 
         const target = this.#currentTarget;
-        log(target.id);
         this.onBeforePourObservable.notifyObservers(target);
         this.onMidPourObservable.notifyObservers(target);
         this.onAfterPourObservable.notifyObservers(target);
-        
-        // const checkCollisions = this.mesh.checkCollisions;
-        // const target = this.#currentTarget;
-        // this.onBeforePourObservable.notifyObservers(target);
-        // this.mesh.checkCollisions = false;
-        // const animation = this.mesh.absolutePosition.x < this.#currentTarget.absolutePosition.x ? pourRightAnimation : pourLeftAnimation;
-        // const keyFrames = animation.getKeys();
-        // const start = getFirstKeyFrame(keyFrames).frame;
-        // const mid = getMidKeyFrame(keyFrames).frame;
-        // const end = getLastKeyFrame(keyFrames).frame;
-
-        // const pouringPosition = pourableBehavior.getPouringPosition(this.mesh.absolutePosition);
-        // this.mesh.setAbsolutePosition(pouringPosition);
-        // this.animating = true;
-        // this.onAnimationChangeObservable.notifyObservers(this.animating);
-        // this.#interactableBehavior.disable();
-        // this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], start, mid, false, 1, () => {
-        //     this.onMidPourObservable.notifyObservers(target);
-        //     this.mesh.getScene().beginDirectAnimation(this.mesh, [animation], mid, end, false, 1, () => {
-        //         this.#interactableBehavior.enable();
-        //         this.animating = false;
-        //         this.onAnimationChangeObservable.notifyObservers(this.animating);
-        //         this.mesh.checkCollisions = checkCollisions;
-        //         this.onAfterPourObservable.notifyObservers(target);
-        //     });
-        // });
     }
 }
 
