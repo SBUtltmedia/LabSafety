@@ -27,16 +27,18 @@ interface ISounds {
 
 export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
 
+    
     let taskList: Task[] = [];
 
     let pouringTasks: Task[] = [];
     let taskMap: ITaskMap = {};
 
-    const sounds = {
-        ding: new Sound("ding", SUCCESS_SOUND_PATH),
-        explosion: new Sound("explosion", FAIL_SOUND_PATH),
-        fanfare: new Sound("fanfare", COMPLETION_SOUND_PATH)
-    };         
+ 
+ 
+
+    //global.sounds.ding.stop();
+ 
+      
 
     listItems.forEach(item => {
         if (item.logic) {
@@ -46,16 +48,16 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
         }
     })
 
-    setupSOP(scene, pouringTasks, sounds);
+    setupSOP(scene, pouringTasks);
 
     taskList.forEach(task => {
         task.onTaskStateChangeObservable.add(status => {
             if (status === Status.SUCCESSFUL) {
-                // Play ding
-                if (!sounds.fanfare.isPlaying && !sounds.explosion.isPlaying) {
+              console.log(global)
+                if (!global.sounds.success.isPlaying && !global.sounds.explosion.isPlaying) {
                     log("Playing ding");
-                    sounds.ding.stop();
-                    sounds.ding.play();
+                    global.sounds.ding.stop();
+                    global.sounds.ding.play();
                 }
             }
         });            
@@ -96,10 +98,10 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
     taskMap[name] = task;
 
     let fromMesh = scene.getMeshByName(logic.from);
-
+    console.log(PouringBehavior.name)
     let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
 
-    pouringBehavior.onAfterPourObservable.add(target => {
+    pouringBehavior.onMidPourObservable.add(target => {
         log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
         log(`Poured mesh name: ${target.name}`);
 
@@ -121,7 +123,7 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
 
 }
 
-const setupSOP = (scene: Scene, pouringTasks: Task[], sounds: ISounds) => {
+const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
     global.sop = new Task("SOP", "Standard operating procedure for lab safety.", [pouringTasks]);
 
     global.sop.onTaskStateChangeObservable.add(status => {
@@ -129,24 +131,24 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], sounds: ISounds) => {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
                 GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
-                sounds.fanfare.stop();
-                sounds.fanfare.play();
+                global.sounds.fanfare.stop();
+                global.sounds.fanfare.play();
                 break;
             case Status.FAILURE:
                 // Play explosion, start a fire.
                 log("Fail SOP");
-                sounds.explosion.stop();
-                sounds.explosion.play();
+                global.sounds.explosion.stop();
+                global.sounds.explosion.play();
                 const fire = startFire();
-                const fireBehavior = fire.getBehaviorByName("Fire") as FireBehavior;
+                const fireBehavior = fire.getBehaviorByName(FireBehavior.name) as FireBehavior;
                 if (fireBehavior) {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {
                             // Handle successful fire handling: show failure screen, play fanfare.
                             GUIWindows.createFailureScreen(scene, () => resetScene(scene));
                             // @todo: find a new sound for SOP failure.
-                            sounds.fanfare.stop();
-                            sounds.fanfare.play();
+                            global.sounds.fanfare.stop();
+                            global.sounds.fanfare.play();
                         }
                     });
                 }

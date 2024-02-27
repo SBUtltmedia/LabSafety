@@ -60,7 +60,7 @@ export enum ActivationState {
     INACTIVE
 }
 
-const SELECTOR_LENGTH = 3.0;
+const SELECTOR_LENGTH = 9.0;
 const SELECTOR_DIAMETER = 0.005;
 
 export class InteractionManager {
