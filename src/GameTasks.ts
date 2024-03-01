@@ -131,8 +131,8 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
                 GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
-                global.sounds.fanfare.stop();
-                global.sounds.fanfare.play();
+                global.sounds.success.stop();
+                global.sounds.success.play();
                 break;
             case Status.FAILURE:
                 // Play explosion, start a fire.
@@ -140,15 +140,15 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
                 const fire = startFire();
-                const fireBehavior = fire.getBehaviorByName(FireBehavior.name) as FireBehavior;
+                const fireBehavior = fire.getBehaviorByName("Fire") as FireBehavior;
                 if (fireBehavior) {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {
                             // Handle successful fire handling: show failure screen, play fanfare.
                             GUIWindows.createFailureScreen(scene, () => resetScene(scene));
                             // @todo: find a new sound for SOP failure.
-                            global.sounds.fanfare.stop();
-                            global.sounds.fanfare.play();
+                            global.sounds.success.stop();
+                            global.sounds.success.play();
                         }
                     });
                 }
