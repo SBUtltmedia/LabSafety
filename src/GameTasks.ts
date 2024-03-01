@@ -7,8 +7,6 @@ import { Status } from "./Task";
 import { startFire } from "./startFire";
 import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
-import { Sound } from "@babylonjs/core/Audio/sound";
-import { COMPLETION_SOUND_PATH, FAIL_SOUND_PATH, SUCCESS_SOUND_PATH } from "./Constants";
 import { resetScene } from "./scene";
 import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
@@ -17,12 +15,6 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 
 interface ITaskMap {
     [key: string]: Task
-}
-
-interface ISounds {
-    ding: Sound;
-    explosion: Sound;
-    fanfare: Sound;
 }
 
 export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
@@ -53,7 +45,6 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     taskList.forEach(task => {
         task.onTaskStateChangeObservable.add(status => {
             if (status === Status.SUCCESSFUL) {
-              console.log(global)
                 if (!global.sounds.success.isPlaying && !global.sounds.explosion.isPlaying) {
                     log("Playing ding");
                     global.sounds.ding.stop();
@@ -98,7 +89,6 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
     taskMap[name] = task;
 
     let fromMesh = scene.getMeshByName(logic.from);
-    console.log(PouringBehavior.name)
     let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
 
     pouringBehavior.onMidPourObservable.add(target => {

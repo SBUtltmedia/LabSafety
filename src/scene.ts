@@ -23,7 +23,6 @@ import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
-import { global } from "./GlobalState";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -32,7 +31,6 @@ export const meshesToPreserveNames: string[] = [];
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     loadSounds("./json/sounds.json");
-    console.log(global)
     log("createSceneAsync start");
     const scene = new Scene(engine);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
@@ -50,7 +48,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             canvas.requestPointerLock();
         });
     } else {
-        console.log("MOBILE");
+        log("MOBILE");
         camera.inputs.clear();
         camera.inputs.add(new VirtualTouchJoystick())        
     }
