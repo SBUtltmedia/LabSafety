@@ -38,7 +38,6 @@ export class GameState {
     }
 
     displayHUD(): void {
-        console.log(this.text);
         this.textBlock.text = this.text;
         this.textBlock.textWrapping = true;
         this.textBlock.fontSize = 20;
@@ -98,7 +97,6 @@ export class StartState extends GameState {
 export class BaseState extends GameState {
     constructor(text: string) {
         super(text);
-        console.log("In Base state!");
         this.displayHUD();
     }
 
@@ -113,7 +111,6 @@ export class BaseState extends GameState {
             this.hideHUD();
             return new StartState("Click to begin!");
         }
-        console.log("Return null!");
         return null;
     }
 }
@@ -122,7 +119,6 @@ export class PickCylinderState extends GameState {
     constructor(text: string) {
         super(text);
         this.displayHUD();
-        console.log("in Pick cylinder state");
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
@@ -147,7 +143,6 @@ export class PassFailState extends GameState {
         super(text);
         this.displayHUD();
         this.isPass = isPass;
-        console.log("in Pass/Fail State state");
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
@@ -165,7 +160,6 @@ export class PickSOPState extends GameState {
     constructor(text: string) {
         super(text);
         this.displayHUD();
-        console.log("in Pick SOP state");
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
