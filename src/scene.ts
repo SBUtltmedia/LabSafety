@@ -13,7 +13,6 @@ import { VirtualTouchJoystick } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
-import { GUIWindows } from "./GUIManager";
 import { InteractionManager } from "./interactionManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
@@ -23,6 +22,7 @@ import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
+import { GameStates, GameStateBehavior } from "./GameStateBehavior";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -36,6 +36,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
     const camera = new UniversalCamera("camera", STARTING_POSITION);
     const canvas = document.getElementById("canvas");
+
+    let gameStateMachine = new GameStateBehavior();
+    camera.addBehavior(gameStateMachine);
 
     let isTouchDevice = false;
 
@@ -116,8 +119,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     
     await resetScene(scene);
 
-    GUIWindows.createWelcomeScreen(scene);
-
     const splashScreen = document.querySelector("div.splash");
     splashScreen.textContent = "Click to start!";
     splashScreen.addEventListener("click", () => {
@@ -187,6 +188,16 @@ export async function resetScene(scene: Scene): Promise<Scene> {
         xrExperience.teleportation.removeFloorMeshByName("Floor");
         xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
     }
+
+    document.exitPointerLock();
+    (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_START);
+
+    const canvas = document.getElementById("canvas");
+    const handleInitialClick: EventListener = (e: Event) => {
+        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_BASE);
+        canvas.removeEventListener('click', handleInitialClick);
+    };
+    canvas.addEventListener("click", handleInitialClick);
 
     fadeIn(light);
 

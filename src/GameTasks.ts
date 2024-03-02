@@ -12,6 +12,7 @@ import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { GameStates, GameStateBehavior } from "./GameStateBehavior";
 
 interface ITaskMap {
     [key: string]: Task
@@ -57,10 +58,13 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     global.taskList = taskList;
 }
 
-const processTask = (targetName: string, toName: string, task: Task) => {
+const processTask = (targetName: string, toName: string, task: Task, scene: Scene) => {
+    let camera = scene.activeCamera;
     if (targetName === toName) {
+        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PASS);
         task.succeed();
     } else {
+        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_FAIL);
         task.fail();
     }
 }
@@ -104,10 +108,10 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
 
         if (pouringBehavior.animating) {
             pouringBehavior.onAnimationChangeObservable.addOnce(() => {
-                processTask(target.name, logic.to, task);
+                processTask(target.name, logic.to, task, scene);
             })
         } else {
-            processTask(target.name, logic.to, task);
+            processTask(target.name, logic.to, task, scene);
         }
     })
 
@@ -120,6 +124,8 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
         switch (status) {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
+                let camera = scene.activeCamera;
+                (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_SOP_PASS);
                 GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
                 global.sounds.success.stop();
                 global.sounds.success.play();
