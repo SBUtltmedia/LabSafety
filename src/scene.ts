@@ -30,7 +30,6 @@ export let interactionManager: InteractionManager;
 export const meshesToPreserveNames: string[] = [];
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
-    loadSounds("./json/sounds.json");
     log("createSceneAsync start");
     const scene = new Scene(engine);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
@@ -116,7 +115,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             reticle.isVisible = state !== WebXRState.IN_XR;
         });
     }
-
+    
+    await loadSounds("./json/sounds.json");
     await resetScene(scene);
 
     const splashScreen = document.querySelector("div.splash");
