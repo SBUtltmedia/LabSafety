@@ -4,7 +4,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager } from "./interactionManager";
+import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager, InteractionMode } from "./interactionManager";
 
 
 // The core behavior to implement grabbing a mesh and activating it while being grabbed.
@@ -25,6 +25,19 @@ export interface IInteractableOptions {
     moveAttached?: boolean, // Specifies whether the default grab implementation is used (default true)
     defaultPosition?: Vector3 // The position (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
     defaultRotation?: Vector3, // The rotation (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+    modeDefaults?: {
+        [mode: number]: {
+            defaultPosition?: Vector3, // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultPosition.
+            defaultRotation?: Vector3 // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultRotation.
+        }
+    }
+}
+
+interface IDefaults {
+    [mode: number]: {
+        defaultPosition: Vector3,
+        defaultRotation: Vector3
+    }
 }
 
 export class InteractableBehavior implements Behavior<AbstractMesh> {
@@ -34,8 +47,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
     onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
     onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
-    defaultPosition: Vector3;
-    defaultRotation: Vector3;
+    defaults: IDefaults = {};
     hideGrabber: boolean = true;
     #moveAttached: boolean;
     #grabberWasVisible: boolean = false;
@@ -50,8 +62,13 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         this.interactionManager = interactionManager;
         this.#activatable = Boolean(options?.activatable);
         this.#moveAttached = options?.moveAttached === false ? false : true;
-        this.defaultPosition = options?.defaultPosition || Vector3.Zero();
-        this.defaultRotation = options?.defaultRotation || Vector3.Zero();
+
+        for (const mode of [InteractionMode.DESKTOP, InteractionMode.MOBILE, InteractionMode.XR, InteractionMode.LOADING]) {
+            this.defaults[mode] = {
+                defaultPosition: options?.modeDefaults?.[mode]?.defaultPosition || options?.defaultPosition || Vector3.Zero(),
+                defaultRotation: options?.modeDefaults?.[mode]?.defaultRotation || options?.defaultRotation || Vector3.Zero()
+            }
+        }
     }
 
     get name(): string {
@@ -89,8 +106,9 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         this.#defaultGrabObserver = this.onGrabStateChangedObservable.add(({ anchor, state }) => {
             if (state === GrabState.GRAB) {
                 this.#mesh.setParent(anchor);
-                this.#mesh.position.copyFrom(this.defaultPosition);
-                this.#mesh.rotation.copyFrom(this.defaultRotation);
+                const { defaultPosition, defaultRotation } = this.defaults[this.interactionManager.interactionMode];
+                this.#mesh.position.copyFrom(defaultPosition);
+                this.#mesh.rotation.copyFrom(defaultRotation);
             } else if (state === GrabState.DROP) {
                 this.#mesh.setParent(null);
             }

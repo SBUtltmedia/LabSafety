@@ -8,6 +8,7 @@ import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { setupTasks } from "./GameTasks";
 import { global } from "./GlobalState";
 import { InteractableBehavior } from "./interactableBehavior";
+import { InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
 
@@ -38,7 +39,15 @@ export function createClipboard(mesh: AbstractMesh): void {
     
     // @todo: Make the clipboard more readable out of XR
     const interactableBehavior = new InteractableBehavior(interactionManager, {
-        defaultRotation: new Vector3(Math.PI, Math.PI / 2, Math.PI / 2)
+        defaultRotation: new Vector3(Math.PI, Math.PI / 2, Math.PI / 2),
+        modeDefaults: {
+            [InteractionMode.DESKTOP]: {
+                defaultPosition: new Vector3(0, 0, -0.5)
+            },
+            [InteractionMode.MOBILE]: {
+                defaultPosition: new Vector3(0, 0, -0.5)
+            }
+        }
     });
     const fadeRespawnBehavior = new FadeRespawnBehavior();
     mesh.addBehavior(interactableBehavior);
