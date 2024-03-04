@@ -1,7 +1,5 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
-import { Animation } from "@babylonjs/core/Animations/animation";
-import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -11,7 +9,7 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager } from "./interactionManager";
+import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionMode } from "./interactionManager";
 import { GameStateBehavior, GameStates } from "./GameStateBehavior";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
@@ -34,11 +32,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     animating: boolean = false;
     onAnimationChangeObservable: Observable<Boolean>;
     
-    constructor(interactionManager: InteractionManager) {
-        this.#interactableBehavior = new InteractableBehavior(interactionManager, {
-            activatable: true,
-            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI) // @todo: hard-coded
-        });
+    constructor() {
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
         this.onMidPourObservable = new Observable();
@@ -56,7 +50,10 @@ export class PouringBehavior implements Behavior<Mesh> {
 
     attach = (mesh: Mesh) => {
         this.mesh = mesh;
-        this.mesh.addBehavior(this.#interactableBehavior);
+        this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
+        if (!this.#interactableBehavior) {
+            throw new Error(`${this.name} behavior must have Interactable present on the same mesh.`);
+        }
         this.mesh.addBehavior(this.#highlightBehavior);
 
         const scene = mesh.getScene();
@@ -81,10 +78,26 @@ export class PouringBehavior implements Behavior<Mesh> {
                 }
             }
         });
+
+        let tilted = false;
+        this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
+            if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
+                const mode = this.#interactableBehavior.interactionManager.interactionMode
+                if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
+                    this.mesh.rotation.z += Math.PI / 4;
+                    tilted = true;
+                }
+                this.pour();
+            } else if (state === ActivationState.INACTIVE && tilted) {
+                this.mesh.rotation.z -= Math.PI / 4;
+                tilted = false;
+            }
+        });
     }
 
     detach = () => {
         this.#grabStateObserver.remove();
+        this.#activationStateObserver.remove();
         if (this.#renderObserver) {
             this.#renderObserver.remove();
         }
@@ -139,10 +152,6 @@ export class PouringBehavior implements Behavior<Mesh> {
             if (this.#currentTarget instanceof Mesh) {
                 this.#highlightBehavior.unhighlightAll();
             }
-            if (this.#activationStateObserver) {
-                this.#activationStateObserver.remove();
-                this.#activationStateObserver = null;
-            }
         }
 
         this.#currentTarget = target;
@@ -152,15 +161,6 @@ export class PouringBehavior implements Behavior<Mesh> {
                 this.#highlightBehavior.highlightSelf();
                 this.#highlightBehavior.highlightOther(this.#currentTarget);
             }
-
-            this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
-                if (state === ActivationState.ACTIVE) {
-                    // this.mesh.rotation.z += Math.PI / 4; // only if desktop mode
-                    if (!this.#empty) {
-                        this.pour();
-                    }
-                }
-            });
         }
     }
 
@@ -182,81 +182,3 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.empty = true;
     }
 }
-
-const frameRate = 30;
-
-function getFirstKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
-    if (keys.length === 0) {
-        return null;
-    }
-
-    let minKey = keys[0];
-    for (let key of keys) {
-        if (key.frame < minKey.frame) {
-            minKey = key;
-        }
-    }
-    return minKey;
-}
-
-function getLastKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
-    if (keys.length === 0) {
-        return null;
-    }
-
-    let maxKey = keys[0];
-    for (let key of keys) {
-        if (key.frame > maxKey.frame) {
-            maxKey = key;
-        }
-    }
-    return maxKey;
-}
-
-function getMidKeyFrame(keys: IAnimationKey[]): Nullable<IAnimationKey> {
-    if (keys.length === 0) {
-        return null;
-    }
-
-    const first = getFirstKeyFrame(keys);
-    const last = getLastKeyFrame(keys);
-    
-    const midFrame = (first.frame + last.frame) / 2;
-    const midKey = getLastKeyFrame(keys.filter(key => key.frame <= midFrame));
-    return midKey
-}
-
-const pourLeftKeyFrames: IAnimationKey[] = [
-    {
-        frame: 0,
-        value: new Vector3(Math.PI, 0, 0)
-    },
-    {
-        frame: frameRate,
-        value: new Vector3(Math.PI, 0, -Math.PI / 2)
-    },
-    {
-        frame: 2 * frameRate,
-        value: new Vector3(Math.PI, 0, 0)
-    }
-]
-const pourRightKeyFrames = [
-    {
-        frame: 0,
-        value: new Vector3(Math.PI, 0, 0)
-    },
-    {
-        frame: frameRate,
-        value: new Vector3(Math.PI, 0, Math.PI / 2)
-    },
-    {
-        frame: 2 * frameRate,
-        value: new Vector3(Math.PI, 0, 0)
-    }
-];
-
-const pourLeftAnimation = new Animation("pour-neg-z", "rotation", frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
-const pourRightAnimation = new Animation("pour-pos-z", "rotation", frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
-
-pourLeftAnimation.setKeys(pourLeftKeyFrames, true);
-pourRightAnimation.setKeys(pourRightKeyFrames, true);
