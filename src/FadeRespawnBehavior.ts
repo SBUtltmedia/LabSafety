@@ -8,7 +8,6 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, IGrabInfo } from "./interactionManager";
-import { PouringBehavior } from "./PouringBehavior";
 
 interface IAnimation {
     name: string,
@@ -16,20 +15,21 @@ interface IAnimation {
     animation?: Animation
 }
 
+export const MIN_FADE_DISTANCE = 0.15;
+
 export class FadeRespawnBehavior implements Behavior<Mesh> {
-    mesh: Mesh
-    startPos: Vector3
-    #speedRatio: number
+    mesh: Mesh;
+    spawnPosition: Vector3 = Vector3.Zero();
+    spawnRotation: Vector3 = Vector3.Zero();
+    #speedRatio: number;
     #interactableBehavior: InteractableBehavior;
     #grabStateObserver: Observer<IGrabInfo>;
     #animationStateObserver: Nullable<Observer<boolean>> = null;
-    #pouringBehavior: PouringBehavior;
     #animations: IAnimation[];
     #scene: Scene;
 
     constructor(speedRatio: number = 1.25) {
         this.#speedRatio = speedRatio;
-        this.startPos = Vector3.Zero();
 
         this.#animations = [
             {name: "Invisibility", startValue: 1},
@@ -63,23 +63,14 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     attach(target: Mesh): void {
         this.mesh = target;
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
-        this.#pouringBehavior = this.mesh.getBehaviorByName("Pouring") as PouringBehavior;
+        if (!this.#interactableBehavior) {
+            throw new Error(`${this.name} behavior must be attached to a mesh with an Interactable behavior.`);
+        }
         this.#scene = this.mesh.getScene();
 
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.DROP) {
-                if (this.#pouringBehavior.animating) {
-                    this.#animationStateObserver = this.#pouringBehavior.onAnimationChangeObservable.addOnce(state => {
-                        // state should ALWAYS be false, but let's stay defensive and make a sanity check.
-                        if (state) {
-                            throw new Error("Received notication of starting animating before receiving notification of stopping animating.");
-                        }
-                        this.#fadeAndRespawn();
-                        this.#animationStateObserver = null;
-                    });
-                } else {
-                    this.#fadeAndRespawn();
-                }
+                this.#fadeAndRespawn();
             }
         })
 
@@ -93,16 +84,16 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     }
 
     #fadeAndRespawn() {
-        let dist = Math.abs(Vector3.Distance(this.mesh.getAbsolutePosition(), this.startPos));
+        let dist = Math.abs(Vector3.Distance(this.mesh.getAbsolutePosition(), this.spawnPosition));
 
-        if (dist <= 0.15) { 
-            this.#placeMeshAtSpawn();
+        if (dist <= MIN_FADE_DISTANCE) { 
+            this.#respawn();
             return;
         }
 
         this.#scene.beginDirectHierarchyAnimation(this.mesh, false, [this.#animations.find(animation => animation.name === "Invisibility").animation],
         0, 60, false, this.#speedRatio, () => {
-            this.#placeMeshAtSpawn();
+            this.#respawn();
             this.#reappear();            
         });
     }
@@ -113,8 +104,21 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         }).animation], 0, 60, false, this.#speedRatio);
     }
 
-    #placeMeshAtSpawn() {
-        this.mesh.position.copyFrom(this.startPos);
-        this.mesh.rotation.copyFromFloats(Math.PI, 0, 0);
+    #respawn = () => {
+        this.mesh.position.copyFrom(this.spawnPosition);
+        this.mesh.rotation.copyFrom(this.spawnRotation);
+    }
+
+    setSpawnPoint = (spawnPosition: Vector3, spawnRotation: Vector3) => {
+        this.spawnPosition.copyFrom(spawnPosition);
+        this.spawnRotation.copyFrom(spawnRotation);
+    }
+}
+
+export function setRespawnPoints(scene: Scene): void {
+    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn"))
+        .filter(behavior => Boolean(behavior)) as FadeRespawnBehavior[];
+    for (const behavior of behaviors) {
+        behavior.setSpawnPoint(behavior.mesh.position, behavior.mesh.rotation);
     }
 }

@@ -2,7 +2,6 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { SOP_TEMPLATE_PATH } from "./Constants";
 import { createClipboard } from "./createClipboard";
 import { createCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
@@ -36,11 +35,7 @@ export function processMeshes(meshes: Mesh[]) {
 
     renameClipboard(clipboardMesh);
 
-    fetch(SOP_TEMPLATE_PATH)
-        .then(r => r.text())
-        .then(text => {
-            createClipboard(clipboardMesh, text);
-        });
+    createClipboard(clipboardMesh);
 
     const placardC = placardMesh.clone(`${placardMesh.name}-c`, placardMesh.parent);
     const placardB = placardMesh.clone(`${placardMesh.name}-b`, placardMesh.parent);

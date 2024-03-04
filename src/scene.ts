@@ -12,7 +12,7 @@ import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { VirtualTouchJoystick } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { setRespawnPoints } from "./FadeRespawnBehavior";
 import { InteractionManager } from "./interactionManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
@@ -116,7 +116,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             reticle.isVisible = state !== WebXRState.IN_XR;
         });
     }
-    
+
     await resetScene(scene);
 
     const splashScreen = document.querySelector("div.splash");
@@ -169,20 +169,11 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     // Places meshes to their proper places in the scene, including rotation.
     placeMeshes(meshes);
 
+    // Set respawn points after placing meshes.
+    setRespawnPoints(scene);
+
     // Places the camera at the starting position.
     placeCamera(camera);
-
-    // for every cylinder's FadeRespawnBehavior, set the start pos
-    const cylinders = meshes.filter(mesh => {
-        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
-    });
-
-    cylinders.forEach(cylinder => {
-        let fadeRespawnBehavior: FadeRespawnBehavior = cylinder.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
-        if (fadeRespawnBehavior) {
-            fadeRespawnBehavior.startPos.copyFrom(cylinder.position);
-        }
-    })   
     
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");

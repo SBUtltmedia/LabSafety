@@ -12,6 +12,7 @@ import { SmokeParticles } from "./SmokeParticles";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState } from "./interactionManager";
 import { interactionManager } from "./scene";
+import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
 const FIRE_EXTINGUISHER_RANGE = 2;
 
@@ -21,9 +22,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
         defaultRotation: new Vector3(0, 0, Math.PI)
     });
 
-    let smokeSystem = new SmokeParticles(mesh);
-
+    const fadeRespawnBehavior = new FadeRespawnBehavior();
     mesh.addBehavior(interactableBehavior);
+    mesh.addBehavior(fadeRespawnBehavior);
+
+    let smokeSystem = new SmokeParticles(mesh);
 
     let observer: Nullable<Observer<Scene>> = null;
     const scene = mesh.getScene();
