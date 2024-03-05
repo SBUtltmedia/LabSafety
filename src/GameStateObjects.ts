@@ -37,7 +37,6 @@ export class GameState {
     handleStateChange(newState: GameStates, ...args: any): GameState {
         if (newState === GameStates.GAME_STATE_START) {
             this.hideHUD();
-            console.log(global.hudHints["GAME_STATE_START"]);
             return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
         }
         return null;
