@@ -1,6 +1,3 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-
 export const rootPath = './'
 export const RENDER_CANVAS_ID = 'canvas';
 export const MAX_XR_GRAB_DISTANCE = 0.25;  // meters
@@ -29,3 +26,4 @@ export const CYLINDER_C_NAME = 'cylinder-c';
 export const PLACARD_MESH_NAME = 'placard';
 
 export const SOP_TEMPLATE_PATH = `${rootPath}images/sopTemplate.svg`;
+export const HUD_HINTS_PATH = `${rootPath}json/HUDhints.json`;

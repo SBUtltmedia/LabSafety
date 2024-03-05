@@ -3,16 +3,21 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { Control } from "@babylonjs/gui/2D/controls/control";
+import { global } from "./GlobalState";
 
 export class GameState {
     text: string;
     advancedTexture: AdvancedDynamicTexture;
     textBlock: TextBlock;
     rectangle: Rectangle;
+    platform: string
 
-    constructor(text?: string) {
+    constructor(text: string, platform: string) {
         if (text)
             this.text = text;
+        
+        if (platform)
+            this.platform = platform;
 
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
         this.textBlock = new TextBlock("textblock");
@@ -32,7 +37,8 @@ export class GameState {
     handleStateChange(newState: GameStates, ...args: any): GameState {
         if (newState === GameStates.GAME_STATE_START) {
             this.hideHUD();
-            return new StartState("Click to begin!");
+            console.log(global.hudHints["GAME_STATE_START"]);
+            return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
         }
         return null;
     }
@@ -41,6 +47,10 @@ export class GameState {
         this.textBlock.text = this.text;
         this.textBlock.textWrapping = true;
         this.textBlock.fontSize = 20;
+
+        if (this.platform === "mobile") {
+            this.textBlock.fontSize = 12;
+        }
         
         this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
         this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
@@ -69,14 +79,14 @@ export class GameState {
 }
 
 export class StartState extends GameState {
-    constructor(text: string) {
-        super(text);
+    constructor(text: string, platform: string) {
+        super(text, platform);
         this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
         this.hideHUD();
-        return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more");
+        return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 
     displayHUD(): void {
@@ -95,42 +105,42 @@ export class StartState extends GameState {
 }
 
 export class BaseState extends GameState {
-    constructor(text: string) {
-        super(text);
+    constructor(text: string, platform: string) {
+        super(text, platform);
         this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
         if (newState === GameStates.GAME_STATE_PICK_SOP) {
             this.hideHUD();
-            return new PickSOPState("Read the instructions carefully and let go of the clipboard to continue!");
+            return new PickSOPState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
         } else if (newState === GameStates.GAME_STATE_PICK_CYLINDER) {
             this.hideHUD();
-            return new PickCylinderState("Right click on any of the other cylinders to mix!");
+            return new PickCylinderState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
         } else if (newState === GameStates.GAME_STATE_START) {
             this.hideHUD();
-            return new StartState("Click to begin!");
+            return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
         }
         return null;
     }
 }
 
 export class PickCylinderState extends GameState {
-    constructor(text: string) {
-        super(text);
+    constructor(text: string, platform: string) {
+        super(text, platform);
         this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
         if (newState === GameStates.GAME_STATE_PASS) {
             this.hideHUD();
-            return new PassFailState("You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue!", true);
+            return new PassFailState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform, true);
         } else if (newState === GameStates.GAME_STATE_FAIL) {
             this.hideHUD();
-            return new PassFailState("You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire.");
+            return new PassFailState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
         } else if (newState === GameStates.GAME_STATE_DROP_CYLINDER) {
             this.hideHUD();
-            return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use");
+            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
         }
         return null;
     }
@@ -139,8 +149,8 @@ export class PickCylinderState extends GameState {
 export class PassFailState extends GameState {
     isPass: boolean;
 
-    constructor(text: string, isPass = false) {
-        super(text);
+    constructor(text: string, platform: string, isPass = false) {
+        super(text, platform);
         this.displayHUD();
         this.isPass = isPass;
     }
@@ -148,22 +158,22 @@ export class PassFailState extends GameState {
     handleStateChange(newState: GameStates, ...args: any): GameState {
         this.hideHUD();
         if (newState === GameStates.GAME_STATE_SOP_PASS) {
-            return new BaseState("You have completed the SOP!");
+            return new BaseState(global.hudHints["GAME_STATE_SOP_PASS"][this.platform], this.platform);
         } else if (newState === GameStates.GAME_STATE_BASE) {
-            return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more");
+            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
         }
-        return new BaseState(this.isPass ? "Read the instructions carefully and let go of the clipboard to continue!" : this.text);
+        return new BaseState(this.isPass ? global.hudHints["GAME_STATE_BASE"][this.platform] : this.text, this.platform);
     }
 }
 
 export class PickSOPState extends GameState {
-    constructor(text: string) {
-        super(text);
+    constructor(text: string, platform: string) {
+        super(text, platform);
         this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
         this.hideHUD();
-        return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more");
+        return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 }

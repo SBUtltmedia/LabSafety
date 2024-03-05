@@ -23,6 +23,7 @@ import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
 import { GameStates, GameStateBehavior } from "./GameStateBehavior";
+import { setupGameStates } from "./setupGameStates";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -36,9 +37,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     const camera = new UniversalCamera("camera", STARTING_POSITION);
     const canvas = document.getElementById("canvas");
 
-    let gameStateMachine = new GameStateBehavior();
-    camera.addBehavior(gameStateMachine);
-
     let isTouchDevice = false;
 
     if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
@@ -50,11 +48,11 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             canvas.requestPointerLock();
         });
     } else {
-        log("MOBILE");
         camera.inputs.clear();
         camera.inputs.add(new VirtualTouchJoystick())        
     }
 
+    setupGameStates(camera);
     configureScene(scene, true);
     configureCamera(camera);
     scene.activeCamera = camera;

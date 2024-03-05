@@ -21,7 +21,8 @@ export enum GameStates {
 export class GameStateBehavior implements Behavior<UniversalCamera> {
     #stateChangeObserver: Nullable<Observer<GameStates>> = null;
     onStateChangeObervable: Observable<GameStates> = new Observable();
-    currentGameState: GameState = new GameState();
+    currentGameState: GameState = new GameState(null, "desktop");
+    platform: string;
 
     constructor() {}
 
@@ -34,7 +35,7 @@ export class GameStateBehavior implements Behavior<UniversalCamera> {
     }
 
     delegateState(newState: GameStates) {
-        let nextState = this.currentGameState.handleStateChange(newState);
+        let nextState = this.currentGameState.handleStateChange(newState, this.platform);
         if (nextState !== null) {
             this.currentGameState = nextState;
         }
