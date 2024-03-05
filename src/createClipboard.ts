@@ -8,9 +8,10 @@ import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { setupTasks } from "./GameTasks";
 import { global } from "./GlobalState";
 import { InteractableBehavior } from "./interactableBehavior";
-import { InteractionMode } from "./interactionManager";
+import { GrabState, InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
+import { GameStateBehavior, GameStates } from "./GameStateBehavior";
 
 export function createClipboard(mesh: AbstractMesh): void {
     const scene = mesh.getScene();
@@ -49,6 +50,17 @@ export function createClipboard(mesh: AbstractMesh): void {
             }
         }
     });
+
+    const camera = scene.activeCamera;
+
+    interactableBehavior.onGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
+        if (state === GrabState.GRAB) {
+            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_SOP);
+        } else {
+            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_SOP);
+        }
+    })
+
     const fadeRespawnBehavior = new FadeRespawnBehavior();
     mesh.addBehavior(interactableBehavior);
     mesh.addBehavior(fadeRespawnBehavior);

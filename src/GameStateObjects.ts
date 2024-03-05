@@ -149,7 +149,7 @@ export class PassFailState extends GameState {
         this.hideHUD();
         if (newState === GameStates.GAME_STATE_SOP_PASS) {
             return new BaseState("You have completed the SOP!");
-        } else if (newState == GameStates.GAME_STATE_BASE) {
+        } else if (newState === GameStates.GAME_STATE_BASE) {
             return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more");
         }
         return new BaseState(this.isPass ? "Read the instructions carefully and let go of the clipboard to continue!" : this.text);
@@ -164,6 +164,6 @@ export class PickSOPState extends GameState {
 
     handleStateChange(newState: GameStates, ...args: any): GameState {
         this.hideHUD();
-        return new BaseState("Read the instructions carefully and let go of the clipboard to continue!");
+        return new BaseState("Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more");
     }
 }
