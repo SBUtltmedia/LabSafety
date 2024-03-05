@@ -17,6 +17,9 @@ export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
     },
     pointerSelectionOptions: {
         enablePointerSelectionOnAllControllers: true
+    },
+    uiOptions: {
+        onError: (e) => console.error(e)
     }
 };
 

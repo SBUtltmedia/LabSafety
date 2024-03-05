@@ -17,6 +17,7 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
+import { GameStateBehavior, GameStates } from "./GameStateBehavior";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -251,7 +252,16 @@ export class InteractionManager {
 
     #switchMode = (mode: InteractionMode) => {
         const selectors = this.getActiveSelectors();
+        const camera = this.#scene.activeCamera;
         
+        if (mode === InteractionMode.DESKTOP) {
+            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "desktop";
+        } else if (mode === InteractionMode.MOBILE) {
+            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "mobile";
+        } else if (mode === InteractionMode.XR) {
+            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "xr";
+        }
+
         // Drop everything
         for (const selector of selectors) {
             this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.DROP});
