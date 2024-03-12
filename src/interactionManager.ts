@@ -254,18 +254,23 @@ export class InteractionManager {
         const selectors = this.getActiveSelectors();
         const camera = this.#scene.activeCamera;
         
-        if (mode === InteractionMode.DESKTOP) {
-            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "desktop";
-        } else if (mode === InteractionMode.MOBILE) {
-            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "mobile";
-        } else if (mode === InteractionMode.XR) {
-            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).platform = "xr";
+        const gameStateBehavior = camera.getBehaviorByName("StateMachine") as GameStateBehavior;
+        if (gameStateBehavior) {
+            if (mode === InteractionMode.DESKTOP) {
+                gameStateBehavior.platform = "desktop";
+            } else if (mode === InteractionMode.MOBILE) {
+                gameStateBehavior.platform = "mobile";
+            } else if (mode === InteractionMode.XR) {
+                gameStateBehavior.platform = "xr";
+            }
         }
 
         // Drop everything
         for (const selector of selectors) {
-            this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.DROP});
-            selector.grabbedMesh = null;
+            if (selector.grabbedMesh) {
+                this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.DROP});
+                selector.grabbedMesh = null;
+            }
         }
 
         this.interactionMode = mode;
