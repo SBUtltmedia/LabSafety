@@ -22,8 +22,8 @@ import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
-import { GameStates, GameStateBehavior } from "./GameStateBehavior";
-import { setupGameStates } from "./setupGameStates";
+import { GameStates } from "./StateMachine";
+import { setupGameStates, stateMachine } from "./setupGameStates";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -52,7 +52,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         camera.inputs.add(new VirtualTouchJoystick())        
     }
 
-    setupGameStates(camera);
     configureScene(scene, true);
     configureCamera(camera);
     scene.activeCamera = camera;
@@ -113,6 +112,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             reticle.isVisible = state !== WebXRState.IN_XR;
         });
     }
+
+    setupGameStates();
     
     await loadSounds("./json/sounds.json");
     await resetScene(scene);
@@ -179,11 +180,11 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     }
 
     document.exitPointerLock();
-    (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_START);
+    stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_START);
 
     const canvas = document.getElementById("canvas");
     const handleInitialClick: EventListener = (e: Event) => {
-        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_BASE);
+        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_BASE);
         canvas.removeEventListener('click', handleInitialClick);
     };
     canvas.addEventListener("click", handleInitialClick);

@@ -11,7 +11,8 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
-import { GameStateBehavior, GameStates } from "./GameStateBehavior";
+import { StateMachine, GameStates } from "./StateMachine";
+import { stateMachine } from "./setupGameStates";
 
 export function createClipboard(mesh: AbstractMesh): void {
     const scene = mesh.getScene();
@@ -55,9 +56,9 @@ export function createClipboard(mesh: AbstractMesh): void {
 
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
         if (state === GrabState.GRAB) {
-            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_SOP);
+            stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_SOP);
         } else {
-            (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_SOP);
+            stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_SOP);
         }
     })
 

@@ -17,7 +17,9 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
-import { GameStateBehavior, GameStates } from "./GameStateBehavior";
+import { StateMachine } from "./StateMachine";
+import { GameState } from "./GameStateObjects";
+import { stateMachine } from "./setupGameStates";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -67,6 +69,7 @@ const SELECTOR_DIAMETER = 0.005;
 export class InteractionManager {
     onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
     onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
+    onModeChangeObservable: Observable<InteractionMode> = new Observable();
     #scene: Scene;
     #highlightLayer: HighlightLayer;
     modeSelectorMap: IModeSelectorMap = {
@@ -252,19 +255,7 @@ export class InteractionManager {
 
     #switchMode = (mode: InteractionMode) => {
         const selectors = this.getActiveSelectors();
-        const camera = this.#scene.activeCamera;
-        
-        const gameStateBehavior = camera.getBehaviorByName("StateMachine") as GameStateBehavior;
-        if (gameStateBehavior) {
-            if (mode === InteractionMode.DESKTOP) {
-                gameStateBehavior.platform = "desktop";
-            } else if (mode === InteractionMode.MOBILE) {
-                gameStateBehavior.platform = "mobile";
-            } else if (mode === InteractionMode.XR) {
-                gameStateBehavior.platform = "xr";
-            }
-        }
-
+        this.onModeChangeObservable.notifyObservers(mode);
         // Drop everything
         for (const selector of selectors) {
             if (selector.grabbedMesh) {

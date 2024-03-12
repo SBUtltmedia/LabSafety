@@ -22,7 +22,7 @@
     "GAME_STATE_PICK_CYLINDER": {
         "desktop": "Right click on any other cylinder to mix",
         "mobile": "Right click on any other cylinder to mix",
-        "xr": "Hover over any other cylinder to mix"        
+        "xr": "Trigger over any other cylinder to mix"        
     },
     "GAME_STATE_PASS": {
         "desktop": "You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue.",

@@ -1,4 +1,4 @@
-import { GameStates } from "./GameStateBehavior";
+import { GameStates } from "./StateMachine";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
@@ -34,7 +34,8 @@ export class GameState {
 
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
         if (newState === GameStates.GAME_STATE_START) {
             this.hideHUD();
             return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
@@ -83,8 +84,9 @@ export class StartState extends GameState {
         this.displayHUD();
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.hideHUD();
+        this.platform = platform;
         return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 
@@ -109,7 +111,8 @@ export class BaseState extends GameState {
         this.displayHUD();
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
         if (newState === GameStates.GAME_STATE_PICK_SOP) {
             this.hideHUD();
             return new PickSOPState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
@@ -130,7 +133,8 @@ export class PickCylinderState extends GameState {
         this.displayHUD();
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
         if (newState === GameStates.GAME_STATE_PASS) {
             this.hideHUD();
             return new PassFailState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform, true);
@@ -154,7 +158,8 @@ export class PassFailState extends GameState {
         this.isPass = isPass;
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
         this.hideHUD();
         if (newState === GameStates.GAME_STATE_SOP_PASS) {
             return new BaseState(global.hudHints["GAME_STATE_SOP_PASS"][this.platform], this.platform);
@@ -171,7 +176,8 @@ export class PickSOPState extends GameState {
         this.displayHUD();
     }
 
-    handleStateChange(newState: GameStates, ...args: any): GameState {
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
         this.hideHUD();
         return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }

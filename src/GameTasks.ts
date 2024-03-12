@@ -12,26 +12,18 @@ import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { GameStates, GameStateBehavior } from "./GameStateBehavior";
+import { GameStates } from "./StateMachine";
+import { stateMachine } from "./setupGameStates";
 
 interface ITaskMap {
     [key: string]: Task
 }
 
 export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
-
-    
     let taskList: Task[] = [];
 
     let pouringTasks: Task[] = [];
     let taskMap: ITaskMap = {};
-
- 
- 
-
-    //global.sounds.ding.stop();
- 
-      
 
     listItems.forEach(item => {
         if (item.logic) {
@@ -59,12 +51,11 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
 }
 
 const processTask = (targetName: string, toName: string, task: Task, scene: Scene) => {
-    let camera = scene.activeCamera;
     if (targetName === toName) {
-        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PASS);
+        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PASS);
         task.succeed();
     } else {
-        (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_FAIL);
+        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_FAIL);
         task.fail();
     }
 }
@@ -125,7 +116,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
                 let camera = scene.activeCamera;
-                (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_SOP_PASS);
+                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_SOP_PASS);
                 GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
                 global.sounds.success.stop();
                 global.sounds.success.play();

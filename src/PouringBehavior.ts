@@ -10,7 +10,8 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionMode } from "./interactionManager";
-import { GameStateBehavior, GameStates } from "./GameStateBehavior";
+import { StateMachine, GameStates } from "./StateMachine";
+import { stateMachine } from "./setupGameStates";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -61,14 +62,14 @@ export class PouringBehavior implements Behavior<Mesh> {
         const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.GRAB) {
-                (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_CYLINDER);
+                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_CYLINDER);
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
                     this.#changeTarget(target);
                 });
             } else if (state === GrabState.DROP) {
                 this.#changeTarget(null);
-                (camera.getBehaviorByName("StateMachine") as GameStateBehavior).onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_CYLINDER);
+                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_CYLINDER);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
