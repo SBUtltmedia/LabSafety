@@ -7,7 +7,7 @@ import { Status } from "./Task";
 import { startFire } from "./startFire";
 import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
-import { resetScene } from "./scene";
+import { enablePointerLock, resetScene } from "./scene";
 import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -117,7 +117,10 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                 // Show success screen, play fanfare.
                 let camera = scene.activeCamera;
                 stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_SOP_PASS);
-                GUIWindows.createSuccessScreen(scene, () => resetScene(scene));
+                GUIWindows.createSuccessScreen(scene, () => {
+                    enablePointerLock();
+                    resetScene(scene)
+                });
                 global.sounds.success.stop();
                 global.sounds.success.play();
                 break;
@@ -132,7 +135,10 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                     fireBehavior.onFireObservable.add(aflame => {
                         if (!aflame) {
                             // Handle successful fire handling: show failure screen, play fanfare.
-                            GUIWindows.createFailureScreen(scene, () => resetScene(scene));
+                            GUIWindows.createFailureScreen(scene, () => {
+                                enablePointerLock();
+                                resetScene(scene)
+                            });
                             // @todo: find a new sound for SOP failure.
                             global.sounds.success.stop();
                             global.sounds.success.play();

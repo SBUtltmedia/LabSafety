@@ -30,6 +30,16 @@ export let interactionManager: InteractionManager;
 // Names of meshes not to dispose on scene reset
 export const meshesToPreserveNames: string[] = [];
 
+let pointerLockEnabled = true;
+
+export function disablePointerLock(): void {
+    pointerLockEnabled = false;
+}
+
+export function enablePointerLock(): void {
+    pointerLockEnabled = true;
+}
+
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
     const scene = new Scene(engine);
@@ -45,7 +55,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
     if (!isTouchDevice) {
         canvas.addEventListener("click", () => {
-            canvas.requestPointerLock();
+            if (pointerLockEnabled) {
+                canvas.requestPointerLock();
+            }
         });
     } else {
         camera.inputs.clear();
