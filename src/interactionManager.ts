@@ -17,9 +17,6 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
-import { StateMachine } from "./StateMachine";
-import { GameState } from "./GameStateObjects";
-import { stateMachine } from "./setupGameStates";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -200,7 +197,7 @@ export class InteractionManager {
             }
         } else {
             if (selector.grabbedMesh) {
-                this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.DROP});
+                this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.DROP });
                 selector.grabbedMesh = null;
             }
         }
@@ -300,17 +297,19 @@ export class InteractionManager {
         this.hasDefaultSelector = true;
 
         this.#scene.onPointerObservable.add(pointerInfo => {
-            if (pointerInfo.event.inputIndex === PointerInput.LeftClick) {
-                if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                    this.#checkGrab(true, anchor.uniqueId);
-                } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
-                    this.#checkGrab(false, anchor.uniqueId);
-                }
-            } else if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
-                if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                    this.#checkActivate(true, anchor.uniqueId);
-                } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
-                    this.#checkActivate(false, anchor.uniqueId);
+            if (this.interactionMode === InteractionMode.DESKTOP) {
+                if (pointerInfo.event.inputIndex === PointerInput.LeftClick) {
+                    if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                        this.#checkGrab(true, anchor.uniqueId);
+                    } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
+                        this.#checkGrab(false, anchor.uniqueId);
+                    }
+                } else if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
+                    if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                        this.#checkActivate(true, anchor.uniqueId);
+                    } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
+                        this.#checkActivate(false, anchor.uniqueId);
+                    }
                 }
             }
         });
