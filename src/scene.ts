@@ -40,6 +40,8 @@ export function enablePointerLock(): void {
     pointerLockEnabled = true;
 }
 
+export let utilityLayer: UtilityLayerRenderer;
+
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
     const scene = new Scene(engine);
@@ -74,7 +76,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     Engine.audioEngine.useCustomUnlockedButton = true;
 
     // To prevent the reticle clipping through objects in the scene
-    const utilityLayer = new UtilityLayerRenderer(scene);
+    utilityLayer = new UtilityLayerRenderer(scene);
 
     const reticle = CreateReticle("reticle", utilityLayer.utilityLayerScene);
     reticle.setParent(camera);

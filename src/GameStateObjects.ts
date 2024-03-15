@@ -1,3 +1,5 @@
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
 import { GameStates } from "./StateMachine";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
@@ -5,25 +7,46 @@ import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { Control } from "@babylonjs/gui/2D/controls/control";
 import { global } from "./GlobalState";
 
+import { utilityLayer } from "./scene";
+
 export class GameState {
     text: string;
     advancedTexture: AdvancedDynamicTexture;
     textBlock: TextBlock;
     rectangle: Rectangle;
-    platform: string
+    #plane: AbstractMesh;
+    protected _platform: string;
+
+    set platform(val: string) {
+        this._platform = val;
+        this.#repositionPlane();
+    }
+
+    get platform(): string {
+        return this._platform;
+    }
+
+    #repositionPlane = (): void => {
+        this.#plane.setParent(utilityLayer.originalScene.activeCamera);
+        this.#plane.position.copyFromFloats(0, -0.5, 2);
+        this.#plane.rotation.setAll(0);
+    }
 
     constructor(text: string, platform: string) {
         if (text)
             this.text = text;
         
         if (platform)
-            this.platform = platform;
-
-        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
+            this._platform = platform;
+        this.#plane = CreatePlane("plane", { size: 2 }, utilityLayer.utilityLayerScene);
+        this.#plane.isPickable = false;
+        this.#repositionPlane();
+        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
+        // this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
         this.textBlock = new TextBlock("textblock");
         this.rectangle = new Rectangle("rect");
-        this.rectangle.width = 0.13;
-        this.rectangle.height = 0.33
+        this.rectangle.width = 0.25;
+        this.rectangle.height = 0.33;
         this.rectangle.color = "cyan";
         this.rectangle.thickness = 4;
         this.rectangle.background = "black";   
@@ -35,10 +58,10 @@ export class GameState {
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
+        this._platform = platform;
         if (newState === GameStates.GAME_STATE_START) {
             this.hideHUD();
-            return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
+            return new StartState(global.hudHints["GAME_STATE_START"][this._platform], this._platform);
         }
         return null;
     }
@@ -48,7 +71,7 @@ export class GameState {
         this.textBlock.textWrapping = true;
         this.textBlock.fontSize = 20;
 
-        if (this.platform === "mobile") {
+        if (this._platform === "mobile") {
             this.textBlock.fontSize = 12;
         }
         
