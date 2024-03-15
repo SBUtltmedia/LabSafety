@@ -34,10 +34,18 @@ let pointerLockEnabled = true;
 
 export function disablePointerLock(): void {
     pointerLockEnabled = false;
+    const reticle = utilityLayer?.utilityLayerScene.getMeshByName("reticle");
+    if (reticle) {
+        reticle.isVisible = false;
+    }
 }
 
 export function enablePointerLock(): void {
     pointerLockEnabled = true;
+    const reticle = utilityLayer?.utilityLayerScene.getMeshByName("reticle");
+    if (reticle) {
+        reticle.isVisible = true;
+    }
 }
 
 export let utilityLayer: UtilityLayerRenderer;
