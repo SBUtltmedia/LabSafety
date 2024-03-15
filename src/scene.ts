@@ -170,7 +170,8 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     const light = scene.getLightByName("light1");
     light.intensity = 0;
     const camera = scene.activeCamera;
-    const meshesToDispose = scene.meshes.filter(mesh => !meshesToPreserveNames.includes(mesh.name));
+    const meshesToDispose = scene.meshes.filter(mesh => !meshesToPreserveNames.includes(mesh.name))
+        .concat(utilityLayer.utilityLayerScene.meshes.filter(mesh => !meshesToPreserveNames.includes(mesh.name)));
     for (const mesh of meshesToDispose) {
         mesh.dispose();
     }
