@@ -4,7 +4,7 @@ import "@babylonjs/core/Collisions/collisionCoordinator"; // To enable collision
 import "@babylonjs/loaders/glTF"; // To enable loading .glb meshes
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Helpers/sceneHelpers"; // To enable creating the default XR experience
-
+import 'pepjs'
 import { createSceneAsync } from "./scene";
 import { setUpEngine } from "./setUpEngine";
 import { Engine } from "@babylonjs/core/Engines/engine";
