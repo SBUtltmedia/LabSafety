@@ -68,7 +68,7 @@ export class InteractionManager {
     onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
     onModeChangeObservable: Observable<InteractionMode> = new Observable();
     #scene: Scene;
-    #highlightLayer: HighlightLayer;
+    highlightLayer: HighlightLayer;
     modeSelectorMap: IModeSelectorMap = {
         [InteractionMode.DESKTOP]: {},
         [InteractionMode.XR]: {},
@@ -114,7 +114,7 @@ export class InteractionManager {
         } else {
             this.#switchMode(InteractionMode.DESKTOP);
         }
-        this.#highlightLayer = new HighlightLayer("interaction-highlight-layer");
+        this.highlightLayer = new HighlightLayer("interaction-highlight-layer");
 
         this.#scene.onBeforeRenderObservable.add(() => {
             // Clear targets from previous render
@@ -145,10 +145,10 @@ export class InteractionManager {
             this.#activeTargets.push(...Object.values(targets));
 
             // Highlight all valid targets
-            this.#highlightLayer.removeAllMeshes();
+            this.highlightLayer.removeAllMeshes();
             for (const target of this.#activeTargets) {
                 if (target instanceof Mesh) {
-                    this.#highlightLayer.addMesh(target, Color3.Gray());
+                    this.highlightLayer.addMesh(target, Color3.Gray());
                 }
             }
         });

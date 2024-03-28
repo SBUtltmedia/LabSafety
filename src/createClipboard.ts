@@ -2,6 +2,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import { SOP_TEMPLATE_PATH } from "./Constants";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
@@ -10,9 +11,9 @@ import { global } from "./GlobalState";
 import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
-import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
-import { StateMachine, GameStates } from "./StateMachine";
 import { stateMachine } from "./setupGameStates";
+import { GameStates } from "./StateMachine";
+import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
 
 export function createClipboard(mesh: AbstractMesh): void {
     const scene = mesh.getScene();
@@ -52,17 +53,20 @@ export function createClipboard(mesh: AbstractMesh): void {
         }
     });
 
-    const camera = scene.activeCamera;
-
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
         if (state === GrabState.GRAB) {
             stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_SOP);
         } else {
             stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_SOP);
         }
-    })
+    });
+
+    if (plane instanceof Mesh) {
+        interactableBehavior.interactionManager.highlightLayer.addExcludedMesh(plane);
+    }
 
     const fadeRespawnBehavior = new FadeRespawnBehavior();
+    
     mesh.addBehavior(interactableBehavior);
     mesh.addBehavior(fadeRespawnBehavior);
 }
