@@ -72,9 +72,13 @@ export class InteractionManager {
     modeSelectorMap: IModeSelectorMap = {
         [InteractionMode.DESKTOP]: {},
         [InteractionMode.XR]: {},
-        [InteractionMode.LOADING]: {},
+        [InteractionMode.MOBILE]: {},
+        [InteractionMode.LOADING]: {}
     };
     hasDefaultSelector: boolean = false;
+    #configuredDesktop: boolean = false;
+    #configuredMobile: boolean = false;
+    #configuredXR: boolean = false;
     #activeTargets: AbstractMesh[] = [];
     interactionMode: InteractionMode = InteractionMode.LOADING;
     interactableMeshes: AbstractMesh[] = [];
@@ -85,35 +89,13 @@ export class InteractionManager {
         this.#scene = scene;
         if (xrExperience) {
             this.xrExperience = xrExperience;
-            this.xrExperience.input.controllers.forEach(this.#configureController);
-            this.xrExperience.input.onControllerAddedObservable.add(this.#configureController);
-            
-            if (this.xrExperience.baseExperience.state === WebXRState.NOT_IN_XR) {
-                this.#switchMode(InteractionMode.DESKTOP);
-                if (!this.hasDefaultSelector) {
-                    this.configureDesktopInteraction(this.#scene.activeCamera);
-                }
-            } else if (this.xrExperience.baseExperience.state === WebXRState.IN_XR) {
-                this.interactionMode = InteractionMode.XR;
-            } else {
-                this.interactionMode = InteractionMode.LOADING;
-            }
-            
             this.xrExperience.baseExperience.onStateChangedObservable.add(state => {
-                if (state === WebXRState.NOT_IN_XR) {
-                    this.#switchMode(InteractionMode.DESKTOP);
-                    if (!this.hasDefaultSelector) {
-                        this.configureDesktopInteraction(this.#scene.activeCamera);
-                    }
-                } else if (state === WebXRState.IN_XR) {
-                    this.#switchMode(InteractionMode.XR);
-                } else {
-                    this.#switchMode(InteractionMode.LOADING);
-                }
+                this.#switchModeFromXRState(state);
             });
-        } else {
-            this.#switchMode(InteractionMode.DESKTOP);
         }
+
+        this.#switchModeFromXRState(this.xrExperience === undefined ? WebXRState.NOT_IN_XR : this.xrExperience.baseExperience.state);
+
         this.highlightLayer = new HighlightLayer("interaction-highlight-layer");
 
         this.#scene.onBeforeRenderObservable.add(() => {
@@ -250,6 +232,21 @@ export class InteractionManager {
         this.onActivationStateChangedObservable.notifyObserver(behavior.activationStateObserver, activationInfo, mesh.uniqueId);
     }
 
+    #switchModeFromXRState = (state: WebXRState) => {
+        if (state === WebXRState.NOT_IN_XR) {
+            if (false) {  // @todo: predicate if mobile mode should be used
+                this.#switchMode(InteractionMode.MOBILE);
+            } else {
+                // Fall back to desktop mode
+                this.#switchMode(InteractionMode.DESKTOP);
+            }
+        } else if (state === WebXRState.IN_XR) {
+            this.#switchMode(InteractionMode.XR);
+        } else {
+            this.#switchMode(InteractionMode.LOADING);
+        }
+    }
+
     #switchMode = (mode: InteractionMode) => {
         const selectors = this.getActiveSelectors();
         this.onModeChangeObservable.notifyObservers(mode);
@@ -262,6 +259,18 @@ export class InteractionManager {
         }
 
         this.interactionMode = mode;
+
+        if ((mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) && !this.hasDefaultSelector) {
+            this.#addDefaultSelector(this.#scene.activeCamera);
+        }
+
+        if (mode === InteractionMode.DESKTOP) {
+            this.#configureDesktopInteractionOnce();
+        } else if (mode === InteractionMode.MOBILE) {
+            this.#configureMobileInteractionOnce();
+        } else if (mode === InteractionMode.XR) {
+            this.#configureXRInteractionOnce();
+        }
     }
 
     addSelector = (anchorMesh: AbstractMesh, grabberMesh: AbstractMesh, modes: InteractionMode[]) => {
@@ -277,7 +286,7 @@ export class InteractionManager {
         }
     }
 
-    configureDesktopInteraction = (camera: Camera) => {
+    #addDefaultSelector = (camera: Camera) => {
         const grabber = CreateCylinder("default-grabber", {
             height: SELECTOR_LENGTH,
             diameter: SELECTOR_DIAMETER
@@ -291,11 +300,21 @@ export class InteractionManager {
         const anchor = new AbstractMesh("default-anchor");
         anchor.isPickable = false;
         anchor.setParent(camera);
-        anchor.position.copyFrom(Vector3.Forward());
+        anchor.position.copyFrom(new Vector3(0, 0, 1));
 
-        this.addSelector(anchor, grabber, [InteractionMode.DESKTOP]);
+        this.addSelector(anchor, grabber, [InteractionMode.DESKTOP, InteractionMode.MOBILE]);
         this.hasDefaultSelector = true;
+    }
 
+    #configureDesktopInteractionOnce = (): void => {
+        if (this.#configuredDesktop) {
+            return;
+        }
+        const selector = Object.values(this.modeSelectorMap[InteractionMode.DESKTOP]).find(({ anchor }) => anchor.name === "default-anchor");
+        if (selector === undefined) {
+            throw new Error("Tried to configure desktop interaction without default selector.");
+        }
+        const { anchor } = selector;
         this.#scene.onPointerObservable.add(pointerInfo => {
             if (this.interactionMode === InteractionMode.DESKTOP) {
                 if (pointerInfo.event.inputIndex === PointerInput.LeftClick) {
@@ -313,6 +332,36 @@ export class InteractionManager {
                 }
             }
         });
+
+        this.#configuredDesktop = true;
+    }
+
+    #configureMobileInteractionOnce = (): void => {
+        if (this.#configuredMobile) {
+            return;
+        }
+        const selector = Object.values(this.modeSelectorMap[InteractionMode.MOBILE]).find(({ anchor }) => anchor.name === "default-anchor");
+        if (selector === undefined) {
+            throw new Error("Tried to configure mobile interaction without default selector.");
+        }
+        const { anchor } = selector;
+
+        // @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
+
+        this.#configuredMobile = true;
+    }
+
+    #configureXRInteractionOnce = (): void => {
+        if (this.#configuredXR) {
+            return;
+        }
+        if (!this.xrExperience) {
+            throw new Error("Tried to configure XR interaction without an XR experience.");
+        }
+        this.xrExperience.input.controllers.forEach(this.#configureController);
+        this.xrExperience.input.onControllerAddedObservable.add(this.#configureController);
+
+        this.#configuredXR = true;
     }
 
     getActiveSelectors = (): ISelector[] => {
