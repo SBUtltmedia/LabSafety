@@ -1,186 +1,168 @@
-import { BaseCameraPointersInput } from "@babylonjs/core/Cameras/Inputs/BaseCameraPointersInput";
-import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { EngineStore } from "@babylonjs/core/Engines/engineStore";
-import { Matrix, Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Scene } from "@babylonjs/core/scene";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
-import { Container } from "@babylonjs/gui/2D/controls/container";
-import { Ellipse } from "@babylonjs/gui/2D/controls/ellipse";
 import { Control } from "@babylonjs/gui/2D/controls/control";
-import { DeepImmutableObject, Nullable } from "@babylonjs/core/types";
-import { PointerTouch } from "@babylonjs/core/Events/pointerEvents";
+import { Ellipse } from "@babylonjs/gui";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
+
+export const enableTouchJoysticks = (scene: Scene) => {
+    let adt = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    let xAddPos = 0;
+    let yAddPos = 0;
+    let xAddRot = 0;
+    let yAddRot = 0;
+    let sideJoystickOffset = 150;
+    let bottomJoystickOffset = -50;
+    let translateTransform;
+
+    let leftPuckDown = false;
+    let rightPuckDown = false;
 
 
-export class VirtualTouchJoystick extends BaseCameraPointersInput {
-    SWIPE_SENSIBILITY = 0.5;
-    JOYSTICK_COLOR = "LightGray";
-    JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE = 0.5;
-    JOYSTICK_CIRCLE_SIZE_VERTICAL_SCREEN_SHARE = 0.1;
-    JOYSTICK_PUCK_SIZE_VERTICAL_SCREEN_SHARE = 0.05;
-    JOYSTICK_OUTER_CIRCLE_THICKNESS_RATIO = 0.01;
-    JOYSTICK_INNER_CIRCLE_THICKNESS_RATIO = 0.04;
-    JOYSTICK_PUCK_THICKNESS_RATIO = 0.01;
+  let leftThumbContainer = makeThumbArea("leftThumb", 2, "blue", null);
+      leftThumbContainer.height = "200px";
+      leftThumbContainer.width = "200px";
+      leftThumbContainer.isPointerBlocker = true;
+      leftThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+      leftThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+      leftThumbContainer.alpha = 0.4;
+      leftThumbContainer.left = sideJoystickOffset;
+      leftThumbContainer.top = bottomJoystickOffset;
 
-    camera: UniversalCamera;
-    joystickDelta = Vector2.Zero();
-    screenSize: Vector2;
-    ui: AdvancedDynamicTexture;
-    joystickPointerId: number;
-    joystickButtonDownPos: Vector2;
-    joystickButtonDownPosOffset: DeepImmutableObject<Vector2>;
-    joystickContainer: Container;
-    joystickOuterCirce: Ellipse;
-    joystickInnerCircle: Ellipse;
-    joystickPuck: Ellipse;
-    joystickCircleRadius: number;
-    joystickPuckRadius: number;
+  let leftInnerThumbContainer = makeThumbArea("leftInnterThumb", 4, "blue", null);
+      leftInnerThumbContainer.height = "80px";
+      leftInnerThumbContainer.width = "80px";
+      leftInnerThumbContainer.isPointerBlocker = true;
+      leftInnerThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      leftInnerThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
 
-    // constructor(isLeftHand: boolean = true) {
-    //     super();
-        
-    // }
 
-    getClassName = () => this.constructor.name;
+  let leftPuck = makeThumbArea("leftPuck",0, "blue", "blue");
+          leftPuck.height = "60px";
+          leftPuck.width = "60px";
+          leftPuck.isPointerBlocker = true;
+          leftPuck.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+          leftPuck.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
 
-    getSimpleName = () => "joystick"
+      leftThumbContainer.onPointerDownObservable.add(function(coordinates: { x: number; y: number; }) {
+          leftPuck.isVisible = true;
 
-    attachControl(noPreventDefault?: boolean) {
-        super.attachControl(noPreventDefault);
-        this.screenSize = VirtualTouchJoystick.getScreenSize();
-        this.ui = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        this.prepareImages();
-        EngineStore.LastCreatedEngine.onResizeObservable.add(this.resize);
-    }
+          leftPuck.left = coordinates.x-(leftThumbContainer._currentMeasure.width*.5)-sideJoystickOffset;
+          leftPuck.left = leftPuck.left;
+          leftPuck.top = adt.getContext().canvas.height - coordinates.y-(leftThumbContainer._currentMeasure.height*.5)+bottomJoystickOffset;
+          leftPuck.top = leftPuck.top*-1;
+          leftPuckDown = true;
+          leftThumbContainer.alpha = 0.9;
+      });
 
-    prepareImages() {
-        this.joystickCircleRadius = this.screenSize.y * this.JOYSTICK_CIRCLE_SIZE_VERTICAL_SCREEN_SHARE;
-        this.joystickPuckRadius = this.screenSize.y * this.JOYSTICK_PUCK_SIZE_VERTICAL_SCREEN_SHARE;
+      leftThumbContainer.onPointerUpObservable.add(function(coordinates: any) {
+          xAddPos = 0;
+          yAddPos = 0;
+          leftPuckDown = false;
+          leftPuck.isVisible = false;
+          leftThumbContainer.alpha = 0.4;
+      });
 
-        this.joystickContainer = new Container("virtual_joystick");
-        let containerSize = this.joystickCircleRadius * 2 + this.joystickPuckRadius * 2 + 1;
-        this.joystickContainer.widthInPixels = containerSize;
-        this.joystickContainer.heightInPixels = containerSize;
-        this.joystickContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-        this.joystickContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-
-        this.joystickOuterCirce = this.prepareJoystickCircle(
-            this.joystickCircleRadius,
-            containerSize * this.JOYSTICK_OUTER_CIRCLE_THICKNESS_RATIO,
-        );
-        this.joystickInnerCircle = this.prepareJoystickCircle(
-            this.joystickPuckRadius,
-            containerSize * this.JOYSTICK_INNER_CIRCLE_THICKNESS_RATIO,
-        );
-        this.joystickPuck = this.prepareJoystickCircle(
-            this.joystickPuckRadius,
-            containerSize * this.JOYSTICK_PUCK_THICKNESS_RATIO,
-        );
-
-        this.joystickContainer.addControl(this.joystickOuterCirce);
-        this.joystickContainer.addControl(this.joystickInnerCircle);
-        this.joystickContainer.addControl(this.joystickPuck);
-        this.joystickContainer.isVisible = false;
-        this.ui.addControl(this.joystickContainer);
-    }
-
-    prepareJoystickCircle(radius: number, thickness: number) {
-        let circle = new Ellipse();
-        circle.widthInPixels = radius * 2;
-        circle.heightInPixels = radius * 2;
-        circle.thickness = thickness;
-        circle.color = this.JOYSTICK_COLOR;
-        circle.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        circle.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-        return circle;
-    }
-
-    detachControl() {
-        this.disposeImages();
-        this.ui.dispose();
-        EngineStore.LastCreatedEngine.onResizeObservable.removeCallback(this.resize);
-        super.detachControl();
-    }
-
-    disposeImages() {
-        this.joystickContainer.dispose()
-        this.joystickInnerCircle.dispose();
-        this.joystickOuterCirce.dispose();
-        this.joystickPuck.dispose();
-    }
-
-    resize = () => {
-        this.screenSize = VirtualTouchJoystick.getScreenSize();
-        this.disposeImages();
-        this.prepareImages();
-    };
-
-    static getScreenSize() {
-        let engine = EngineStore.LastCreatedEngine;
-        return new Vector2(engine.getRenderWidth(), engine.getRenderHeight());
-    }
-
-    checkInputs() {
-        let joystickMoveVector = new Vector3(this.joystickDelta.x, 0, -this.joystickDelta.y);
-        joystickMoveVector.scaleInPlace(EngineStore.LastCreatedEngine.getDeltaTime() / 1000);
-        this.camera.cameraDirection.addInPlace(
-            Vector3.TransformCoordinates(joystickMoveVector, Matrix.RotationY(this.camera.rotation.y)),
-        );
-    }
-
-    onTouch(point: Nullable<PointerTouch>, offsetX: number, offsetY: number) {
-        if (point.pointerId === this.joystickPointerId) {
-            // point refer to global inner window canvas, we need to convert it to local render canvas
-            this.onTouchJoystick(
-                new Vector2(point.x, point.y).subtractInPlace(this.joystickButtonDownPosOffset),
-            );
-        } else {
-            this.onTouchSwipe(new Vector2(offsetX, offsetY));
+      leftThumbContainer.onPointerMoveObservable.add(function(coordinates: { x: number; y: number; }) {
+          if (leftPuckDown) {
+              xAddPos = coordinates.x-(leftThumbContainer._currentMeasure.width*.5)-sideJoystickOffset;
+              yAddPos = adt.getContext().canvas.height - coordinates.y-(leftThumbContainer._currentMeasure.height*.5)+bottomJoystickOffset;
+              leftPuck.left = xAddPos;
+              leftPuck.top = yAddPos*-1;
+              leftPuck.left = leftPuck.left;
+              leftPuck.top = leftPuck.top;
         }
-    }
+      });
 
-    onTouchJoystick(touchPoint: Vector2) {
-        const joystickVector = touchPoint.subtract(this.joystickButtonDownPos);
-        if (joystickVector.length() > this.joystickCircleRadius)
-            joystickVector.scaleInPlace(this.joystickCircleRadius / joystickVector.length());
-        this.joystickPuck.left = joystickVector.x;
-        this.joystickPuck.top = joystickVector.y;
+   adt.addControl(leftThumbContainer);
+   leftThumbContainer.addControl(leftInnerThumbContainer);
+   leftThumbContainer.addControl(leftPuck);
+   leftPuck.isVisible = false;
 
-        this.joystickDelta = joystickVector.scaleInPlace(this.camera.speed / this.joystickCircleRadius);
-    }
+   const speedFactor = 0.5;
 
-    onTouchSwipe(touchOffset: Vector2) {
-        let directionAdjust = 1;
-        if (this.camera.getScene().useRightHandedSystem) directionAdjust *= -1;
-        if (this.camera.parent && this.camera.parent._getWorldMatrixDeterminant() < 0)
-            directionAdjust *= -1;
+   let rightThumbContainer = makeThumbArea("rightThumb", 2, "red", null);
+       rightThumbContainer.height = "200px";
+       rightThumbContainer.width = "200px";
+       rightThumbContainer.isPointerBlocker = true;
+       rightThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
+       rightThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+       rightThumbContainer.alpha = 0.4;
+       rightThumbContainer.left = -sideJoystickOffset;
+       rightThumbContainer.top = bottomJoystickOffset;
 
-        this.camera.cameraRotation.y +=
-            ((directionAdjust * touchOffset.x) / this.screenSize.x) * this.SWIPE_SENSIBILITY;
-        this.camera.cameraRotation.x += (touchOffset.y / this.screenSize.x) * this.SWIPE_SENSIBILITY;
-    }
+   let rightInnerThumbContainer = makeThumbArea("rightInnterThumb", 4, "red", null);
+       rightInnerThumbContainer.height = "80px";
+       rightInnerThumbContainer.width = "80px";
+       rightInnerThumbContainer.isPointerBlocker = true;
+       rightInnerThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+       rightInnerThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
 
-    onButtonDown(evt: { offsetX: number; }) {
-        if (evt.offsetX < this.screenSize.x * this.JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE) {
-            this.onButtonDownJoystick(evt);
-        }
-    }
 
-    onButtonDownJoystick(evt: { offsetX: number; offsetY?: number; pointerId?: number; clientX?: number; clientY?: number; }) {
-        let point = new Vector2(evt.offsetX, evt.offsetY);
-        this.joystickPointerId = evt.pointerId;
-        this.joystickButtonDownPos = point;
-        this.joystickButtonDownPosOffset = new Vector2(evt.clientX - point.x, evt.clientY - point.y);
-        this.joystickContainer.left = point.x - this.joystickContainer.widthInPixels / 2;
-        this.joystickContainer.top = point.y - this.joystickContainer.heightInPixels / 2;
-        this.joystickContainer.isVisible = true;
-    }
+   let rightPuck = makeThumbArea("rightPuck",0, "red", "red");
+    rightPuck.height = "60px";
+    rightPuck.width = "60px";
+    rightPuck.isPointerBlocker = true;
+    rightPuck.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+    rightPuck.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
 
-    onButtonUp(evt: { pointerId: number; }) {
-        if (evt.pointerId === this.joystickPointerId) this.onButtonUpJoystick();
-    }
+       rightThumbContainer.onPointerDownObservable.add(function(coordinates: { x: number; y: number; }) {
+           rightPuck.isVisible = true;
+           rightPuck.left = adt.getContext().canvas.width - coordinates.x-(rightThumbContainer._currentMeasure.width*.5)-sideJoystickOffset;
+           rightPuck.left = rightPuck.left*-1;
+           rightPuck.top = adt.getContext().canvas.height - coordinates.y-(rightThumbContainer._currentMeasure.height*.5)+bottomJoystickOffset;
+           rightPuck.top = rightPuck.top*-1;
+           rightPuckDown = true;
+           rightThumbContainer.alpha = 0.9;
+       });
 
-    onButtonUpJoystick() {
-        this.joystickPointerId = null;
-        this.joystickDelta.scaleInPlace(0);
-        this.joystickContainer.isVisible = false;
-    }
+       rightThumbContainer.onPointerUpObservable.add(function(coordinates: any) {
+           xAddRot = 0;
+           yAddRot = 0;
+           rightPuckDown = false;
+           rightPuck.isVisible = false;
+           rightThumbContainer.alpha = 0.4;
+       });
+
+       rightThumbContainer.onPointerMoveObservable.add(function(coordinates: { x: number; y: number; }) {
+           if (rightPuckDown) {
+               xAddRot = adt.getContext().canvas.width - coordinates.x-(rightThumbContainer._currentMeasure.width*.5)-sideJoystickOffset;
+               yAddRot = adt.getContext().canvas.height - coordinates.y-(rightThumbContainer._currentMeasure.height*.5)+bottomJoystickOffset;
+               rightPuck.left = xAddRot*-1;
+               rightPuck.top = yAddRot*-1;
+               rightPuck.left = rightPuck.left;
+               rightPuck.top = rightPuck.top;
+            }
+       });
+
+    //leftThumbContainer.left = 50;
+    adt.addControl(rightThumbContainer);
+    rightThumbContainer.addControl(rightInnerThumbContainer);
+    rightThumbContainer.addControl(rightPuck);
+    rightPuck.isVisible = false;
+
+    let camera: UniversalCamera = scene.activeCamera as UniversalCamera;
+    let canvas = document.getElementById("canvas");
+
+    camera.attachControl(canvas, true);
+
+    scene.registerBeforeRender(function(){
+              translateTransform = Vector3.TransformCoordinates(new Vector3(xAddPos/3000, 0, yAddPos/3000), Matrix.RotationY(camera.rotation.y));
+              camera.cameraDirection.addInPlace(translateTransform);
+              camera.cameraRotation.y += speedFactor * xAddRot/15000*-1;
+              camera.cameraRotation.x += speedFactor * yAddRot/15000*-1;
+        }); 
+
+    function makeThumbArea(name: string, thickness: number, color: string, background: string){
+    let rect = new Ellipse();
+        rect.name = name;
+        rect.thickness = thickness;
+        rect.color = color;
+        rect.background = background;
+        rect.paddingLeft = "0px";
+        rect.paddingRight = "0px";
+        rect.paddingTop = "0px";
+        rect.paddingBottom = "0px";
+        return rect;
+    }            
 }

@@ -9,7 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
-import { VirtualTouchJoystick } from "./VirtualTouchJoystick";
+import { enableTouchJoysticks } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { setRespawnPoints } from "./FadeRespawnBehavior";
@@ -70,8 +70,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             }
         });
     } else {
-        camera.inputs.clear();
-        camera.inputs.add(new VirtualTouchJoystick())        
+        enableTouchJoysticks(scene);
     }
 
     configureScene(scene, true);
