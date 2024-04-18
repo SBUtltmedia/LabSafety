@@ -202,11 +202,11 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     }
 
     document.exitPointerLock();
-    stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_START);
+    stateMachine.onStateChangeObervable.notifyObservers(GameStates.START);
 
     const canvas = document.getElementById("canvas");
     const handleInitialClick: EventListener = (e: Event) => {
-        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_BASE);
+        stateMachine.onStateChangeObervable.notifyObservers(GameStates.BASE);
         canvas.removeEventListener('click', handleInitialClick);
     };
     canvas.addEventListener("click", handleInitialClick);

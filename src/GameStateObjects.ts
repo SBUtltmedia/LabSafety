@@ -59,7 +59,7 @@ export class GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this._platform = platform;
-        if (newState === GameStates.GAME_STATE_START) {
+        if (newState === GameStates.START) {
             this.hideHUD();
             return new StartState(global.hudHints["GAME_STATE_START"][this._platform], this._platform);
         }
@@ -136,21 +136,18 @@ export class BaseState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        if (newState === GameStates.GAME_STATE_PICK_SOP) {
+        if (newState === GameStates.GRAB) {
             this.hideHUD();
-            return new PickSOPState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_PICK_CYLINDER) {
+            return new GrabState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
+        } else if (newState === GameStates.HIGHLIGHT) {
             this.hideHUD();
-            return new PickCylinderState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_START) {
-            this.hideHUD();
-            return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
+            return new HighlightState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
         }
         return null;
     }
 }
 
-export class PickCylinderState extends GameState {
+export class GrabState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform);
         this.displayHUD();
@@ -158,42 +155,30 @@ export class PickCylinderState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        if (newState === GameStates.GAME_STATE_PASS) {
+        if (newState === GameStates.ACTIVATE) {
             this.hideHUD();
-            return new PassFailState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform, true);
-        } else if (newState === GameStates.GAME_STATE_FAIL) {
+            return new ActivateState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform);
+        } else if (newState === GameStates.BASE) {
             this.hideHUD();
-            return new PassFailState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_DROP_CYLINDER) {
-            this.hideHUD();
-            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
+            return new BaseState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
         }
         return null;
     }
 }
 
-export class PassFailState extends GameState {
-    isPass: boolean;
-
-    constructor(text: string, platform: string, isPass = false) {
+export class ActivateState extends GameState {
+    constructor(text: string, platform: string) {
         super(text, platform);
-        this.displayHUD();
-        this.isPass = isPass;
+        // this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        this.hideHUD();
-        if (newState === GameStates.GAME_STATE_SOP_PASS) {
-            return new BaseState(global.hudHints["GAME_STATE_SOP_PASS"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_BASE) {
-            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
-        }
-        return new BaseState(this.isPass ? global.hudHints["GAME_STATE_BASE"][this.platform] : this.text, this.platform);
+        return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 }
 
-export class PickSOPState extends GameState {
+
+export class HighlightState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform);
         this.displayHUD();
