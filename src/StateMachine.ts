@@ -4,17 +4,11 @@ import { interactionManager } from "./scene";
 import { InteractionMode } from "./interactionManager";
 
 export enum GameStates {
-    GAME_STATE_START,
-    GAME_STATE_BASE,
-    GAME_STATE_PICK_SOP,
-    GAME_STATE_DROP_SOP,
-    GAME_STATE_PICK_FIREEXTINGUISHER,
-    GAME_STATE_DROP_FIREEXTINGUISHER,    
-    GAME_STATE_PICK_CYLINDER,
-    GAME_STATE_DROP_CYLINDER,
-    GAME_STATE_PASS,
-    GAME_STATE_FAIL,
-    GAME_STATE_SOP_PASS,
+    START,
+    BASE,
+    HIGHLIGHT,
+    GRAB,
+    ACTIVATE
 }
 
 export class StateMachine {
@@ -29,10 +23,18 @@ export class StateMachine {
         });
         this.platform = "desktop";
 
+        interactionManager.onHasAnyTargetsObservable.add(isTarget => {
+            if (isTarget) {
+                this.#delegateState(GameStates.HIGHLIGHT);
+            } else {
+                this.#delegateState(GameStates.BASE);
+            }
+        })
+
         interactionManager.onModeChangeObservable.add(newMode => {
             this.platform = this.#getStringFromMode(newMode);
             if (this.platform !== "loading" && this.platform !== "null") {
-                this.#delegateState(GameStates.GAME_STATE_BASE);
+                this.#delegateState(GameStates.BASE);
             }
         })
     }
