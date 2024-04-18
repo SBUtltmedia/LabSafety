@@ -67,6 +67,7 @@ export class InteractionManager {
     onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
     onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
     onModeChangeObservable: Observable<InteractionMode> = new Observable();
+    onHasAnyTargetsObservable: Observable<boolean> = new Observable();  // Fires when this.#activeTargets goes from being empty to non-empty or non-empty to empty.
     #scene: Scene;
     highlightLayer: HighlightLayer;
     modeSelectorMap: IModeSelectorMap = {
@@ -100,6 +101,7 @@ export class InteractionManager {
 
         this.#scene.onBeforeRenderObservable.add(() => {
             // Clear targets from previous render
+            const numPreviousTargets = this.#activeTargets.length;
             this.#activeTargets.splice(0, this.#activeTargets.length);
             
             // Find valid targets for active selectors
@@ -132,6 +134,12 @@ export class InteractionManager {
                 if (target instanceof Mesh) {
                     this.highlightLayer.addMesh(target, Color3.Gray());
                 }
+            }
+
+            if (this.#activeTargets.length === 0 && numPreviousTargets !== 0) {
+                this.onHasAnyTargetsObservable.notifyObservers(false);
+            } else if (this.#activeTargets.length !== 0 && numPreviousTargets === 0) {
+                this.onHasAnyTargetsObservable.notifyObservers(true);
             }
         });
     }
