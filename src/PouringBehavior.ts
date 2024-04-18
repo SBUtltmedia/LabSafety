@@ -9,7 +9,7 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionMode } from "./interactionManager";
+import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
 import { StateMachine, GameStates } from "./StateMachine";
 import { stateMachine } from "./setupGameStates";
 
@@ -20,8 +20,8 @@ export class PouringBehavior implements Behavior<Mesh> {
     mesh: Mesh;
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
-    #grabStateObserver: Observer<IGrabInfo>;
-    #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
+    #grabStateObserver: Observer<IMeshGrabInfo>;
+    #activationStateObserver: Nullable<Observer<IMeshActivationInfo>> = null;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<AbstractMesh>;
     onBeforePourObservable: Observable<AbstractMesh>;
