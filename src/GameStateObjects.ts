@@ -41,21 +41,7 @@ export class GameState {
         this.#plane.isPickable = false;
         this.#repositionPlane();
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
-        // this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
         this.textBlock = new TextBlock("textblock");
-        // this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-        // this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        // this.rectangle = new Rectangle("rect");
-        // this.rectangle.width = 0.25;
-        // this.rectangle.height = 0.25;
-        // this.rectangle.color = "cyan";
-        // this.rectangle.thickness = 4;
-        // this.rectangle.background = "black";   
-        // this.rectangle.alpha = 0.5;
-
-        // this.rectangle.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        // this.rectangle.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-        // this.rectangle.paddingBottom = "100px";
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -75,30 +61,20 @@ export class GameState {
         if (this._platform === "mobile") {
             this.textBlock.fontSize = 12;
         }
-        
-        // this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        // this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-
-        // this.textBlock.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-        // this.textBlock.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        // this.textBlock.paddingBottomInPixels = 10;
 
         this.textBlock.paddingBottomInPixels = 200;
 
         this.textBlock.alpha = 1;
 
         this.textBlock.color = "white";
-        // this.rectangle.addControl(this.textBlock);  
         
         this.textBlock.isVisible = true;
-        // this.rectangle.isVisible = true;
         this.advancedTexture.addControl(this.textBlock);
 
     }
 
     hideHUD(): void {
         this.textBlock.isVisible = false;
-        // this.rectangle.isVisible = false;
     }
 }
 
@@ -169,7 +145,6 @@ export class GrabState extends GameState {
 export class ActivateState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform);
-        // this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
