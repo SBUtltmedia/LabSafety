@@ -48,6 +48,13 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     global.taskList = taskList;
 }
 
+const processTask = (targetName: string, toName: string, task: Task, scene: Scene) => {
+    if (targetName === toName) {
+        task.succeed();
+    } else {
+        task.fail();
+    }
+}
 
 const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pouringTasks: Task[], taskMap: ITaskMap) => {
     let name = item.taskName;
@@ -85,6 +92,14 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
         const mixedColor = new Color3((targetColor.r + sourceColor.r) / 2, (targetColor.g + sourceColor.g) / 2, (targetColor.b + sourceColor.b) / 2);
 
         setColor(target, mixedColor);
+
+        if (pouringBehavior.animating) {
+            pouringBehavior.onAnimationChangeObservable.addOnce(() => {
+                processTask(target.name, logic.to, task, scene);
+            })
+        } else {
+            processTask(target.name, logic.to, task, scene);
+        }        
     })
 
 }
