@@ -22,13 +22,18 @@ import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
+import { Ellipse } from "@babylonjs/gui";
 import { GameStates } from "./StateMachine";
 import { setupGameStates, stateMachine } from "./setupGameStates";
+import { GUIButtons } from "./InteractableButtons";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
 // Names of meshes not to dispose on scene reset
 export const meshesToPreserveNames: string[] = [];
+export let grabButton: Ellipse;
+export let activateButton: Ellipse;
+
 
 let pointerLockEnabled = true;
 
@@ -71,6 +76,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         });
     } else {
         enableTouchJoysticks(scene);
+	    grabButton = GUIButtons();
+	    activateButton = GUIButtons(false);
+
     }
 
     configureScene(scene, true);

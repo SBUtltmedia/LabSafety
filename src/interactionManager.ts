@@ -17,6 +17,7 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
+import { activateButton, grabButton } from "./scene";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -234,7 +235,7 @@ export class InteractionManager {
 
     #switchModeFromXRState = (state: WebXRState) => {
         if (state === WebXRState.NOT_IN_XR) {
-            if (false) {  // @todo: predicate if mobile mode should be used
+            if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {  // @todo: predicate if mobile mode should be used
                 this.#switchMode(InteractionMode.MOBILE);
             } else {
                 // Fall back to desktop mode
@@ -263,6 +264,8 @@ export class InteractionManager {
         if ((mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) && !this.hasDefaultSelector) {
             this.#addDefaultSelector(this.#scene.activeCamera);
         }
+
+        console.log("Mode: ", mode);
 
         if (mode === InteractionMode.DESKTOP) {
             this.#configureDesktopInteractionOnce();
@@ -346,7 +349,43 @@ export class InteractionManager {
         }
         const { anchor } = selector;
 
+        console.log("Mobile");
+
         // @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
+        let grabMethod = this.#checkGrab;
+        let activateMethod = this.#checkActivate;
+
+        grabMethod(false, anchor.uniqueId);
+        activateMethod(false, anchor.uniqueId);
+        if (grabButton) {
+            grabButton.onPointerDownObservable.add(function (coordinates: {
+                x: number;
+                y: number;
+            }) {
+                grabMethod(true, anchor.uniqueId);
+            });
+            grabButton.onPointerUpObservable.add(function (coordinates: {
+                x: number;
+                y: number;
+            }) {
+                grabMethod(false, anchor.uniqueId);
+            });
+        }
+
+        if (activateButton) {
+            activateButton.onPointerDownObservable.add(function (coordinates: {
+                x: number;
+                y: number;
+            }) {
+                activateMethod(true, anchor.uniqueId);
+            });
+            activateButton.onPointerUpObservable.add(function (coordinates: {
+                x: number;
+                y: number;
+            }) {
+                activateMethod(false, anchor.uniqueId);
+            });
+        }
 
         this.#configuredMobile = true;
     }

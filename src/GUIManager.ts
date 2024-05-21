@@ -31,7 +31,7 @@ class PromptWithButton {
     }
 }
 
-class GUIManager {
+export class GUIManager {
     advancedTexture: AdvancedDynamicTexture;
     welcomePrompt: PromptWithButton;
     gameFinishPrompt: PromptWithButton;
