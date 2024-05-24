@@ -17,7 +17,7 @@ export const GUIButtons = (isRight = true) => {
     } else {
 	    actionButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
     }
-	// actionButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+
 	actionButton.isVisible = true;
     actionButton.alpha = 0.4;
 
@@ -30,10 +30,6 @@ export const GUIButtons = (isRight = true) => {
         actionButton.leftInPixels -= -sideJoystickOffset;
     }
     actionButton.top = bottomJoystickOffset;
-
-    // actionButton.left = -rightThumbContainer.left;
-    // actionButton.top = rightThumbContainer.top;
-    // actionButton.setPadding()  
 
     adt.addControl(actionButton);
 
