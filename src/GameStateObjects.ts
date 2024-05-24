@@ -4,7 +4,6 @@ import { GameStates } from "./StateMachine";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
-import { Control } from "@babylonjs/gui/2D/controls/control";
 import { global } from "./GlobalState";
 
 import { utilityLayer } from "./scene";
@@ -38,28 +37,16 @@ export class GameState {
         
         if (platform)
             this._platform = platform;
-        this.#plane = CreatePlane("plane", { size: 2 }, utilityLayer.utilityLayerScene);
+        this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
         this.#plane.isPickable = false;
         this.#repositionPlane();
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
-        // this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
         this.textBlock = new TextBlock("textblock");
-        this.rectangle = new Rectangle("rect");
-        this.rectangle.width = 0.25;
-        this.rectangle.height = 0.33;
-        this.rectangle.color = "cyan";
-        this.rectangle.thickness = 4;
-        this.rectangle.background = "black";   
-        this.rectangle.alpha = 0.5;
-
-        this.rectangle.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-        this.rectangle.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this._platform = platform;
-        if (newState === GameStates.GAME_STATE_START) {
+        if (newState === GameStates.START) {
             this.hideHUD();
             return new StartState(global.hudHints["GAME_STATE_START"][this._platform], this._platform);
         }
@@ -74,30 +61,20 @@ export class GameState {
         if (this._platform === "mobile") {
             this.textBlock.fontSize = 12;
         }
-        
-        this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
-        this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
 
-        this.textBlock.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-        this.textBlock.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-
-        this.textBlock.paddingTopInPixels = 30;
-        this.textBlock.paddingLeftInPixels = 5;
+        this.textBlock.paddingBottomInPixels = 200;
 
         this.textBlock.alpha = 1;
 
         this.textBlock.color = "white";
-        this.rectangle.addControl(this.textBlock);  
         
         this.textBlock.isVisible = true;
-        this.rectangle.isVisible = true;
-        this.advancedTexture.addControl(this.rectangle);
+        this.advancedTexture.addControl(this.textBlock);
 
     }
 
     hideHUD(): void {
         this.textBlock.isVisible = false;
-        this.rectangle.isVisible = false;
     }
 }
 
@@ -120,7 +97,6 @@ export class StartState extends GameState {
         textblock.text = this.text;
         textblock.fontSize = 30;
         textblock.fontWeight = "bold";
-        textblock.top = -50;
         textblock.color = "white";
         advancedTexture.addControl(textblock);
 
@@ -136,21 +112,18 @@ export class BaseState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        if (newState === GameStates.GAME_STATE_PICK_SOP) {
+        if (newState === GameStates.GRAB) {
             this.hideHUD();
-            return new PickSOPState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_PICK_CYLINDER) {
+            return new GrabState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
+        } else if (newState === GameStates.HIGHLIGHT) {
             this.hideHUD();
-            return new PickCylinderState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_START) {
-            this.hideHUD();
-            return new StartState(global.hudHints["GAME_STATE_START"][this.platform], this.platform);
+            return new HighlightState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
         }
         return null;
     }
 }
 
-export class PickCylinderState extends GameState {
+export class GrabState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform);
         this.displayHUD();
@@ -158,42 +131,29 @@ export class PickCylinderState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        if (newState === GameStates.GAME_STATE_PASS) {
+        if (newState === GameStates.ACTIVATE) {
             this.hideHUD();
-            return new PassFailState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform, true);
-        } else if (newState === GameStates.GAME_STATE_FAIL) {
+            return new ActivateState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform);
+        } else if (newState === GameStates.BASE) {
             this.hideHUD();
-            return new PassFailState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_DROP_CYLINDER) {
-            this.hideHUD();
-            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
+            return new BaseState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
         }
         return null;
     }
 }
 
-export class PassFailState extends GameState {
-    isPass: boolean;
-
-    constructor(text: string, platform: string, isPass = false) {
+export class ActivateState extends GameState {
+    constructor(text: string, platform: string) {
         super(text, platform);
-        this.displayHUD();
-        this.isPass = isPass;
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        this.hideHUD();
-        if (newState === GameStates.GAME_STATE_SOP_PASS) {
-            return new BaseState(global.hudHints["GAME_STATE_SOP_PASS"][this.platform], this.platform);
-        } else if (newState === GameStates.GAME_STATE_BASE) {
-            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
-        }
-        return new BaseState(this.isPass ? global.hudHints["GAME_STATE_BASE"][this.platform] : this.text, this.platform);
+        return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 }
 
-export class PickSOPState extends GameState {
+
+export class HighlightState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform);
         this.displayHUD();

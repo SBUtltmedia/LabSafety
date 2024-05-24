@@ -7,7 +7,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
-import { GrabState, IGrabInfo } from "./interactionManager";
+import { GrabState, IMeshGrabInfo } from "./interactionManager";
 
 interface IAnimation {
     name: string,
@@ -23,7 +23,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     spawnRotation: Vector3 = Vector3.Zero();
     #speedRatio: number;
     #interactableBehavior: InteractableBehavior;
-    #grabStateObserver: Observer<IGrabInfo>;
+    #grabStateObserver: Observer<IMeshGrabInfo>;
     #animationStateObserver: Nullable<Observer<boolean>> = null;
     #animations: IAnimation[];
     #scene: Scene;

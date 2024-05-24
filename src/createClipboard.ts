@@ -9,10 +9,8 @@ import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { setupTasks } from "./GameTasks";
 import { global } from "./GlobalState";
 import { InteractableBehavior } from "./interactableBehavior";
-import { GrabState, InteractionMode } from "./interactionManager";
+import { InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
-import { stateMachine } from "./setupGameStates";
-import { GameStates } from "./StateMachine";
 import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
 
 export function createClipboard(mesh: AbstractMesh): void {
@@ -50,14 +48,6 @@ export function createClipboard(mesh: AbstractMesh): void {
             [InteractionMode.MOBILE]: {
                 defaultPosition: new Vector3(0, 0, -0.5)
             }
-        }
-    });
-
-    interactableBehavior.onGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
-        if (state === GrabState.GRAB) {
-            stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_SOP);
-        } else {
-            stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_SOP);
         }
     });
 

@@ -32,16 +32,21 @@ interface ISelector {
     targetMesh: Nullable<AbstractMesh>
 }
 
-export interface IGrabInfo {
+export interface IMeshGrabInfo {
     anchor: AbstractMesh,
     grabber: AbstractMesh,
     state: GrabState
 }
 
-export interface IActivationInfo {
+export interface IMeshActivationInfo {
     anchor: AbstractMesh,
     grabber: AbstractMesh,
     state: ActivationState
+}
+
+export interface IGrabInfo {
+    mesh: AbstractMesh,
+    state: GrabState
 }
 
 export enum InteractionMode {
@@ -65,9 +70,11 @@ const SELECTOR_LENGTH = 9.0;
 const SELECTOR_DIAMETER = 0.005;
 
 export class InteractionManager {
-    onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
-    onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
+    onMeshGrabStateChangedObservable: Observable<IMeshGrabInfo> = new Observable();
+    onMeshActivationStateChangedObservable: Observable<IMeshActivationInfo> = new Observable();
     onModeChangeObservable: Observable<InteractionMode> = new Observable();
+    onHasAnyTargetsObservable: Observable<boolean> = new Observable();  // Fires when this.#activeTargets goes from being empty to non-empty or non-empty to empty.
+    onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();  // Distinct from onMeshGrabStateChanged in that it notifies all observers, not just the relevant mesh's observer.
     #scene: Scene;
     highlightLayer: HighlightLayer;
     modeSelectorMap: IModeSelectorMap = {
@@ -101,6 +108,7 @@ export class InteractionManager {
 
         this.#scene.onBeforeRenderObservable.add(() => {
             // Clear targets from previous render
+            const numPreviousTargets = this.#activeTargets.length;
             this.#activeTargets.splice(0, this.#activeTargets.length);
             
             // Find valid targets for active selectors
@@ -133,6 +141,12 @@ export class InteractionManager {
                 if (target instanceof Mesh) {
                     this.highlightLayer.addMesh(target, Color3.Gray());
                 }
+            }
+
+            if (this.#activeTargets.length === 0 && numPreviousTargets !== 0) {
+                this.onHasAnyTargetsObservable.notifyObservers(false);
+            } else if (this.#activeTargets.length !== 0 && numPreviousTargets === 0) {
+                this.onHasAnyTargetsObservable.notifyObservers(true);
             }
         });
     }
@@ -200,7 +214,7 @@ export class InteractionManager {
         }
     }
 
-    #notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IGrabInfo) => {
+    #notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => {
         if (mesh.isDisposed()) {
             // If the mesh is grabbed by any selector, set it to null.
             // Don't notify observers, because the mesh's behaviors
@@ -218,10 +232,14 @@ export class InteractionManager {
         if (!behavior) {
             throw new Error("InteractionManager: grabbed mesh must have InteractableBehavior.");
         }
-        this.onGrabStateChangedObservable.notifyObserver(behavior.grabStateObserver, grabInfo);
+        this.onMeshGrabStateChangedObservable.notifyObserver(behavior.grabStateObserver, grabInfo);
+        this.onGrabStateChangedObservable.notifyObservers({
+            mesh,
+            state: grabInfo.state
+        });
     }
 
-    #notifyActivationMeshObserver = (mesh: AbstractMesh, activationInfo: IActivationInfo) => {
+    #notifyActivationMeshObserver = (mesh: AbstractMesh, activationInfo: IMeshActivationInfo) => {
         if (mesh.isDisposed()) {
             // @todo: I don't like that we have to handle this here.
             return;
@@ -230,7 +248,7 @@ export class InteractionManager {
         if (!behavior) {
             throw new Error("InteractionManager: activated mesh must have InteractableBehavior.");
         }
-        this.onActivationStateChangedObservable.notifyObserver(behavior.activationStateObserver, activationInfo, mesh.uniqueId);
+        this.onMeshActivationStateChangedObservable.notifyObserver(behavior.activationStateObserver, activationInfo, mesh.uniqueId);
     }
 
     #switchModeFromXRState = (state: WebXRState) => {

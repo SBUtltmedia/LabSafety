@@ -12,8 +12,6 @@ import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { GameStates } from "./StateMachine";
-import { stateMachine } from "./setupGameStates";
 
 interface ITaskMap {
     [key: string]: Task
@@ -52,10 +50,8 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
 
 const processTask = (targetName: string, toName: string, task: Task, scene: Scene) => {
     if (targetName === toName) {
-        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PASS);
         task.succeed();
     } else {
-        stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_FAIL);
         task.fail();
     }
 }
@@ -103,7 +99,7 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
             })
         } else {
             processTask(target.name, logic.to, task, scene);
-        }
+        }        
     })
 
 }
@@ -116,7 +112,6 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
             case Status.SUCCESSFUL:
                 // Show success screen, play fanfare.
                 let camera = scene.activeCamera;
-                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_SOP_PASS);
                 GUIWindows.createSuccessScreen(scene, () => {
                     enablePointerLock();
                     resetScene(scene)

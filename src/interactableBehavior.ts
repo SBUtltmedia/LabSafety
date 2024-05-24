@@ -4,7 +4,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionManager, InteractionMode } from "./interactionManager";
+import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionManager, InteractionMode } from "./interactionManager";
 
 
 // The core behavior to implement grabbing a mesh and activating it while being grabbed.
@@ -43,10 +43,10 @@ interface IDefaults {
 export class InteractableBehavior implements Behavior<AbstractMesh> {
     #mesh: Nullable<AbstractMesh>;
     interactionManager: InteractionManager;
-    #grabStateObserver: Nullable<Observer<IGrabInfo>> = null;
-    #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
-    onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable();
-    onActivationStateChangedObservable: Observable<IActivationInfo> = new Observable();
+    #grabStateObserver: Nullable<Observer<IMeshGrabInfo>> = null;
+    #activationStateObserver: Nullable<Observer<IMeshActivationInfo>> = null;
+    onGrabStateChangedObservable: Observable<IMeshGrabInfo> = new Observable();
+    onActivationStateChangedObservable: Observable<IMeshActivationInfo> = new Observable();
     defaults: IDefaults = {};
     hideGrabber: boolean = true;
     #moveAttached: boolean;
@@ -55,7 +55,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #active: boolean = false; // Precondition: this.#activatable && this.grabbing
     #anchor: Nullable<AbstractMesh> = null;
     #grabber: Nullable<AbstractMesh> = null;
-    #defaultGrabObserver: Nullable<Observer<IGrabInfo>> = null;
+    #defaultGrabObserver: Nullable<Observer<IMeshGrabInfo>> = null;
     #enabled: boolean = true;
     
     constructor(interactionManager: InteractionManager, options?: IInteractableOptions) {
@@ -90,13 +90,13 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
     // NOTE: This is read-only! Modifying the observer
     // (e.g., by calling remove()) is likely to break things!
-    get grabStateObserver(): Observer<IGrabInfo> {
+    get grabStateObserver(): Observer<IMeshGrabInfo> {
         return this.#grabStateObserver;
     }
 
     // NOTE: This is read-only! Modifying the observer
     // (e.g., by calling remove()) is likely to break things!
-    get activationStateObserver(): Observer<IActivationInfo> {
+    get activationStateObserver(): Observer<IMeshActivationInfo> {
         return this.#activationStateObserver;
     }
 
@@ -227,7 +227,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: !#subscribed and #attached
     // Postconditions: #subscribed
     #subscribeToInteractionManager = (): void => {
-        this.#grabStateObserver = this.interactionManager.onGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
+        this.#grabStateObserver = this.interactionManager.onMeshGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
             if (state === GrabState.GRAB && !this.grabbing) {
                 this.#grabberWasVisible = grabber.isVisible;
                 this.#grab(anchor, grabber);
@@ -235,7 +235,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 this.#drop();
             }
         }, this.#mesh.uniqueId);
-        this.#activationStateObserver = this.interactionManager.onActivationStateChangedObservable.add(({ anchor, grabber, state}) => {
+        this.#activationStateObserver = this.interactionManager.onMeshActivationStateChangedObservable.add(({ anchor, grabber, state}) => {
             if (this.#activatable && this.grabbing) {
                 if (state === ActivationState.ACTIVE && !this.#active) {
                     this.#activate();

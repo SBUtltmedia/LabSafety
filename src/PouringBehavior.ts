@@ -9,9 +9,7 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState, GrabState, IActivationInfo, IGrabInfo, InteractionMode } from "./interactionManager";
-import { StateMachine, GameStates } from "./StateMachine";
-import { stateMachine } from "./setupGameStates";
+import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -20,8 +18,8 @@ export class PouringBehavior implements Behavior<Mesh> {
     mesh: Mesh;
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
-    #grabStateObserver: Observer<IGrabInfo>;
-    #activationStateObserver: Nullable<Observer<IActivationInfo>> = null;
+    #grabStateObserver: Observer<IMeshGrabInfo>;
+    #activationStateObserver: Nullable<Observer<IMeshActivationInfo>> = null;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<AbstractMesh>;
     onBeforePourObservable: Observable<AbstractMesh>;
@@ -62,14 +60,12 @@ export class PouringBehavior implements Behavior<Mesh> {
         const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.GRAB) {
-                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_PICK_CYLINDER);
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
                     this.#changeTarget(target);
                 });
             } else if (state === GrabState.DROP) {
                 this.#changeTarget(null);
-                stateMachine.onStateChangeObervable.notifyObservers(GameStates.GAME_STATE_DROP_CYLINDER);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
