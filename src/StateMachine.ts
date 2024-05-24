@@ -33,7 +33,6 @@ export class StateMachine {
 
         interactionManager.onModeChangeObservable.add(newMode => {
             this.platform = this.#getStringFromMode(newMode);
-            console.log("Platform: ", this.platform);
             if (this.platform !== "loading" && this.platform !== "null") {
                 this.#delegateState(GameStates.BASE);
             }

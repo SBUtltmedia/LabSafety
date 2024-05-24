@@ -367,6 +367,8 @@ export class InteractionManager {
         }
         const { anchor } = selector;
 
+        console.log("Mobile");
+
         // @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
         let grabMethod = this.#checkGrab;
         let activateMethod = this.#checkActivate;
