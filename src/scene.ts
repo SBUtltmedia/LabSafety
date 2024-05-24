@@ -148,7 +148,11 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     await resetScene(scene);
 
     const splashScreen = document.querySelector("div.splash");
-    splashScreen.textContent = "Click to start!";
+    let response= await fetch("./images/Notebook.svg")
+    let svg= await response.text();
+    splashScreen.style.opacity=0;
+    splashScreen.innerHTML = svg;
+    setTimeout(()=> splashScreen.style.opacity=1,1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
         Engine.audioEngine.audioContext.resume();
