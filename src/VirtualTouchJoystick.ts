@@ -22,8 +22,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 	let rightPuckDown = false;
 
 	let leftThumbContainer = makeThumbArea("leftThumb", 2, "blue", null);
-	leftThumbContainer.height = "200px";
-	leftThumbContainer.width = "200px";
+	leftThumbContainer.height = "120px";
+	leftThumbContainer.width = "120px";
 	leftThumbContainer.isPointerBlocker = true;
 	leftThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
 	leftThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -37,8 +37,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 		"blue",
 		null
 	);
-	leftInnerThumbContainer.height = "80px";
-	leftInnerThumbContainer.width = "80px";
+	leftInnerThumbContainer.height = "50px";
+	leftInnerThumbContainer.width = "50px";
 	leftInnerThumbContainer.isPointerBlocker = true;
 	leftInnerThumbContainer.horizontalAlignment =
 		Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -46,8 +46,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 		Control.VERTICAL_ALIGNMENT_CENTER;
 
 	let leftPuck = makeThumbArea("leftPuck", 0, "blue", "blue");
-	leftPuck.height = "60px";
-	leftPuck.width = "60px";
+	leftPuck.height = "10px";
+	leftPuck.width = "10px";
 	leftPuck.isPointerBlocker = true;
 	leftPuck.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 	leftPuck.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
@@ -110,8 +110,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 	const speedFactor = 0.5;
 
 	rightThumbContainer = makeThumbArea("rightThumb", 2, "red", null);
-	rightThumbContainer.height = "200px";
-	rightThumbContainer.width = "200px";
+	rightThumbContainer.height = "120px";
+	rightThumbContainer.width = "120px";
 	rightThumbContainer.isPointerBlocker = true;
 	rightThumbContainer.horizontalAlignment =
 		Control.HORIZONTAL_ALIGNMENT_RIGHT;
@@ -126,8 +126,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 		"red",
 		null
 	);
-	rightInnerThumbContainer.height = "80px";
-	rightInnerThumbContainer.width = "80px";
+	rightInnerThumbContainer.height = "50px";
+	rightInnerThumbContainer.width = "50px";
 	rightInnerThumbContainer.isPointerBlocker = true;
 	rightInnerThumbContainer.horizontalAlignment =
 		Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -135,8 +135,8 @@ export const enableTouchJoysticks = (scene: Scene) => {
 		Control.VERTICAL_ALIGNMENT_CENTER;
 
 	let rightPuck = makeThumbArea("rightPuck", 0, "red", "red");
-	rightPuck.height = "60px";
-	rightPuck.width = "60px";
+	rightPuck.height = "10px";
+	rightPuck.width = "10px";
 	rightPuck.isPointerBlocker = true;
 	rightPuck.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 	rightPuck.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
