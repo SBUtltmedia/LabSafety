@@ -5,7 +5,7 @@ import { PointerInput } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnu
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder";
@@ -18,6 +18,7 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
 import { activateButton, grabButton } from "./scene";
+import { UniversalCamera } from "@babylonjs/core";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -159,7 +160,21 @@ export class InteractionManager {
             this.#configureMotionController(motionController, controller.pointer.uniqueId);
         });
     }
+    #centerCamera(coordinates: Vector2){
+        let scene=this.#scene
+        let camera= this.#scene.activeCamera as UniversalCamera;
+        let targetCoord= Vector3.Unproject(
+            new Vector3(coordinates.x,coordinates.y,0),
+            scene.getEngine().getRenderWidth(),
+            scene.getEngine()getRenderHeight(),
+            Matrix.Identity(), scene.getViewMatrix(),
+            scene.getProjectionMatrix());
 
+        camera.setTarget(new Vector3(coordinates.x,coordinates.y,0))
+        console.log(coordinates)
+
+
+    }
     #configureMotionController = (motionController: WebXRAbstractMotionController, anchorId: number) => {
         const squeeze = motionController.getComponentOfType("squeeze");
         if (squeeze) {
@@ -337,10 +352,12 @@ export class InteractionManager {
         }
         const { anchor } = selector;
         this.#scene.onPointerObservable.add(pointerInfo => {
-            if (this.interactionMode === InteractionMode.DESKTOP) {
+      console.log(pointerInfo)
                 if (pointerInfo.event.inputIndex === PointerInput.LeftClick) {
                     if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                        this.#centerCamera(new Vector2(pointerInfo.event.x,pointerInfo.event.y));
                         this.#checkGrab(true, anchor.uniqueId);
+
                     } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
                         this.#checkGrab(false, anchor.uniqueId);
                     }
@@ -351,8 +368,10 @@ export class InteractionManager {
                         this.#checkActivate(false, anchor.uniqueId);
                     }
                 }
-            }
+    
         });
+
+        
 
         this.#configuredDesktop = true;
     }

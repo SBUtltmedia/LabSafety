@@ -76,6 +76,7 @@ export const enableTouchJoysticks = (scene: Scene) => {
 	leftThumbContainer.onPointerUpObservable.add(function (coordinates: any) {
 		xAddPos = 0;
 		yAddPos = 0;
+		console.log(coordinates)
 		leftPuckDown = false;
 		leftPuck.isVisible = false;
 		leftThumbContainer.alpha = 0.4;
