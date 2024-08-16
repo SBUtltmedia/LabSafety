@@ -81,12 +81,12 @@ export class PouringBehavior implements Behavior<Mesh> {
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 const mode = this.#interactableBehavior.interactionManager.interactionMode
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
-                    this.mesh.rotation.z += Math.PI / 4;
+                    this.mesh.rotation.z += Math.PI / 3;
                     tilted = true;
                 }
                 this.pour();
             } else if (state === ActivationState.INACTIVE && tilted) {
-                this.mesh.rotation.z -= Math.PI / 4;
+                this.mesh.rotation.z -= Math.PI / 3;
                 tilted = false;
             }
         });
