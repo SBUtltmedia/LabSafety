@@ -26,6 +26,8 @@ import { Ellipse } from "@babylonjs/gui";
 import { GameStates } from "./StateMachine";
 import { setupGameStates, stateMachine } from "./setupGameStates";
 import { GUIButtons } from "./InteractableButtons";
+import { finalGameState } from "./GameTasks";
+import { Status } from "./Task";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -224,6 +226,8 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     canvas.addEventListener("click", handleInitialClick);
 
     fadeIn(light);
+
+    finalGameState.notifyObservers(Status.RESET);
 
     return scene;
 }

@@ -10,8 +10,6 @@ export const GUIButtons = (isRight = true) => {
 	actionButton.width = "60px";
 	actionButton.isPointerBlocker = true;
 
-    console.log(Control.HORIZONTAL_ALIGNMENT_RIGHT);
-
     if (isRight) {
 	    actionButton.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
     } else {

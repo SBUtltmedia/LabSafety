@@ -15,6 +15,7 @@ export class GameState {
     rectangle: Rectangle;
     #plane: AbstractMesh;
     protected _platform: string;
+    currentState: GameStates;
 
     set platform(val: string) {
         this._platform = val;
@@ -31,7 +32,7 @@ export class GameState {
         this.#plane.rotation.setAll(0);
     }
 
-    constructor(text: string, platform: string) {
+    constructor(text: string, platform: string, currentGameState: GameStates) {
         if (text)
             this.text = text;
         
@@ -42,6 +43,7 @@ export class GameState {
         this.#repositionPlane();
         this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
         this.textBlock = new TextBlock("textblock");
+        this.currentState = currentGameState;
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -80,7 +82,7 @@ export class GameState {
 
 export class StartState extends GameState {
     constructor(text: string, platform: string) {
-        super(text, platform);
+        super(text, platform, GameStates.START);
         this.displayHUD();
     }
 
@@ -106,7 +108,7 @@ export class StartState extends GameState {
 
 export class BaseState extends GameState {
     constructor(text: string, platform: string) {
-        super(text, platform);
+        super(text, platform, GameStates.BASE);
         this.displayHUD();
     }
 
@@ -115,9 +117,9 @@ export class BaseState extends GameState {
         if (newState === GameStates.GRAB) {
             this.hideHUD();
             return new GrabState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
-        } else if (newState === GameStates.HIGHLIGHT) {
+        } else if (newState === GameStates.PICK) {
             this.hideHUD();
-            return new HighlightState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
+            return new PickState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
         }
         return null;
     }
@@ -125,43 +127,57 @@ export class BaseState extends GameState {
 
 export class GrabState extends GameState {
     constructor(text: string, platform: string) {
-        super(text, platform);
-        this.displayHUD();
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        if (newState === GameStates.ACTIVATE) {
-            this.hideHUD();
-            return new ActivateState(global.hudHints["GAME_STATE_PASS"][this.platform], this.platform);
-        } else if (newState === GameStates.BASE) {
-            this.hideHUD();
-            return new BaseState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
-        }
-        return null;
-    }
-}
-
-export class ActivateState extends GameState {
-    constructor(text: string, platform: string) {
-        super(text, platform);
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
-    }
-}
-
-
-export class HighlightState extends GameState {
-    constructor(text: string, platform: string) {
-        super(text, platform);
+        super(text, platform, GameStates.GRAB);
         this.displayHUD();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
         this.hideHUD();
+        if (newState === GameStates.LOSE) {
+            return new LoseState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
+        }
         return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
+}
+
+
+export class PickState extends GameState {
+    constructor(text: string, platform: string) {
+        super(text, platform, GameStates.PICK);
+        this.displayHUD();
+    }
+
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.platform = platform;
+        if (newState === GameStates.GRAB) {
+            this.hideHUD();
+            if (args.length > 0) {
+                let mesh: AbstractMesh = args[0];
+                if (mesh.name === "fire-extinguisher") {
+                    return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"][this.platform], this.platform);        
+                }
+            }
+            return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
+        } else if (newState === GameStates.BASE) {
+            this.hideHUD();
+            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
+        }
+        return null;
+    }    
+}
+
+export class LoseState extends GameState {
+    constructor(text: string, platform: string) {
+        super(text, platform, GameStates.PICK);
+        this.displayHUD();
+    }
+
+    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        if (newState === GameStates.PICK) {
+            this.hideHUD();
+            return new PickState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
+        }
+        return this;
+    }    
 }
