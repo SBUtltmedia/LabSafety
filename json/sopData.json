@@ -1,0 +1,66 @@
+{
+  "facility": "Stony Brook University VR Laboratory",
+  "labDirector": "Victor Ruben",
+  "scope": "VR Chemical Mixture Synthesis",
+  "lastRevision": "4/1/2023",
+  "general": "General: Properly mixing VR chemicals",
+  "sopNum": "42",
+  "listType": "I",
+  "items": [
+    {
+      "text": "HAZARD IDENTIFICATION",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "text": "Improper mixing of chemicals can lead to explosive results!"
+        },
+        {
+          "text": "When mixing these chemicals - always follow the correct sequence"
+        }
+      ]
+    },
+    {
+      "text": "CHEMICAL HANDLING PROCEDURES",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "taskName": "B -> C",
+          "text": "Pour the contents of cylinder B into cylinder C.",
+          "indicator": "empty",
+          "logic": {
+            "taskType": "pouring",
+            "from": "cylinder-b",
+            "to": "cylinder-c",
+            "subtasks": []
+          }
+        },
+        {
+          "taskName": "C -> A",
+          "text": "Pour the contents of cylinder C into cylinder A.",
+          "indicator": "empty",
+          "logic": {
+            "taskType": "pouring",
+            "from": "cylinder-c",
+            "to": "cylinder-a",
+            "subtasks": []
+          }
+        }
+      ]
+    },
+    {
+      "text": "EMERGENCY PROCEDURES",
+      "sublistType": "a",
+      "sublist": [
+        {
+          "text": "In the event of an improper mixture - use the fire extinguisher to put out the flames"
+        },
+        {
+          "text": "Evacuate the lab"
+        },
+        {
+          "text": "Call for emergency services"
+        }
+      ]
+    }
+  ]
+}
