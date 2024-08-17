@@ -1,0 +1,12 @@
+[
+{"name":"ding",
+"path":"./sounds/ding.mp3"
+},
+{"name":"success",
+"path":"./sounds/success.mp3"
+},
+{"name":"explosion",
+"path":"./sounds/explosion.mp3"
+}
+
+]
