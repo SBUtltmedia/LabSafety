@@ -7,7 +7,7 @@
     "start": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "predeply": "vite build",
+    "predeploy": "vite build",
     "deploy": "gh-pages -d dist-temp"
   },
   "dependencies": {
