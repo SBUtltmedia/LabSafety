@@ -20,9 +20,9 @@
         "xr": "Aim towards the fire and press the trigger to dispense the foam"
     },
     "GAME_STATE_PICK_CYLINDER": {
-        "desktop": "Right click on any other cylinder to mix",
-        "mobile": "Right click on any other cylinder to mix",
-        "xr": "Trigger over any other cylinder to mix"        
+        "desktop": "Right click near any other cylinder to mix",
+        "mobile": "Right click near any other cylinder to mix",
+        "xr": "Trigger near any other cylinder to mix"        
     },
     "GAME_STATE_PASS": {
         "desktop": "You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue.",
@@ -38,5 +38,10 @@
         "desktop": "You have completed the SOP!",
         "mobile": "You have completed the SOP!",
         "xr": "You have completed the SOP!"
+    },
+    "GAME_STATE_PICK": {
+        "desktop": "Left click to pick!",
+        "mobile": "Tap on the grab button to pick!",
+        "xr": "Squeeze to pick!"
     }
 }
