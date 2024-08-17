@@ -28,6 +28,5 @@ export default defineConfig({
 
   build: {
     target: ["esnext"], // 👈 build.target
-    outDir: 'dist-temp' // Specify the output directory as 'public'
   },
 });

@@ -42,7 +42,7 @@ jobs:
       run: npm run build
   
     - name: List built files
-      run: ls -la ./dist-temp
+      run: ls -la ./dist
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -51,7 +51,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         # Upload dist folder
-        path: './dist-temp'      
+        path: './dist'      
 
     - name: Deploy to GitHub Pages
       id: deployment
