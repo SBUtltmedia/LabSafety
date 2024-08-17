@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite --host",
-    "build": "vite build --watch",
+    "build": "vite build",
     "preview": "vite preview",
     "predeply": "vite build",
     "deploy": "gh-pages -d public"
