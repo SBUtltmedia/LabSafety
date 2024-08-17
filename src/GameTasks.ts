@@ -12,10 +12,13 @@ import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Observable } from "@babylonjs/core";
 
 interface ITaskMap {
     [key: string]: Task
 }
+
+export const finalGameState: Observable<Status> = new Observable();
 
 export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     let taskList: Task[] = [];
@@ -118,6 +121,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                 });
                 global.sounds.success.stop();
                 global.sounds.success.play();
+                finalGameState.notifyObservers(Status.SUCCESSFUL);
                 break;
             case Status.FAILURE:
                 // Play explosion, start a fire.
@@ -140,8 +144,10 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                         }
                     });
                 }
+                finalGameState.notifyObservers(Status.FAILURE);
                 break;
             case Status.RESET:
+                finalGameState.notifyObservers(Status.RESET);
                 // Reset the scene. Ideally, we could do this without reloading the page, for performance.
                 break;
         }

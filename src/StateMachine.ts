@@ -1,14 +1,19 @@
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { GameState } from "./GameStateObjects";
 import { interactionManager } from "./scene";
-import { InteractionMode } from "./interactionManager";
+import { GrabState, IMeshGrabInfo, InteractionMode } from "./interactionManager";
+import { finalGameState } from "./GameTasks";
+import { Status } from "./Task";
 
 export enum GameStates {
     START,
     BASE,
     HIGHLIGHT,
     GRAB,
-    ACTIVATE
+    ACTIVATE,
+    PICK,
+    WIN,
+    LOSE
 }
 
 export class StateMachine {
@@ -17,7 +22,7 @@ export class StateMachine {
     platform: string;
 
     constructor() {
-        this.currentGameState = new GameState(null, "desktop");
+        this.currentGameState = new GameState(null, "desktop", GameStates.START);
         this.onStateChangeObervable.add(newState => {
             this.#delegateState(newState);
         });
@@ -25,9 +30,11 @@ export class StateMachine {
 
         interactionManager.onHasAnyTargetsObservable.add(isTarget => {
             if (isTarget) {
-                this.#delegateState(GameStates.HIGHLIGHT);
+                this.#delegateState(GameStates.PICK);
             } else {
-                this.#delegateState(GameStates.BASE);
+                if (this.currentGameState.currentState === GameStates.PICK) {
+                    this.#delegateState(GameStates.BASE);
+                }
             }
         })
 
@@ -37,10 +44,25 @@ export class StateMachine {
                 this.#delegateState(GameStates.BASE);
             }
         })
+
+        interactionManager.onGrabStateChangedObservable.add((meshGrabInfo)  => {
+            if (meshGrabInfo.state === GrabState.GRAB) {
+                this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
+            } else {
+                this.#delegateState(GameStates.BASE);
+            }
+        })
+
+        finalGameState.add(newStatus => {
+            if (newStatus === Status.FAILURE) {
+                this.#delegateState(GameStates.LOSE);
+            }
+        })
+
     }
 
-    #delegateState(newState: GameStates) {
-        let nextState = this.currentGameState.handleStateChange(newState, this.platform);
+    #delegateState(newState: GameStates, ...args: any) {
+        let nextState = this.currentGameState.handleStateChange(newState, this.platform, ...args);
         if (nextState !== null) {
             this.currentGameState = nextState;
         }
