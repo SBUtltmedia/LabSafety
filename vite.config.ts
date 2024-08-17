@@ -3,7 +3,7 @@ import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
-  base:"/LabSafety-v2/",
+  base:"/LabSafety/",
 
   plugins: [splitVendorChunkPlugin(), mkcert()],
   server: {
