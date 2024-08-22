@@ -1,7 +1,7 @@
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { GameState } from "./GameStateObjects";
 import { interactionManager } from "./scene";
-import { GrabState, IMeshGrabInfo, InteractionMode } from "./interactionManager";
+import { GrabState, InteractionMode } from "./interactionManager";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
 
@@ -51,6 +51,9 @@ export class StateMachine {
             } else {
                 this.#delegateState(GameStates.BASE);
             }
+            if (meshGrabInfo.mesh.name === "clipboard") {
+                this.#toggleDisplay();                
+            }            
         })
 
         finalGameState.add(newStatus => {
@@ -66,6 +69,10 @@ export class StateMachine {
         if (nextState !== null) {
             this.currentGameState = nextState;
         }
+    }
+
+    #toggleDisplay() {
+        this.currentGameState.toggleHUD();
     }
 
     #getStringFromMode(mode: InteractionMode): string {
