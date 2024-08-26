@@ -5,8 +5,8 @@
         "mobile": "Tap to begin"
     },
     "GAME_STATE_BASE": {
-        "desktop": "Use W,A,S,D keys to move\nUse your mouse to look around\nLeft click to interact and right click to use\n\nLeft click on the clipboard to learn more",
-        "mobile": "Use the right-hand side of the screen to move\nleft hand side to look around\nTap to interact.\n\nTap on the clipboard to learn more.",
+        "desktop": "Use W,A,S,D keys to move. Use your mouse to look around, Left click to interact and right click to use. Left click on the clipboard to learn more.",
+        "mobile": "Use the right-hand side of the screen to move left hand side to look around Tap to interact. Tap on the clipboard to learn more.",
         "xr": "Hold and read the clipboard to get started"
     },
     "GAME_STATE_PICK_SOP": {
@@ -15,14 +15,14 @@
         "xr": "Read the instructions carefully and let go of the clipboard to continue!"
     },
     "GAME_STATE_PICK_FIREEXTINGUISHER": {
-        "desktop": "Aim towards the fire and use the right-click to dispense the foam",
-        "mobile": "Aim towards the fire and use the right-click to dispense the foam",
-        "xr": "Aim towards the fire and press the trigger to dispense the foam"
+        "desktop": "Aim towards the fire and use the right-click to dispense the foam.",
+        "mobile": "Aim towards the fire and use the right-click to dispense the foam.",
+        "xr": "Aim towards the fire and press the trigger to dispense the foam."
     },
     "GAME_STATE_PICK_CYLINDER": {
-        "desktop": "Right click near any other cylinder to mix",
-        "mobile": "Right click near any other cylinder to mix",
-        "xr": "Trigger near any other cylinder to mix"        
+        "desktop": "Right click near any other cylinder to mix.",
+        "mobile": "Right click near any other cylinder to mix.",
+        "xr": "Trigger near any other cylinder to mix."        
     },
     "GAME_STATE_PASS": {
         "desktop": "You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue.",
@@ -30,9 +30,9 @@
         "xr": "You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue."
     },
     "GAME_STATE_FAIL": {
-        "desktop": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire",
-        "mobile": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire",
-        "xr": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire"        
+        "desktop": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire.",
+        "mobile": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire.",
+        "xr": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire."        
     },
     "GAME_STATE_SOP_PASS": {
         "desktop": "You have completed the SOP!",

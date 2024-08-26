@@ -5,6 +5,7 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { global } from "./GlobalState";
+import { Control } from "@babylonjs/gui";
 
 import { utilityLayer } from "./scene";
 
@@ -16,10 +17,11 @@ export class GameState {
     #plane: AbstractMesh;
     protected _platform: string;
     currentState: GameStates;
+    displayingHUD: boolean;
 
     set platform(val: string) {
         this._platform = val;
-        this.#repositionPlane();
+        // this.#repositionPlane();
     }
 
     get platform(): string {
@@ -38,12 +40,33 @@ export class GameState {
         
         if (platform)
             this._platform = platform;
-        this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
-        this.#plane.isPickable = false;
-        this.#repositionPlane();
-        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
+
+        // this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
+        // this.#plane.isPickable = false;
+        // this.#repositionPlane();
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
         this.textBlock = new TextBlock("textblock");
+
+        this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+
         this.currentState = currentGameState;
+
+        this.rectangle = new Rectangle("rect");
+        this.rectangle.width = 0.5;
+        this.rectangle.height = 0.2;
+        this.rectangle.color = "red";
+        this.rectangle.thickness = 4;
+        this.rectangle.background = "#333131";   
+        // this.rectangle.alpha = 0.5;
+
+        this.rectangle.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.rectangle.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        this.rectangle.paddingBottom = "100px";
+        
+        this.rectangle.addControl(this.textBlock);
+        this.advancedTexture.addControl(this.rectangle);
+        this.displayingHUD = false;
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -58,25 +81,42 @@ export class GameState {
     displayHUD(): void {
         this.textBlock.text = this.text;
         this.textBlock.textWrapping = true;
-        this.textBlock.fontSize = 20;
+        this.textBlock.fontSize = 18;
 
         if (this._platform === "mobile") {
             this.textBlock.fontSize = 12;
         }
 
-        this.textBlock.paddingBottomInPixels = 200;
+        this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
 
-        this.textBlock.alpha = 1;
+        this.textBlock.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        this.textBlock.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
 
-        this.textBlock.color = "white";
+        this.textBlock.paddingLeftInPixels = 10;
+        this.textBlock.paddingBottomInPixels = 10;
+
+        this.textBlock.color = "#6bfdff";
         
         this.textBlock.isVisible = true;
-        this.advancedTexture.addControl(this.textBlock);
+        this.rectangle.isVisible = true;
+        this.displayingHUD = true;
+        // this.advancedTexture.addControl(this.textBlock);
 
     }
 
     hideHUD(): void {
+        this.rectangle.isVisible = false;
         this.textBlock.isVisible = false;
+        this.displayingHUD = false;
+    }
+
+    toggleHUD(): void {
+        if (this.displayingHUD) {
+            this.hideHUD();
+        } else {
+            this.displayHUD();
+        }
     }
 }
 
