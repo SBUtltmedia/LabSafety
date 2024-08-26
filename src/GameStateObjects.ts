@@ -57,7 +57,7 @@ export class GameState {
         this.rectangle.height = 0.2;
         this.rectangle.color = "red";
         this.rectangle.thickness = 4;
-        // this.rectangle.background = "black";   
+        this.rectangle.background = "#333131";   
         // this.rectangle.alpha = 0.5;
 
         this.rectangle.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
