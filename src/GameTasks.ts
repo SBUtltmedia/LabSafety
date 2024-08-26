@@ -138,9 +138,9 @@ const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
                                 enablePointerLock();
                                 resetScene(scene)
                             });
-                            // @todo: find a new sound for SOP failure.
-                            global.sounds.success.stop();
-                            global.sounds.success.play();
+                            // TODO: find a new sound for SOP failure.
+                            // global.sounds.success.stop();
+                            // global.sounds.success.play();
                         }
                     });
                 }
