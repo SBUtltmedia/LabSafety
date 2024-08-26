@@ -2,3 +2,5 @@ node_modules
 legacy
 .DS_Store
 .vscode
+dist/*
+docs/*
