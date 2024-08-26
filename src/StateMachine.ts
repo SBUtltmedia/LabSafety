@@ -5,6 +5,8 @@ import { GrabState, InteractionMode } from "./interactionManager";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
 
+//Set up game states
+
 export enum GameStates {
     START,
     BASE,
