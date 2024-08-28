@@ -322,7 +322,10 @@ export class InteractionManager {
         anchor.isPickable = false;
         anchor.setParent(camera);
         anchor.position.copyFrom(new Vector3(0, 0, 1));
-
+        anchor.rotationQuaternion = null;
+        anchor.rotation.y = -300;
+        anchor.rotation.z = 0;
+        anchor.rotation.x = 0;
         this.addSelector(anchor, grabber, [InteractionMode.DESKTOP, InteractionMode.MOBILE]);
         this.hasDefaultSelector = true;
     }
