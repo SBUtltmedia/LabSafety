@@ -193,7 +193,6 @@ export class InteractionManager {
                     selector.anchor.rotation.y = -300;
                     selector.anchor.rotation.z = 0;
                     selector.anchor.rotation.x = 0;
-                    console.log(selector.targetMesh)
                     selector.grabbedMesh = selector.targetMesh;
                     selector.targetMesh = null;
                     this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
