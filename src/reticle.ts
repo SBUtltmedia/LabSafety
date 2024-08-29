@@ -3,7 +3,6 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
-import { HemisphericLight, Vector3 } from "@babylonjs/core";
 
 const RETICLE_CANVAS_SIZE = 64;
 const RADIUS = RETICLE_CANVAS_SIZE / 2;

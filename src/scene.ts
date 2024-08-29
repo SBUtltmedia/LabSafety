@@ -101,8 +101,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
-    var reticle = Mesh.CreateSphere("reticle", 10, .01, scene);
-    var retmat= new StandardMaterial("reticalmaterial", scene); 
+    const reticle = Mesh.CreateSphere("reticle", 10, .01, scene);
+    const retmat= new StandardMaterial("reticalmaterial", scene); 
     retmat.emissiveColor = Color3.White();
     reticle.material = retmat;
     reticle.isPickable = false;
