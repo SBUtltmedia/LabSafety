@@ -69,6 +69,8 @@ export function processMeshes(meshes: Mesh[]) {
     createCylinder(cylinderB, Color3.Green());
     createCylinder(cylinderA, Color3.Red());
 
+    console.log(cylinderA);
+
     const fireExtinguisherRoot = fireExtinguisherMesh.parent;
     // Because fireExtinguisherMesh is about to be renamed to "fire-extinguisher"
     fireExtinguisherRoot.id = "fire-extinguisher-root";

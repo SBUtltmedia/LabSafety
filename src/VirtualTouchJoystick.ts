@@ -18,94 +18,7 @@ export const enableTouchJoysticks = (scene: Scene) => {
 	let bottomJoystickOffset = -50;
 	let translateTransform;
 
-	let leftPuckDown = false;
 	let rightPuckDown = false;
-
-	let leftThumbContainer = makeThumbArea("leftThumb", 2, "blue", null);
-	leftThumbContainer.height = "120px";
-	leftThumbContainer.width = "120px";
-	leftThumbContainer.isPointerBlocker = true;
-	leftThumbContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-	leftThumbContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-	leftThumbContainer.alpha = 0.4;
-	leftThumbContainer.left = sideJoystickOffset;
-	leftThumbContainer.top = bottomJoystickOffset;
-
-	let leftInnerThumbContainer = makeThumbArea(
-		"leftInnterThumb",
-		4,
-		"blue",
-		null
-	);
-	leftInnerThumbContainer.height = "50px";
-	leftInnerThumbContainer.width = "50px";
-	leftInnerThumbContainer.isPointerBlocker = true;
-	leftInnerThumbContainer.horizontalAlignment =
-		Control.HORIZONTAL_ALIGNMENT_CENTER;
-	leftInnerThumbContainer.verticalAlignment =
-		Control.VERTICAL_ALIGNMENT_CENTER;
-
-	let leftPuck = makeThumbArea("leftPuck", 0, "blue", "blue");
-	leftPuck.height = "10px";
-	leftPuck.width = "10px";
-	leftPuck.isPointerBlocker = true;
-	leftPuck.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-	leftPuck.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-
-	leftThumbContainer.onPointerDownObservable.add(function (coordinates: {
-		x: number;
-		y: number;
-	}) {
-		leftPuck.isVisible = true;
-
-		leftPuck.left =
-			coordinates.x -
-			leftThumbContainer._currentMeasure.width * 0.5 -
-			sideJoystickOffset;
-		leftPuck.left = leftPuck.left;
-		leftPuck.top =
-			adt.getContext().canvas.height -
-			coordinates.y -
-			leftThumbContainer._currentMeasure.height * 0.5 +
-			bottomJoystickOffset;
-		leftPuck.top = leftPuck.top * -1;
-		leftPuckDown = true;
-		leftThumbContainer.alpha = 0.9;
-	});
-
-	leftThumbContainer.onPointerUpObservable.add(function (coordinates: any) {
-		xAddPos = 0;
-		yAddPos = 0;
-		leftPuckDown = false;
-		leftPuck.isVisible = false;
-		leftThumbContainer.alpha = 0.4;
-	});
-
-	leftThumbContainer.onPointerMoveObservable.add(function (coordinates: {
-		x: number;
-		y: number;
-	}) {
-		if (leftPuckDown) {
-			xAddPos =
-				coordinates.x -
-				leftThumbContainer._currentMeasure.width * 0.5 -
-				sideJoystickOffset;
-			yAddPos =
-				adt.getContext().canvas.height -
-				coordinates.y -
-				leftThumbContainer._currentMeasure.height * 0.5 +
-				bottomJoystickOffset;
-			leftPuck.left = xAddPos;
-			leftPuck.top = yAddPos * -1;
-			leftPuck.left = leftPuck.left;
-			leftPuck.top = leftPuck.top;
-		}
-	});
-
-	adt.addControl(leftThumbContainer);
-	leftThumbContainer.addControl(leftInnerThumbContainer);
-	leftThumbContainer.addControl(leftPuck);
-	leftPuck.isVisible = false;
 
 	const speedFactor = 0.5;
 
@@ -222,14 +135,14 @@ export function makeThumbArea(
     color: string,
     background: string
 ) {
-    let rect = new Ellipse();
-    rect.name = name;
-    rect.thickness = thickness;
-    rect.color = color;
-    rect.background = background;
-    rect.paddingLeft = "0px";
-    rect.paddingRight = "0px";
-    rect.paddingTop = "0px";
-    rect.paddingBottom = "0px";
-    return rect;
+    let ellipse = new Ellipse();
+    ellipse.name = name;
+    ellipse.thickness = thickness;
+    ellipse.color = color;
+    ellipse.background = background;
+    ellipse.paddingLeft = "0px";
+    ellipse.paddingRight = "0px";
+    ellipse.paddingTop = "0px";
+    ellipse.paddingBottom = "0px";
+    return ellipse;
 }

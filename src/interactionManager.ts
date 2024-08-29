@@ -17,7 +17,9 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
-import { activateButton, grabButton } from "./scene";
+import { activateButton, grabButton, meshesLoaded } from "./scene";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { KeyboardEventTypes } from "@babylonjs/core";
 
 interface IModeSelectorMap {
     [mode: number]: {
@@ -90,6 +92,7 @@ export class InteractionManager {
     #activeTargets: AbstractMesh[] = [];
     interactionMode: InteractionMode = InteractionMode.LOADING;
     interactableMeshes: AbstractMesh[] = [];
+    mode: InteractionMode;
 
     xrExperience?: WebXRDefaultExperience;
 
@@ -187,6 +190,7 @@ export class InteractionManager {
     #checkGrab = (grab: boolean, anchorId: number) => {
         const selector = this.modeSelectorMap[this.interactionMode][anchorId];
         if (grab) {
+            console.log(selector, "grab!");
             if (selector.targetMesh) {
                 if(selector.targetMesh.id.includes("cylinder-")){
                     selector.anchor.rotationQuaternion = null;
@@ -218,12 +222,14 @@ export class InteractionManager {
 
     #checkActivate = (activate: boolean, anchorId: number) => {
         const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
+
         if (!grabbedMesh) {
             return;
         }
         // Note that we notify the behavior even if it isn't active or even activatable.
         // This is handled in the InteractableBehavior.
         if (activate) {
+            console.log("Notify observers");
             this.#notifyActivationMeshObserver(grabbedMesh, { anchor, grabber, state: ActivationState.ACTIVE });
         } else {
             this.#notifyActivationMeshObserver(grabbedMesh, { anchor, grabber, state: ActivationState.INACTIVE });
@@ -284,6 +290,7 @@ export class InteractionManager {
 
     #switchMode = (mode: InteractionMode) => {
         const selectors = this.getActiveSelectors();
+        this.mode = mode;
         this.onModeChangeObservable.notifyObservers(mode);
         // Drop everything
         for (const selector of selectors) {
@@ -386,25 +393,51 @@ export class InteractionManager {
         console.log("Mobile");
 
         // @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
-        let grabMethod = this.#checkGrab;
         let activateMethod = this.#checkActivate;
 
-        grabMethod(false, anchor.uniqueId);
-        activateMethod(false, anchor.uniqueId);
-        if (grabButton) {
-            grabButton.onPointerDownObservable.add(function (coordinates: {
-                x: number;
-                y: number;
-            }) {
-                grabMethod(true, anchor.uniqueId);
-            });
-            grabButton.onPointerUpObservable.add(function (coordinates: {
-                x: number;
-                y: number;
-            }) {
-                grabMethod(false, anchor.uniqueId);
-            });
-        }
+        let cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];      
+
+        meshesLoaded.add(loaded => {
+            if (loaded) {
+                for (let cylinderName of cylinderNames) {
+                    let cylinderMesh: AbstractMesh = this.#scene.getMeshByName(cylinderName);
+                    let ibh = cylinderMesh.getBehaviorByName("Interactable") as InteractableBehavior;
+                    ibh.moveAttached = false;
+
+                    const pointerDragBehavior = new PointerDragBehavior({dragPlaneNormal: new Vector3(0,1,0)});
+
+                    // Use drag plane in world space
+                    pointerDragBehavior.useObjectOrientationForDragging = false;
+            
+                    // Listen to drag events
+                    pointerDragBehavior.onDragStartObservable.add((event)=>{
+                        // problem over here is that sometiems you pick-up the label which is not good
+                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
+                        for (let cName of cylinderNames) {
+                            if (mesh.id.startsWith(cName)) {
+                                mesh = this.#scene.getMeshByName(cName);
+                                break;
+                            }
+                        }
+                        this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = mesh;
+                        this.#checkGrab(true, anchor.uniqueId);
+                   })
+                    pointerDragBehavior.onDragEndObservable.add((event)=>{
+                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
+                        for (let cName of cylinderNames) {
+                            if (mesh.id.startsWith(cName)) {
+                                mesh = this.#scene.getMeshByName(cName);
+                                break;
+                            }
+                        }
+                        this.#checkGrab(false, anchor.uniqueId);
+                    })  
+
+                    cylinderMesh.addBehavior(pointerDragBehavior);
+                }
+            }
+    
+        })
 
         if (activateButton) {
             activateButton.onPointerDownObservable.add(function (coordinates: {
@@ -420,6 +453,16 @@ export class InteractionManager {
                 activateMethod(false, anchor.uniqueId);
             });
         }
+
+        // for debug purposes
+        this.#scene.onKeyboardObservable.add((kbInfo) => {
+            if (kbInfo.type === KeyboardEventTypes.KEYDOWN && kbInfo.event.key === "e") {
+                activateMethod(true, anchor.uniqueId);
+            } else if (kbInfo.type === KeyboardEventTypes.KEYUP && kbInfo.event.key === "e") {
+                console.log("key up");
+                activateMethod(false, anchor.uniqueId);
+            }
+        })
 
         this.#configuredMobile = true;
     }
