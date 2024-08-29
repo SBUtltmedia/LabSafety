@@ -188,9 +188,26 @@ export class InteractionManager {
         const selector = this.modeSelectorMap[this.interactionMode][anchorId];
         if (grab) {
             if (selector.targetMesh) {
-                selector.grabbedMesh = selector.targetMesh;
-                selector.targetMesh = null;
-                this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                if(selector.targetMesh.id.includes("cylinder-")){
+                    selector.anchor.rotationQuaternion = null;
+                    selector.anchor.rotation.y = -300;
+                    selector.anchor.rotation.z = 0;
+                    selector.anchor.rotation.x = 0;
+                    console.log(selector.targetMesh)
+                    selector.grabbedMesh = selector.targetMesh;
+                    selector.targetMesh = null;
+                    this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                }
+                else{
+                    selector.anchor.rotationQuaternion = null;
+                    selector.anchor.rotation.y = 0;
+                    selector.anchor.rotation.z = 0;
+                    selector.anchor.rotation.x = 0;
+                    selector.grabbedMesh = selector.targetMesh;
+                    selector.targetMesh = null;
+                    this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                 }
+
             }
         } else {
             if (selector.grabbedMesh) {
