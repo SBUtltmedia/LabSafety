@@ -188,9 +188,28 @@ export class InteractionManager {
         const selector = this.modeSelectorMap[this.interactionMode][anchorId];
         if (grab) {
             if (selector.targetMesh) {
-                selector.grabbedMesh = selector.targetMesh;
-                selector.targetMesh = null;
-                this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                if(selector.targetMesh.id.includes("cylinder-")){
+                    console.log(selector.targetMesh.name)
+                    // selector.anchor.rotationQuaternion = null;
+                    // selector.anchor.rotation.y = -300;
+                    // selector.anchor.rotation.z = 0;
+                    // selector.anchor.rotation.x = 0;
+                    console.log(selector.targetMesh)
+                    selector.grabbedMesh = selector.targetMesh;
+                    selector.targetMesh = null;
+                    this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                }
+                else{
+                    // selector.anchor.rotationQuaternion = null;
+                    // selector.anchor.rotation.y = 0;
+                    // selector.anchor.rotation.z = 0;
+                    // selector.anchor.rotation.x = 0;
+                    console.log(selector.targetMesh.name)
+                    selector.grabbedMesh = selector.targetMesh;
+                    selector.targetMesh = null;
+                    this.#notifyGrabMeshObserver(selector.grabbedMesh, { anchor: selector.anchor, grabber: selector.grabber, state: GrabState.GRAB });
+                 }
+
             }
         } else {
             if (selector.grabbedMesh) {
@@ -322,10 +341,12 @@ export class InteractionManager {
         anchor.isPickable = false;
         anchor.setParent(camera);
         anchor.position.copyFrom(new Vector3(0, 0, 1));
-        anchor.rotationQuaternion = null;
-        anchor.rotation.y = -300;
-        anchor.rotation.z = 0;
-        anchor.rotation.x = 0;
+
+        //selector.targetMesh includes "cylinder-" then SELECTOR_DIAMETER.anchor.rotation and all
+        // anchor.rotationQuaternion = null;
+        // anchor.rotation.y = -300;
+        // anchor.rotation.z = 0;
+        // anchor.rotation.x = 0;
         this.addSelector(anchor, grabber, [InteractionMode.DESKTOP, InteractionMode.MOBILE]);
         this.hasDefaultSelector = true;
     }
