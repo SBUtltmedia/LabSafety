@@ -9,6 +9,10 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
+import { Ellipse } from "@babylonjs/gui";
+import { PointLight } from "@babylonjs/core/Lights/pointLight";
+import { StandardMaterial, Color3 } from "@babylonjs/core";
+
 import { enableTouchJoysticks } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
@@ -22,12 +26,14 @@ import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
-import { Ellipse } from "@babylonjs/gui";
+
 import { GameStates } from "./StateMachine";
 import { setupGameStates, stateMachine } from "./setupGameStates";
 import { GUIButtons } from "./InteractableButtons";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
+
+
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -95,11 +101,18 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
-    const reticle = CreateReticle("reticle", utilityLayer.utilityLayerScene);
-    reticle.setParent(camera);
-    reticle.position.copyFrom(Axis.Z);
-    meshesToPreserveNames.push(reticle.name);
-    
+    const reticle = Mesh.CreateSphere("reticle", 10, .01, scene);
+    const retmat= new StandardMaterial("reticalmaterial", scene); 
+    retmat.emissiveColor = Color3.White();
+    reticle.material = retmat;
+    reticle.isPickable = false;
+    reticle.position.z = 0.3;
+    reticle.parent = camera;
+    //const reticle=CreateReticle("reticle", utilityLayer.utilityLayerScene);
+    // reticle.setParent(camera);
+    // reticle.position.copyFrom(Axis.Z);
+    // meshesToPreserveNames.push(reticle.name);
+
     if ("xr" in window.navigator) {
         xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
         interactionManager = new InteractionManager(scene, xrExperience); // @todo; Move outside this conditional
@@ -149,17 +162,21 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     await loadSounds("./json/sounds.json");
     await resetScene(scene);
 
-    const splashScreen = document.querySelector("div.splash");
+    const splashScreen = document.querySelector("div.splash") as HTMLElement;
     let response= await fetch("./images/Notebook.svg")
     let svg= await response.text();
-    splashScreen.style.opacity=0;
+
+    splashScreen.style.opacity="0";
     splashScreen.innerHTML = svg;
-    setTimeout(()=> splashScreen.style.opacity=1,1000)
+    setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
         Engine.audioEngine.audioContext.resume();
     }, false);
 
+    if (import.meta.env.DEV){
+        splashScreen.dispatchEvent(new Event("click"));
+    }
     return scene;
 }
 
