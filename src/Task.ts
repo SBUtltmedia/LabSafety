@@ -139,4 +139,15 @@ export class Task {
     get status() {
         return this.#status;
     }
+
+    get currentSubTask() {
+        // for the purposes of the current game, there is only 1 orderedSubtask
+        for (let subtask of this.subtasks[0]) {
+            if (subtask.status !== Status.SUCCESSFUL) {
+                return subtask
+            }
+        };
+
+        return null;
+    }
 }

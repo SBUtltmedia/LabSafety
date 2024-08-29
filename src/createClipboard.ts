@@ -31,7 +31,7 @@ export function createClipboard(mesh: AbstractMesh): void {
         .then(json => {
             let listItems: ListItem[] = json.items[1].sublist;
 
-            setupTasks(scene, listItems);
+            setupTasks(scene, listItems, json.cylinders);
 
             const updateClipboardBehavior = new UpdateClipboardBehavior(text, json, global.sop, global.taskList);
             plane.addBehavior(updateClipboardBehavior);

@@ -20,8 +20,9 @@ interface ITaskMap {
 
 export const finalGameState: Observable<Status> = new Observable();
 
-export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
+export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
     let taskList: Task[] = [];
+    let reverseTaskMap: Map<Task, Array<string>> = new Map();
 
     let pouringTasks: Task[] = [];
     let taskMap: ITaskMap = {};
@@ -29,13 +30,39 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     listItems.forEach(item => {
         if (item.logic) {
             if (item.logic.taskType === "pouring") {
-                setupPouringTask(scene, item, taskList, pouringTasks, taskMap);
+                setupPouringTask(scene, item, taskList, pouringTasks, taskMap, reverseTaskMap);
             }
         }
     })
 
-    setupSOP(scene, pouringTasks);
+    setupSOP(scene, pouringTasks, cylinders);
 
+    for (let cylinderName of cylinders) {
+        let fromMesh = scene.getMeshByName(cylinderName);
+        let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
+
+        pouringBehavior.onMidPourObservable.add(target => {
+            log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
+            log(`Poured mesh name: ${target.name}`);
+
+            const targetColor = (target.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
+            const sourceColor = (pouringBehavior.mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
+
+            const mixedColor = new Color3((targetColor.r + sourceColor.r) / 2, (targetColor.g + sourceColor.g) / 2, (targetColor.b + sourceColor.b) / 2);
+
+            setColor(target, mixedColor);
+
+            const task = reverseTaskMap.get(global.sop.currentSubTask);
+
+            if (pouringBehavior.animating) {
+                pouringBehavior.onAnimationChangeObservable.addOnce(() => {
+                    processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
+                })
+            } else {
+                processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
+            }        
+        })
+    }
     taskList.forEach(task => {
         task.onTaskStateChangeObservable.add(status => {
             if (status === Status.SUCCESSFUL) {
@@ -51,15 +78,15 @@ export const setupTasks = (scene: Scene, listItems: ListItem[]) => {
     global.taskList = taskList;
 }
 
-const processTask = (targetName: string, toName: string, task: Task, scene: Scene) => {
-    if (targetName === toName) {
+const processTask = (fromName: string, cylinderName: string, toName: string, targetName: string, task: Task, scene: Scene) => {
+    if (cylinderName === fromName && toName === targetName) {
         task.succeed();
     } else {
         task.fail();
     }
 }
 
-const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pouringTasks: Task[], taskMap: ITaskMap) => {
+const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pouringTasks: Task[], taskMap: ITaskMap, reverseTaskMap: Map<Task, string[]>) => {
     let name = item.taskName;
     let text = item.text;
     let logic = item.logic;
@@ -81,33 +108,10 @@ const setupPouringTask = (scene: Scene, item: ListItem, taskList: Task[], pourin
     taskList.push(task);
     pouringTasks.push(task);
     taskMap[name] = task;
-
-    let fromMesh = scene.getMeshByName(logic.from);
-    let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
-
-    pouringBehavior.onMidPourObservable.add(target => {
-        log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
-        log(`Poured mesh name: ${target.name}`);
-
-        const targetColor = (target.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
-        const sourceColor = (pouringBehavior.mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
-
-        const mixedColor = new Color3((targetColor.r + sourceColor.r) / 2, (targetColor.g + sourceColor.g) / 2, (targetColor.b + sourceColor.b) / 2);
-
-        setColor(target, mixedColor);
-
-        if (pouringBehavior.animating) {
-            pouringBehavior.onAnimationChangeObservable.addOnce(() => {
-                processTask(target.name, logic.to, task, scene);
-            })
-        } else {
-            processTask(target.name, logic.to, task, scene);
-        }        
-    })
-
+    reverseTaskMap.set(task, [logic.from, logic.to]);
 }
 
-const setupSOP = (scene: Scene, pouringTasks: Task[]) => {
+const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) => {
     global.sop = new Task("SOP", "Standard operating procedure for lab safety.", [pouringTasks]);
 
     global.sop.onTaskStateChangeObservable.add(status => {
