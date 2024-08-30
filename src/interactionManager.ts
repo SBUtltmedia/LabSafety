@@ -5,7 +5,7 @@ import { PointerInput } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnu
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder";
@@ -350,6 +350,102 @@ export class InteractionManager {
         this.hasDefaultSelector = true;
     }
 
+    #configureInteraction = () => {
+        const selector = Object.values(this.modeSelectorMap[InteractionMode.MOBILE]).find(({ anchor }) => anchor.name === "default-anchor");
+        if (selector === undefined) {
+            throw new Error("Tried to configure mobile interaction without default selector.");
+        }
+        const { anchor } = selector;        
+
+        let cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
+
+        meshesLoaded.add(loaded => {
+            if (loaded) {
+                for (let cylinderName of cylinderNames) {
+                    const cylinderMesh = this.#scene.getMeshByName(cylinderName);
+        
+                    let ibh = cylinderMesh.getBehaviorByName("Interactable") as InteractableBehavior;
+                    ibh.moveAttached = false;
+        
+                    const pointerDragBehavior = new PointerDragBehavior({dragPlaneNormal: new Vector3(0,1,0)});
+        
+                    // Use drag plane in world space
+                    pointerDragBehavior.useObjectOrientationForDragging = false;
+        
+                    // Listen to drag events
+                    pointerDragBehavior.onDragStartObservable.add((event)=>{
+                        // problem over here is that sometiems you pick-up the label which is not good
+                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
+                        for (let cName of cylinderNames) {
+                            if (mesh.id.startsWith(cName)) {
+                                mesh = this.#scene.getMeshByName(cName);
+                                break;
+                            }
+                        }
+                        this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = mesh;
+                        this.#checkGrab(true, anchor.uniqueId);
+                })
+                    pointerDragBehavior.onDragEndObservable.add((event)=>{
+                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
+                        for (let cName of cylinderNames) {
+                            if (mesh.id.startsWith(cName)) {
+                                mesh = this.#scene.getMeshByName(cName);
+                                break;
+                            }
+                        }
+                        this.#checkGrab(false, anchor.uniqueId);
+                    })  
+        
+                    cylinderMesh.addBehavior(pointerDragBehavior);
+                }
+
+                const clipboard = this.#scene.getMeshByName("clipboard");
+
+                const fireCabinet = this.#scene.getMeshByName("FireCabinet");
+                const doorMesh = fireCabinet.getChildMeshes(true)[0];
+                
+                const fireExtinguisher = this.#scene.getMeshByName("fire-extinguisher");
+
+                const castRay = () => {
+                    let ray = this.#scene.createPickingRay(this.#scene.pointerX, this.#scene.pointerY, Matrix.Identity(), this.#scene.activeCamera);
+                    let hit = this.#scene.pickWithRay(ray);
+                    if (hit.pickedMesh) {
+                        let mesh = hit.pickedMesh;
+                        if (mesh.name.startsWith("clipboard")) {
+                            console.log("clipboard: ", clipboard);
+                            this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = clipboard;
+                            this.#checkGrab(true, anchor.uniqueId);
+                        } else if (mesh.name === "Door.001") {
+                            this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = doorMesh;
+                            this.#checkGrab(true, anchor.uniqueId);
+                        } else if (mesh.name.startsWith("fire-extinguisher") || (mesh.parent && mesh.parent.name.startsWith("fire-extinguisher"))) {
+                            this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = fireExtinguisher;
+                            this.#checkGrab(true, anchor.uniqueId);
+                        }
+                    }
+                }
+
+                const drop = (event, pickInfo) => {
+                    console.log(pickInfo);
+                    this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh
+                    if (this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && !this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh.name.startsWith("cylinder")) {
+                        this.#checkGrab(false, anchor.uniqueId);
+                    }
+                }
+
+                this.#scene.onKeyboardObservable.add((kbInfo) => {
+                    if (kbInfo.type === KeyboardEventTypes.KEYUP && kbInfo.event.key === "x") {
+                        this.#checkGrab(false, anchor.uniqueId);
+                    }
+                })                
+
+                this.#scene.onPointerDown = castRay;
+                this.#scene.onPointerUp = drop;
+
+            }
+        });
+    }
+
     #configureDesktopInteractionOnce = (): void => {
         if (this.#configuredDesktop) {
             return;
@@ -359,15 +455,12 @@ export class InteractionManager {
             throw new Error("Tried to configure desktop interaction without default selector.");
         }
         const { anchor } = selector;
+
+        this.#configureInteraction();
+
         this.#scene.onPointerObservable.add(pointerInfo => {
             if (this.interactionMode === InteractionMode.DESKTOP) {
-                if (pointerInfo.event.inputIndex === PointerInput.LeftClick) {
-                    if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                        this.#checkGrab(true, anchor.uniqueId);
-                    } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
-                        this.#checkGrab(false, anchor.uniqueId);
-                    }
-                } else if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
+                if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
                     if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                         this.#checkActivate(true, anchor.uniqueId);
                     } else if (pointerInfo.type === PointerEventTypes.POINTERUP) {
@@ -395,49 +488,7 @@ export class InteractionManager {
         // @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
         let activateMethod = this.#checkActivate;
 
-        let cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];      
-
-        meshesLoaded.add(loaded => {
-            if (loaded) {
-                for (let cylinderName of cylinderNames) {
-                    let cylinderMesh: AbstractMesh = this.#scene.getMeshByName(cylinderName);
-                    let ibh = cylinderMesh.getBehaviorByName("Interactable") as InteractableBehavior;
-                    ibh.moveAttached = false;
-
-                    const pointerDragBehavior = new PointerDragBehavior({dragPlaneNormal: new Vector3(0,1,0)});
-
-                    // Use drag plane in world space
-                    pointerDragBehavior.useObjectOrientationForDragging = false;
-            
-                    // Listen to drag events
-                    pointerDragBehavior.onDragStartObservable.add((event)=>{
-                        // problem over here is that sometiems you pick-up the label which is not good
-                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
-                        for (let cName of cylinderNames) {
-                            if (mesh.id.startsWith(cName)) {
-                                mesh = this.#scene.getMeshByName(cName);
-                                break;
-                            }
-                        }
-                        this.modeSelectorMap[this.interactionMode][anchor.uniqueId].targetMesh = mesh;
-                        this.#checkGrab(true, anchor.uniqueId);
-                   })
-                    pointerDragBehavior.onDragEndObservable.add((event)=>{
-                        let mesh = event.pointerInfo.pickInfo.pickedMesh;
-                        for (let cName of cylinderNames) {
-                            if (mesh.id.startsWith(cName)) {
-                                mesh = this.#scene.getMeshByName(cName);
-                                break;
-                            }
-                        }
-                        this.#checkGrab(false, anchor.uniqueId);
-                    })  
-
-                    cylinderMesh.addBehavior(pointerDragBehavior);
-                }
-            }
-    
-        })
+        this.#configureInteraction();
 
         if (activateButton) {
             activateButton.onPointerDownObservable.add(function (coordinates: {

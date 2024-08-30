@@ -39,8 +39,10 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
 
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultRotation: new Vector3(0, Math.PI / 2, Math.PI)
-    });
+        defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
+        moveAttached: false
+        
+    });    
 
     const pouringBehavior = new PouringBehavior();
     const fadeRespawnBehavior = new FadeRespawnBehavior();

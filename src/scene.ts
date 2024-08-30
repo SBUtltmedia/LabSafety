@@ -75,13 +75,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
       isTouchDevice = true;
     }
 
-    if (!isTouchDevice) {
-        canvas.addEventListener("click", () => {
-            if (pointerLockEnabled) {
-                canvas.requestPointerLock();
-            }
-        });
-    } else {
+    if (isTouchDevice) {
         enableTouchJoysticks(scene);
 	    // grabButton = GUIButtons();
 	    activateButton = GUIButtons(false);

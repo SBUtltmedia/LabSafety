@@ -88,8 +88,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     }
 
     get grabbing(): boolean {
-        console.log("anchor: ", this.#anchor);
-        console.log("grabber: ", this.#grabber);
         return Boolean(this.#anchor) && Boolean(this.#grabber);
     }
 
@@ -241,11 +239,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             }
         }, this.#mesh.uniqueId);
         this.#activationStateObserver = this.interactionManager.onMeshActivationStateChangedObservable.add(({ anchor, grabber, state}) => {
-            console.log("Interaction mananagert activation change", this.#activatable, this.grabbing);
             if (this.#activatable && this.grabbing) {
-                console.log("this grabbing");
                 if (state === ActivationState.ACTIVE && !this.#active) {
-                    console.log("activating");
                     this.#activate();
                 } else if (state === ActivationState.INACTIVE && this.#active) {
                     this.#deactivate();

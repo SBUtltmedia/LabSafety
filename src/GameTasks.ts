@@ -63,6 +63,7 @@ export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array
             }        
         })
     }
+    
     taskList.forEach(task => {
         task.onTaskStateChangeObservable.add(status => {
             if (status === Status.SUCCESSFUL) {

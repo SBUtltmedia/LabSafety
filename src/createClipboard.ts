@@ -47,7 +47,7 @@ export function createClipboard(mesh: AbstractMesh): void {
             },
             [InteractionMode.MOBILE]: {
                 defaultPosition: new Vector3(0, 0, -0.5)
-            }
+            },
         }
     });
 
