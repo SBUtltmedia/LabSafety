@@ -133,7 +133,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
-                const fire = startFire();
+                const fire = startFire(scene);
                 const fireBehavior = fire.getBehaviorByName("Fire") as FireBehavior;
                 if (fireBehavior) {
                     fireBehavior.onFireObservable.add(aflame => {
@@ -158,4 +158,3 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
         }
     });        
 }
-
