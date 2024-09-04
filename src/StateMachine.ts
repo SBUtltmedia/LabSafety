@@ -23,12 +23,12 @@ export class StateMachine {
     currentGameState: GameState;
     platform: string;
 
-    constructor() {
-        this.currentGameState = new GameState(null, "desktop", GameStates.START);
+    constructor(platform: string) {
+        this.platform = platform
+        this.currentGameState = new GameState(null, this.platform, GameStates.START);
         this.onStateChangeObervable.add(newState => {
             this.#delegateState(newState);
         });
-        this.platform = "desktop";
 
         interactionManager.onHasAnyTargetsObservable.add(isTarget => {
             if (isTarget) {
@@ -41,13 +41,19 @@ export class StateMachine {
         })
 
         interactionManager.onModeChangeObservable.add(newMode => {
+            console.log("im new mode: ", newMode);
             this.platform = this.#getStringFromMode(newMode);
+            console.log("new mode: ", this.platform);
+            this.currentGameState.platform = this.platform;
+            this.currentGameState.toggleHUD();
+            this.currentGameState.toggleHUD();
             if (this.platform !== "loading" && this.platform !== "null") {
                 this.#delegateState(GameStates.BASE);
             }
         })
 
         interactionManager.onGrabStateChangedObservable.add((meshGrabInfo)  => {
+            console.log("grab state change: ", meshGrabInfo);
             if (meshGrabInfo.state === GrabState.GRAB) {
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
             } else {

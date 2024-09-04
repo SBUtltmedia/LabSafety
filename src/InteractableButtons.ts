@@ -19,7 +19,7 @@ export const GUIButtons = (isRight = true) => {
 	actionButton.isVisible = true;
     actionButton.alpha = 0.4;
 
-    let sideJoystickOffset = 150;
+    let sideJoystickOffset = 100;
 	let bottomJoystickOffset = -50;
 
     if (isRight) {
@@ -27,7 +27,18 @@ export const GUIButtons = (isRight = true) => {
     } else {
         actionButton.leftInPixels -= -sideJoystickOffset;
     }
-    actionButton.top = bottomJoystickOffset;
+    actionButton.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+    actionButton.top = -bottomJoystickOffset;
+
+    actionButton.onPointerDownObservable.add(() => {
+        console.log("Pointer down!");
+        actionButton.background = "gray";
+    })
+
+    actionButton.onPointerUpObservable.add(() => {
+        console.log("Pointer up");
+        actionButton.background = "white";
+    })
 
     adt.addControl(actionButton);
 

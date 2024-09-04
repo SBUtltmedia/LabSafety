@@ -10,6 +10,7 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
+import { interactionManager } from "./scene";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -19,6 +20,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     #interactableBehavior: InteractableBehavior;
     #highlightBehavior: HighlightBehavior;
     #grabStateObserver: Observer<IMeshGrabInfo>;
+    #mobileGrabStateObserver: Observer<GrabState>;
     #activationStateObserver: Nullable<Observer<IMeshActivationInfo>> = null;
     #renderObserver: Nullable<Observer<Scene>>;
     #currentTarget: Nullable<AbstractMesh>;
@@ -48,6 +50,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     }
 
     attach = (mesh: Mesh) => {
+        console.log("Attach");
         this.mesh = mesh;
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
         if (!this.#interactableBehavior) {
@@ -58,6 +61,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         const scene = mesh.getScene();
         const camera = scene.activeCamera;
         const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
+        console.log(targets);
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
@@ -73,8 +77,29 @@ export class PouringBehavior implements Behavior<Mesh> {
                     this.#renderObserver.remove();
                     this.#renderObserver = null;
                 }
-            }
+            }           
         });
+
+        this.#mobileGrabStateObserver = this.#interactableBehavior.onMobileGrabStateChangeObservable.add(state => {
+            console.log("Mobile state change!!");
+            console.log(targets);
+            if (state === GrabState.GRAB) {
+                console.log("Mobile grab state")
+                this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
+                    const target = this.#checkNearTarget(targets);
+                    this.#changeTarget(target);
+                });
+            } else if (state === GrabState.DROP) {
+                this.#changeTarget(null);
+                // The conditional is necessary because a DROP can be received without a corresponding GRAB.
+                // An example is when the cylinder is automatically dropped when a pour occurs and the user
+                // subsequently releases the squeeze, triggering another drop.
+                if (this.#renderObserver) {
+                    this.#renderObserver.remove();
+                    this.#renderObserver = null;
+                }
+            }            
+        })
 
         let tilted = false;
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
@@ -94,10 +119,14 @@ export class PouringBehavior implements Behavior<Mesh> {
 
     detach = () => {
         this.#grabStateObserver.remove();
+        if (this.#mobileGrabStateObserver) {
+            this.#mobileGrabStateObserver.remove();
+        }
         this.#activationStateObserver.remove();
         if (this.#renderObserver) {
             this.#renderObserver.remove();
         }
+        this.#highlightBehavior.unhighlightAll();
     }
 
     get empty(): boolean {
@@ -120,11 +149,12 @@ export class PouringBehavior implements Behavior<Mesh> {
 
     #checkNearTarget(targets: AbstractMesh[]): Nullable<AbstractMesh> {
         const validTargets = targets.filter(target => {
-            const isTargetBelow = this.mesh.absolutePosition.y > target.absolutePosition.y;
+            const isNotCurrentMesh = this.mesh !== target;
             const isPourable = Boolean(target.getBehaviorByName("Pouring"));
             const targetNotGrabbed = !(target.getBehaviorByName("Interactable") as InteractableBehavior).grabbing;
+            // console.log("target not grabbed: ", targetNotGrabbed);
             const intersectingTarget = this.mesh.intersectsMesh(target);
-            return isTargetBelow && isPourable && targetNotGrabbed && intersectingTarget;
+            return isNotCurrentMesh && isPourable && targetNotGrabbed && intersectingTarget;
         });
 
         let bestTarget = null;

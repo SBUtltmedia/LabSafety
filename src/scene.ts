@@ -32,8 +32,7 @@ import { setupGameStates, stateMachine } from "./setupGameStates";
 import { GUIButtons } from "./InteractableButtons";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
-
-
+import { Observable } from "@babylonjs/core";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -41,7 +40,7 @@ export let interactionManager: InteractionManager;
 export const meshesToPreserveNames: string[] = [];
 export let grabButton: Ellipse;
 export let activateButton: Ellipse;
-
+export let meshesLoaded: Observable<Boolean> = new Observable();
 
 let pointerLockEnabled = true;
 
@@ -76,15 +75,9 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
       isTouchDevice = true;
     }
 
-    if (!isTouchDevice) {
-        canvas.addEventListener("click", () => {
-            if (pointerLockEnabled) {
-                canvas.requestPointerLock();
-            }
-        });
-    } else {
+    if (isTouchDevice) {
         enableTouchJoysticks(scene);
-	    grabButton = GUIButtons();
+	    // grabButton = GUIButtons();
 	    activateButton = GUIButtons(false);
 
     }
@@ -157,7 +150,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         });
     }
 
-    setupGameStates();
+    setupGameStates(isTouchDevice ? "mobile" : "desktop");
     
     await loadSounds("./json/sounds.json");
     await resetScene(scene);
@@ -171,6 +164,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
+        interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
         Engine.audioEngine.audioContext.resume();
     }, false);
 
@@ -226,6 +220,8 @@ export async function resetScene(scene: Scene): Promise<Scene> {
 
     // Places the camera at the starting position.
     placeCamera(camera);
+
+    meshesLoaded.notifyObservers(true);
     
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");

@@ -4,8 +4,8 @@ import { StateMachine } from "./StateMachine";
 
 export let stateMachine: StateMachine;
 
-export const setupGameStates = () => {
-    stateMachine = new StateMachine();
+export const setupGameStates = (platform: string) => {
+    stateMachine = new StateMachine(platform);
 
     fetch(HUD_HINTS_PATH)
         .then(r => r.json())
