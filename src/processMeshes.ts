@@ -24,7 +24,7 @@ export function processMeshes(meshes: Mesh[]) {
     const glassDivider = meshes.find(mesh => mesh.name === "Glass Divider");
 
     createRoom(roomMesh);
-
+//    roomMesh.setEnabled(false);
     createGlassDivider(glassDivider);
 
     const clipboardRoot = clipboardMesh.parent;
