@@ -21,6 +21,7 @@ interface ITaskMap {
 export const finalGameState: Observable<Status> = new Observable();
 
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
+    startFire(scene);
     let taskList: Task[] = [];
     let reverseTaskMap: Map<Task, Array<string>> = new Map();
 
