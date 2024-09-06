@@ -8,6 +8,7 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, IMeshGrabInfo } from "./interactionManager";
+import { interactionManager } from "./scene";
 
 interface IAnimation {
     name: string,
@@ -69,6 +70,13 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.#scene = this.mesh.getScene();
 
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
+            console.log("Change grab state....");
+            if (state === GrabState.DROP) {
+                this.#fadeAndRespawn();
+            }
+        })
+
+        this.#interactableBehavior.onMobileGrabStateChangeObservable.add((state) => {
             if (state === GrabState.DROP) {
                 this.#fadeAndRespawn();
             }

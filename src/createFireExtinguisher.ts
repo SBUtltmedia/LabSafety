@@ -50,7 +50,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                     const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                     return Boolean(fireBehavior && !fireBehavior.extinguished);
-                });
+                 });
                 if (pickInfo.hit) {
                     const fireBehavior = pickInfo.pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                     if (!fireBehavior.extinguished) {

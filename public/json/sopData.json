@@ -6,6 +6,7 @@
   "general": "General: Properly mixing VR chemicals",
   "sopNum": "42",
   "listType": "I",
+  "cylinders": ["cylinder-a", "cylinder-b", "cylinder-c"],
   "items": [
     {
       "text": "HAZARD IDENTIFICATION",

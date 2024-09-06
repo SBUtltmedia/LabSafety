@@ -84,7 +84,11 @@ export class GameState {
         this.textBlock.fontSize = 18;
 
         if (this._platform === "mobile") {
-            this.textBlock.fontSize = 12;
+            console.log("in mobile mode")
+            this.textBlock.fontSize = 11;
+            this.rectangle.height = 0.2;
+            this.rectangle.paddingBottom = "10px";
+            this.textBlock.paddingTop = "5px";
         }
 
         this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
