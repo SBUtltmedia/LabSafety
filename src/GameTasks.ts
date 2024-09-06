@@ -21,6 +21,8 @@ interface ITaskMap {
 export const finalGameState: Observable<Status> = new Observable();
 
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
+    const fire = startFire(scene);
+
     let taskList: Task[] = [];
     let reverseTaskMap: Map<Task, Array<string>> = new Map();
 
@@ -84,6 +86,11 @@ const processTask = (fromName: string, cylinderName: string, toName: string, tar
         task.succeed();
     } else {
         task.fail();
+        const emitter = scene.getMeshById("emitter");
+        console.log(emitter);
+        let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+        console.log(fireBehavior);
+        fireBehavior.onFireObservable.notifyObservers(true);
     }
 }
 
@@ -133,22 +140,6 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
-                const fire = startFire(scene);
-                const fireBehavior = fire.getBehaviorByName("Fire") as FireBehavior;
-                if (fireBehavior) {
-                    fireBehavior.onFireObservable.add(aflame => {
-                        if (!aflame) {
-                            // Handle successful fire handling: show failure screen, play fanfare.
-                            GUIWindows.createFailureScreen(scene, () => {
-                                enablePointerLock();
-                                resetScene(scene)
-                            });
-                            // TODO: find a new sound for SOP failure.
-                            // global.sounds.success.stop();
-                            // global.sounds.success.play();
-                        }
-                    });
-                }
                 finalGameState.notifyObservers(Status.FAILURE);
                 break;
             case Status.RESET:
