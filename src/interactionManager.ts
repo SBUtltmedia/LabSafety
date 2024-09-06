@@ -19,7 +19,7 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
 import { activateButton, grabButton, meshesLoaded } from "./scene";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { KeyboardEventTypes, UniversalCamera } from "@babylonjs/core";
+import { KeyboardEventTypes, pickingVertexShader, UniversalCamera } from "@babylonjs/core";
 
 interface IModeSelectorMap {
 	[mode: number]: {
@@ -195,6 +195,7 @@ export class InteractionManager {
 		if (squeeze) {
 			squeeze.onButtonStateChangedObservable.add(() => {
 				if (squeeze.changes.pressed) {
+					console.log("Checking squeeze");
 					this.#checkGrab(squeeze.pressed, anchorId);
 				}
 			});
@@ -220,10 +221,10 @@ export class InteractionManager {
 			console.log(selector, "grab!");
 			if (selector.targetMesh) {
 				if (selector.targetMesh.id.includes("cylinder-")) {
-					selector.anchor.rotationQuaternion = null;
-					selector.anchor.rotation.y = -300;
-					selector.anchor.rotation.z = 0;
-					selector.anchor.rotation.x = 0;
+					// selector.anchor.rotationQuaternion = null;
+					// selector.anchor.rotation.y = -300;
+					// selector.anchor.rotation.z = 0;
+					// selector.anchor.rotation.x = 0;
 					selector.grabbedMesh = selector.targetMesh;
 					selector.targetMesh = null;
 					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
@@ -232,10 +233,10 @@ export class InteractionManager {
 						state: GrabState.GRAB,
 					});
 				} else {
-					selector.anchor.rotationQuaternion = null;
-					selector.anchor.rotation.y = 0;
-					selector.anchor.rotation.z = 0;
-					selector.anchor.rotation.x = 0;
+					// selector.anchor.rotationQuaternion = null;
+					// selector.anchor.rotation.y = 0;
+					// selector.anchor.rotation.z = 0;
+					// selector.anchor.rotation.x = 0;
 					selector.grabbedMesh = selector.targetMesh;
 					selector.targetMesh = null;
 					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
@@ -422,7 +423,7 @@ export class InteractionManager {
 		grabber.isPickable = false;
 		grabber.setParent(camera);
 		grabber.position.setAll(0);
-		grabber.rotation.copyFromFloats(Math.PI / 2, 0, 0);
+		grabber.rotation.copyFromFloats(0, 0, 0);
 
 		const anchor = new AbstractMesh("default-anchor");
 		anchor.isPickable = false;
@@ -588,16 +589,8 @@ export class InteractionManager {
 				};
 
 				const drop = (event: any, pickInfo: any) => {
-					console.log(pickInfo);
-					this.modeSelectorMap[this.interactionMode][anchor.uniqueId]
-						.grabbedMesh;
 					if (
-						this.modeSelectorMap[this.interactionMode][
-							anchor.uniqueId
-						].grabbedMesh &&
-						!this.modeSelectorMap[this.interactionMode][
-							anchor.uniqueId
-						].grabbedMesh.name.startsWith("cylinder")
+						this.modeSelectorMap[this.interactionMode][anchor.uniqueId]?.grabbedMesh
 					) {
 						this.#checkGrab(false, anchor.uniqueId);
 					}
@@ -715,6 +708,19 @@ export class InteractionManager {
 				"Tried to configure XR interaction without an XR experience."
 			);
 		}
+
+		// TODO: find a way to dynamically load the cylinder names
+		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
+
+		for (let cylinderName of cylinderNames) {
+			const mesh = this.#scene.getMeshByName(cylinderName);
+			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
+			interactableBehavior.moveAttached = true;
+
+			const pointerDrag = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
+			pointerDrag.detach();
+		}
+
 		this.xrExperience.input.controllers.forEach(this.#configureController);
 		this.xrExperience.input.onControllerAddedObservable.add(
 			this.#configureController
