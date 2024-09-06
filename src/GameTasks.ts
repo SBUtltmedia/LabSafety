@@ -20,6 +20,8 @@ interface ITaskMap {
 
 export const finalGameState: Observable<Status> = new Observable();
 
+let isFire = false;
+
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
     const fire = startFire(scene);
 
@@ -86,11 +88,6 @@ const processTask = (fromName: string, cylinderName: string, toName: string, tar
         task.succeed();
     } else {
         task.fail();
-        const emitter = scene.getMeshById("emitter");
-        console.log(emitter);
-        let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-        console.log(fireBehavior);
-        fireBehavior.onFireObservable.notifyObservers(true);
     }
 }
 
@@ -140,7 +137,24 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
+                const emitter = scene.getMeshById("emitter");
+                console.log(emitter);
+                let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                console.log(fireBehavior);
+                fireBehavior.onFireObservable.notifyObservers(true);
+                isFire = true;
                 finalGameState.notifyObservers(Status.FAILURE);
+                
+                if (isFire) {
+                    fireBehavior.onFireObservable.add((state) => {
+                        if (!state) {
+                            isFire = false;
+                            GUIWindows.createFailureScreen(scene, () => {
+                                resetScene(scene);
+                            })
+                        }
+                    })
+                }
                 break;
             case Status.RESET:
                 finalGameState.notifyObservers(Status.RESET);
