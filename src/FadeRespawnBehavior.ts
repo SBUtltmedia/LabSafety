@@ -76,12 +76,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
             }
         })
 
-        this.#interactableBehavior.onMobileGrabStateChangeObservable.add((state) => {
-            if (state === GrabState.DROP) {
-                this.#fadeAndRespawn();
-            }
-        })
-
     }
 
     detach(): void {
@@ -95,7 +89,10 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         let dist = Math.abs(Vector3.Distance(this.mesh.getAbsolutePosition(), this.spawnPosition));
 
         if (dist <= MIN_FADE_DISTANCE) { 
-            this.#respawn();
+            // Adding set time out to make it look a bit smoother.
+            setTimeout(() => {
+                this.#respawn();
+            }, 100);
             return;
         }
 

@@ -208,13 +208,13 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         // Show the grabber (e.g. the hand) if it was visible before
         if (this.hideGrabber && this.#grabberWasVisible) {
             this.#grabber.isVisible = true;
-        }
+        }        
         
         this.onGrabStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: GrabState.DROP });
 
         // Satisfying postcondition !this.grabbing
         this.#anchor = null;
-        this.#grabber = null;
+        this.#grabber = null;        
     }
 
     init(): void {

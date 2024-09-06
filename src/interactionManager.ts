@@ -98,6 +98,8 @@ export class InteractionManager {
 
 	xrExperience?: WebXRDefaultExperience;
 
+	isUsingXRObservable: Observable<Boolean> = new Observable();
+
 	constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
 		this.#scene = scene;
 		if (xrExperience) {
@@ -341,7 +343,9 @@ export class InteractionManager {
 	};
 
 	#switchModeFromXRState = (state: WebXRState) => {
+		console.log("-------------Switch from XR state --- ");
 		if (state === WebXRState.NOT_IN_XR) {
+			console.log("Not in XR");
 			if (
 				"ontouchstart" in window ||
 				navigator.maxTouchPoints > 0 ||
@@ -354,8 +358,10 @@ export class InteractionManager {
 				this.#switchMode(InteractionMode.DESKTOP);
 			}
 		} else if (state === WebXRState.IN_XR) {
+			console.log("IN XR");
 			this.#switchMode(InteractionMode.XR);
 		} else {
+			console.log("In loading");
 			this.#switchMode(InteractionMode.LOADING);
 		}
 	};
@@ -438,6 +444,7 @@ export class InteractionManager {
 	};
 
 	#configureInteraction = () => {
+		console.log("Configure Interaction!!!!!!");
 		const selector = Object.values(
 			this.modeSelectorMap[InteractionMode.MOBILE]
 		).find(({ anchor }) => anchor.name === "default-anchor");
@@ -457,7 +464,7 @@ export class InteractionManager {
         console.log("Canvas width: ", canvas.width);
 
 		meshesLoaded.add((loaded) => {
-			if (loaded) {
+			if (this.interactionMode !== InteractionMode.XR && loaded) {
 				for (let cylinderName of cylinderNames) {
 					const cylinderMesh =
 						this.#scene.getMeshByName(cylinderName);
@@ -540,7 +547,7 @@ export class InteractionManager {
                         camera.attachControl(true);
                         roatateEdges();
 					});
-
+					console.log("adding pointer drag");
 					cylinderMesh.addBehavior(pointerDragBehavior);
 				}
 
@@ -590,7 +597,7 @@ export class InteractionManager {
 
 				const drop = (event: any, pickInfo: any) => {
 					if (
-						this.modeSelectorMap[this.interactionMode][anchor.uniqueId]?.grabbedMesh
+						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh.name.startsWith("cylinder-")
 					) {
 						this.#checkGrab(false, anchor.uniqueId);
 					}
@@ -625,6 +632,7 @@ export class InteractionManager {
 		}
 		const { anchor } = selector;
 
+		console.log("Desktop interaction once");
 		this.#configureInteraction();
 
 		this.#scene.onPointerObservable.add((pointerInfo) => {
@@ -663,6 +671,7 @@ export class InteractionManager {
 		// @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
 		let activateMethod = this.#checkActivate;
 
+		console.log("Mobile interaction once");
 		this.#configureInteraction();
 
 		if (activateButton) {
@@ -709,6 +718,9 @@ export class InteractionManager {
 			);
 		}
 
+		this.#scene.onPointerDown = null;
+		this.#scene.onPointerUp = null;	
+
 		// TODO: find a way to dynamically load the cylinder names
 		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
 
@@ -717,6 +729,7 @@ export class InteractionManager {
 			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
 			interactableBehavior.moveAttached = true;
 
+			console.log("removing pointer drag");
 			const pointerDrag = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
 			pointerDrag.detach();
 		}
@@ -725,6 +738,8 @@ export class InteractionManager {
 		this.xrExperience.input.onControllerAddedObservable.add(
 			this.#configureController
 		);
+
+		this.isUsingXRObservable.notifyObservers(true);
 
 		this.#configuredXR = true;
 	};
