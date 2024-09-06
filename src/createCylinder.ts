@@ -10,6 +10,7 @@ import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { PouringBehavior } from "./PouringBehavior";
 import { interactionManager } from "./scene";
+import { InteractionMode } from "./interactionManager";
 
 export function setColor(mesh: AbstractMesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
@@ -37,12 +38,23 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
         texture.drawText(mesh.id.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
     }
 
-    const interactableBehavior = new InteractableBehavior(interactionManager, {
-        activatable: true,
-        defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
-        moveAttached: false
-        
-    });    
+    let interactableBehavior;
+
+    if (interactionManager.mode === InteractionMode.XR) {
+        interactableBehavior = new InteractableBehavior(interactionManager, {
+            activatable: true,
+            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
+            moveAttached: true
+            
+        });
+    } else {
+        interactableBehavior = new InteractableBehavior(interactionManager, {
+            activatable: true,
+            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
+            moveAttached: false
+            
+        });
+    } 
 
     const pouringBehavior = new PouringBehavior();
     const fadeRespawnBehavior = new FadeRespawnBehavior();

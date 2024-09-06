@@ -64,6 +64,12 @@ export class StateMachine {
             }            
         })
 
+        interactionManager.isUsingXRObservable.add(isXR => {
+            if (isXR) {
+                this.currentGameState.configureXR();
+            }
+        })
+
         finalGameState.add(newStatus => {
             if (newStatus === Status.FAILURE) {
                 this.#delegateState(GameStates.LOSE);
