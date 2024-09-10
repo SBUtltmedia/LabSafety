@@ -102,16 +102,43 @@ export class PouringBehavior implements Behavior<Mesh> {
         })
 
         let tilted = false;
+        let oldAngle: Vector3 = Vector3.Zero();
+        let oldPos: Vector3 = Vector3.Zero();
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
+            const mode = this.#interactableBehavior.interactionManager.interactionMode
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
-                const mode = this.#interactableBehavior.interactionManager.interactionMode
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
                     this.mesh.rotation.z += Math.PI / 3;
+                    tilted = true;
+                } else {
+                    const sourcePos = this.mesh.position;
+                    const targetPos = this.#currentTarget.position;
+
+                    let dirVector = new Vector3(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y, targetPos.z - sourcePos.z);
+                    // dirVector = dirVector.normalize();
+                    console.log("Direction vector: ", dirVector);
+                    oldAngle.copyFrom(this.mesh.rotation);
+                    oldPos.copyFrom(this.mesh.position);
+
+                    this.mesh.lookAt(targetPos);
+                    this.mesh.rotation.x = 0;
+                    this.mesh.rotation.y *= -1
+                    this.mesh.rotation.z =  Math.PI + Math.PI / 4;
+
+                    console.log(this.#currentTarget.position);
+
+                    this.mesh.position.y += 0.1
+
                     tilted = true;
                 }
                 this.pour();
             } else if (state === ActivationState.INACTIVE && tilted) {
-                this.mesh.rotation.z -= Math.PI / 3;
+                if (mode === InteractionMode.XR) {
+                    this.mesh.rotation.copyFrom(oldAngle);
+                    this.mesh.position.copyFrom(oldPos);
+                } else {
+                    this.mesh.rotation.z -= Math.PI / 3;
+                }
                 tilted = false;
             }
         });
