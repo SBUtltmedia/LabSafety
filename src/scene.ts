@@ -76,10 +76,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     }
 
     if (isTouchDevice) {
-        enableTouchJoysticks(scene);
-	    // grabButton = GUIButtons();
 	    activateButton = GUIButtons(false);
-
     }
 
     configureScene(scene, true);
