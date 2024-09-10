@@ -30,7 +30,7 @@ export class GameState {
 
     #repositionPlane = (): void => {
         this.#plane.setParent(utilityLayer.originalScene.activeCamera);
-        this.#plane.position.copyFromFloats(0, -0.5, 2);
+        this.#plane.position.copyFromFloats(0.1, 1.4, 2);
         this.#plane.rotation.setAll(0);
     }
 
@@ -41,20 +41,39 @@ export class GameState {
         if (platform)
             this._platform = platform;
 
+        this.currentState = currentGameState;
+
         // this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
         // this.#plane.isPickable = false;
         // this.#repositionPlane();
-        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
+
+        if (this._platform !== "xr") {
+            this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("HUD");
+        } else {
+            this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
+            this.#plane.isPickable = false;
+            this.#repositionPlane();
+            this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
+        }
+
+        this.configureGUI();
+
+    }
+
+    configureGUI(): void {
         this.textBlock = new TextBlock("textblock");
 
         this.textBlock.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
         this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
 
-        this.currentState = currentGameState;
-
         this.rectangle = new Rectangle("rect");
-        this.rectangle.width = 0.5;
-        this.rectangle.height = 0.2;
+        if (this._platform === "xr") {
+            this.rectangle.width = 0.58;
+            this.rectangle.height = 0.25;
+        } else {
+            this.rectangle.width = 0.5;
+            this.rectangle.height = 0.2;
+        }
         this.rectangle.color = "red";
         this.rectangle.thickness = 4;
         this.rectangle.background = "#333131";   
@@ -79,9 +98,10 @@ export class GameState {
     }
 
     displayHUD(): void {
+
         this.textBlock.text = this.text;
         this.textBlock.textWrapping = true;
-        this.textBlock.fontSize = 18;
+        this.textBlock.fontSize = 22;
 
         if (this._platform === "mobile") {
             console.log("in mobile mode")
@@ -106,12 +126,15 @@ export class GameState {
         this.rectangle.isVisible = true;
         this.displayingHUD = true;
         // this.advancedTexture.addControl(this.textBlock);
-
     }
 
     hideHUD(): void {
-        this.rectangle.isVisible = false;
-        this.textBlock.isVisible = false;
+        if (this.rectangle) {
+            this.rectangle.isVisible = false;
+        }
+        if (this.textBlock) {
+            this.textBlock.isVisible = false;
+        }
         this.displayingHUD = false;
     }
 
@@ -121,6 +144,29 @@ export class GameState {
         } else {
             this.displayHUD();
         }
+    }
+
+    configureXR(): void {
+        this.hideHUD();
+
+        if (this.rectangle) {
+            this.rectangle.dispose();
+        }
+        if (this.textBlock) {
+            this.textBlock.dispose();
+        }
+
+        this.#plane = CreatePlane("plane_text", { size: 2 }, utilityLayer.utilityLayerScene);
+        this.#plane.isPickable = false;
+        this.#repositionPlane();
+        this.advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.#plane);
+        this.textBlock = new TextBlock("textblock");
+
+        this.configureGUI();
+
+        this._platform = "xr";
+        
+        this.displayHUD();
     }
 }
 
@@ -179,7 +225,7 @@ export class GrabState extends GameState {
         this.platform = platform;
         this.hideHUD();
         if (newState === GameStates.LOSE) {
-            return new LoseState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
+            return new FailState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
         }
         return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
@@ -211,7 +257,7 @@ export class PickState extends GameState {
     }    
 }
 
-export class LoseState extends GameState {
+export class FailState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform, GameStates.PICK);
         this.displayHUD();
@@ -221,6 +267,9 @@ export class LoseState extends GameState {
         if (newState === GameStates.PICK) {
             this.hideHUD();
             return new PickState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
+        } else if (newState === GameStates.START) {
+            this.hideHUD();
+            return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
         }
         return this;
     }    

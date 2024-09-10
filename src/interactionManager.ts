@@ -19,7 +19,7 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
 import { activateButton, grabButton, meshesLoaded } from "./scene";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { KeyboardEventTypes, UniversalCamera } from "@babylonjs/core";
+import { KeyboardEventTypes, pickingVertexShader, UniversalCamera } from "@babylonjs/core";
 
 interface IModeSelectorMap {
 	[mode: number]: {
@@ -97,6 +97,8 @@ export class InteractionManager {
 	mode: InteractionMode;
 
 	xrExperience?: WebXRDefaultExperience;
+
+	isUsingXRObservable: Observable<Boolean> = new Observable();
 
 	constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
 		this.#scene = scene;
@@ -195,6 +197,7 @@ export class InteractionManager {
 		if (squeeze) {
 			squeeze.onButtonStateChangedObservable.add(() => {
 				if (squeeze.changes.pressed) {
+					console.log("Checking squeeze");
 					this.#checkGrab(squeeze.pressed, anchorId);
 				}
 			});
@@ -220,10 +223,10 @@ export class InteractionManager {
 			console.log(selector, "grab!");
 			if (selector.targetMesh) {
 				if (selector.targetMesh.id.includes("cylinder-")) {
-					selector.anchor.rotationQuaternion = null;
-					selector.anchor.rotation.y = -300;
-					selector.anchor.rotation.z = 0;
-					selector.anchor.rotation.x = 0;
+					// selector.anchor.rotationQuaternion = null;
+					// selector.anchor.rotation.y = -300;
+					// selector.anchor.rotation.z = 0;
+					// selector.anchor.rotation.x = 0;
 					selector.grabbedMesh = selector.targetMesh;
 					selector.targetMesh = null;
 					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
@@ -232,10 +235,10 @@ export class InteractionManager {
 						state: GrabState.GRAB,
 					});
 				} else {
-					selector.anchor.rotationQuaternion = null;
-					selector.anchor.rotation.y = 0;
-					selector.anchor.rotation.z = 0;
-					selector.anchor.rotation.x = 0;
+					// selector.anchor.rotationQuaternion = null;
+					// selector.anchor.rotation.y = 0;
+					// selector.anchor.rotation.z = 0;
+					// selector.anchor.rotation.x = 0;
 					selector.grabbedMesh = selector.targetMesh;
 					selector.targetMesh = null;
 					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
@@ -340,7 +343,9 @@ export class InteractionManager {
 	};
 
 	#switchModeFromXRState = (state: WebXRState) => {
+		console.log("-------------Switch from XR state --- ");
 		if (state === WebXRState.NOT_IN_XR) {
+			console.log("Not in XR");
 			if (
 				"ontouchstart" in window ||
 				navigator.maxTouchPoints > 0 ||
@@ -353,8 +358,10 @@ export class InteractionManager {
 				this.#switchMode(InteractionMode.DESKTOP);
 			}
 		} else if (state === WebXRState.IN_XR) {
+			console.log("IN XR");
 			this.#switchMode(InteractionMode.XR);
 		} else {
+			console.log("In loading");
 			this.#switchMode(InteractionMode.LOADING);
 		}
 	};
@@ -422,7 +429,7 @@ export class InteractionManager {
 		grabber.isPickable = false;
 		grabber.setParent(camera);
 		grabber.position.setAll(0);
-		grabber.rotation.copyFromFloats(Math.PI / 2, 0, 0);
+		grabber.rotation.copyFromFloats(0, 0, 0);
 
 		const anchor = new AbstractMesh("default-anchor");
 		anchor.isPickable = false;
@@ -437,6 +444,7 @@ export class InteractionManager {
 	};
 
 	#configureInteraction = () => {
+		console.log("Configure Interaction!!!!!!");
 		const selector = Object.values(
 			this.modeSelectorMap[InteractionMode.MOBILE]
 		).find(({ anchor }) => anchor.name === "default-anchor");
@@ -456,7 +464,7 @@ export class InteractionManager {
         console.log("Canvas width: ", canvas.width);
 
 		meshesLoaded.add((loaded) => {
-			if (loaded) {
+			if (this.interactionMode !== InteractionMode.XR && loaded) {
 				for (let cylinderName of cylinderNames) {
 					const cylinderMesh =
 						this.#scene.getMeshByName(cylinderName);
@@ -539,7 +547,7 @@ export class InteractionManager {
                         camera.attachControl(true);
                         roatateEdges();
 					});
-
+					console.log("adding pointer drag");
 					cylinderMesh.addBehavior(pointerDragBehavior);
 				}
 
@@ -588,16 +596,8 @@ export class InteractionManager {
 				};
 
 				const drop = (event: any, pickInfo: any) => {
-					console.log(pickInfo);
-					this.modeSelectorMap[this.interactionMode][anchor.uniqueId]
-						.grabbedMesh;
 					if (
-						this.modeSelectorMap[this.interactionMode][
-							anchor.uniqueId
-						].grabbedMesh &&
-						!this.modeSelectorMap[this.interactionMode][
-							anchor.uniqueId
-						].grabbedMesh.name.startsWith("cylinder")
+						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh
 					) {
 						this.#checkGrab(false, anchor.uniqueId);
 					}
@@ -632,6 +632,7 @@ export class InteractionManager {
 		}
 		const { anchor } = selector;
 
+		console.log("Desktop interaction once");
 		this.#configureInteraction();
 
 		this.#scene.onPointerObservable.add((pointerInfo) => {
@@ -670,6 +671,7 @@ export class InteractionManager {
 		// @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
 		let activateMethod = this.#checkActivate;
 
+		console.log("Mobile interaction once");
 		this.#configureInteraction();
 
 		if (activateButton) {
@@ -715,10 +717,29 @@ export class InteractionManager {
 				"Tried to configure XR interaction without an XR experience."
 			);
 		}
+
+		this.#scene.onPointerDown = null;
+		this.#scene.onPointerUp = null;	
+
+		// TODO: find a way to dynamically load the cylinder names
+		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
+
+		for (let cylinderName of cylinderNames) {
+			const mesh = this.#scene.getMeshByName(cylinderName);
+			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
+			interactableBehavior.moveAttached = true;
+
+			console.log("removing pointer drag");
+			const pointerDrag = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
+			pointerDrag.detach();
+		}
+
 		this.xrExperience.input.controllers.forEach(this.#configureController);
 		this.xrExperience.input.onControllerAddedObservable.add(
 			this.#configureController
 		);
+
+		this.isUsingXRObservable.notifyObservers(true);
 
 		this.#configuredXR = true;
 	};
