@@ -8,7 +8,6 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, IMeshGrabInfo } from "./interactionManager";
-import { interactionManager } from "./scene";
 
 interface IAnimation {
     name: string,
