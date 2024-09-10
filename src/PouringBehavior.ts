@@ -10,7 +10,6 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
-import { interactionManager } from "./scene";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
