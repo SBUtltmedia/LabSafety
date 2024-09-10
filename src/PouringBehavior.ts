@@ -11,6 +11,7 @@ import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
+import { global } from "./GlobalState";
 
 // Works with InteractableBehavior and HighlightBehavior to determine
 // when to pour and indicate to the user when a pour is possible.
@@ -58,18 +59,27 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
         this.mesh.addBehavior(this.#highlightBehavior);
 
+
         const scene = mesh.getScene();
         const camera = scene.activeCamera;
         const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
-        console.log(targets);
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
-                    this.#changeTarget(target);
+                    
+                    if (global.sop.currentSubTask) {
+                        let [left,right] = global.sop.currentSubTask.name.split(" -> ");
+                        if( (this.mesh.id ===`cylinder-${left.toLowerCase()}`) && (target?.id === `cylinder-${right.toLowerCase()}`)){
+                            this.#changeTarget(target,new Color3(0, 255, 0))
+                        }
+                        else{
+                            this.#changeTarget(target,new Color3(255, 0, 0))
+                        }
+                    }
                 });
             } else if (state === GrabState.DROP) {
-                this.#changeTarget(null);
+                this.#changeTarget(null,null);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
@@ -87,10 +97,10 @@ export class PouringBehavior implements Behavior<Mesh> {
                 console.log("Mobile grab state")
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
-                    this.#changeTarget(target);
+                    this.#changeTarget(target,null);
                 });
             } else if (state === GrabState.DROP) {
-                this.#changeTarget(null);
+                this.#changeTarget(null,null);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
@@ -170,7 +180,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         return bestTarget;
     }
 
-    #changeTarget(target: Nullable<AbstractMesh>) {
+    #changeTarget(target: Nullable<AbstractMesh>,color:Color3) {
         if (this.#currentTarget === target) {
             return;
         }
@@ -184,9 +194,10 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.#currentTarget = target;
         
         if (this.#currentTarget) {
+            
             if (this.#currentTarget instanceof Mesh) {
-                this.#highlightBehavior.highlightSelf();
-                this.#highlightBehavior.highlightOther(this.#currentTarget);
+                this.#highlightBehavior.highlightSelf(color);
+                this.#highlightBehavior.highlightOther(this.#currentTarget,color );
             }
         }
     }

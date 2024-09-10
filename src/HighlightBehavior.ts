@@ -32,16 +32,17 @@ export class HighlightBehavior implements Behavior<Mesh> {
         this.unhighlightAll();
     }
 
-    highlightSelf = () => {
+    highlightSelf = (color:Color3) => {
+        console.log(this.highlightLayer.addMesh(this.mesh, this.color))
         if (!this.highlightLayer.hasMesh(this.mesh)) {
-            this.highlightLayer.addMesh(this.mesh, this.color);
+            this.highlightLayer.addMesh(this.mesh, color);
         }
     }
 
-    highlightOther = (otherMesh: Mesh) => {
+    highlightOther = (otherMesh: Mesh,color: Color3) => {
         if (!this.highlightLayer.hasMesh(otherMesh)) {
             this.otherMesh = otherMesh;
-            this.highlightLayer.addMesh(this.otherMesh, this.color);
+            this.highlightLayer.addMesh(this.otherMesh, color);
         }
     }
 
