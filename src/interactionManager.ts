@@ -597,7 +597,7 @@ export class InteractionManager {
 
 				const drop = (event: any, pickInfo: any) => {
 					if (
-						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh.name.startsWith("cylinder-")
+						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh
 					) {
 						this.#checkGrab(false, anchor.uniqueId);
 					}
