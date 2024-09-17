@@ -13,6 +13,12 @@ import { InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
 
+export function makeRespawnable(mesh: AbstractMesh): void {
+    const fadeRespawnBehavior = new FadeRespawnBehavior();
+    mesh.addBehavior(fadeRespawnBehavior);
+}
+
+
 export function createClipboard(mesh: AbstractMesh): void {
     const scene = mesh.getScene();
 
@@ -53,10 +59,8 @@ export function createClipboard(mesh: AbstractMesh): void {
 
     if (plane instanceof Mesh) {
         interactableBehavior.interactionManager.highlightLayer.addExcludedMesh(plane);
-    }
-
-    const fadeRespawnBehavior = new FadeRespawnBehavior();
-    
+    }    
     mesh.addBehavior(interactableBehavior);
-    mesh.addBehavior(fadeRespawnBehavior);
+
+    makeRespawnable(mesh);
 }

@@ -58,13 +58,20 @@ export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array
 
             const task = reverseTaskMap.get(global.sop.currentSubTask);
 
+            let taskSuccess = true;
+
             if (pouringBehavior.animating) {
                 pouringBehavior.onAnimationChangeObservable.addOnce(() => {
-                    processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
+                    taskSuccess = processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
                 })
             } else {
-                processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
-            }        
+                taskSuccess = processTask(cylinderName, task[0], target.name, task[1], global.sop.currentSubTask, scene);
+            }
+
+            if (!taskSuccess) {
+                const pouringBehavior = target.getBehaviorByName("Pouring") as PouringBehavior;
+                pouringBehavior.startSmokes();
+            }
         })
     }
     
@@ -86,8 +93,10 @@ export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array
 const processTask = (fromName: string, cylinderName: string, toName: string, targetName: string, task: Task, scene: Scene) => {
     if (cylinderName === fromName && toName === targetName) {
         task.succeed();
+        return true;
     } else {
         task.fail();
+        return false;
     }
 }
 

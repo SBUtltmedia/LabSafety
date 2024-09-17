@@ -16,7 +16,7 @@ import { StandardMaterial, Color3 } from "@babylonjs/core";
 import { enableTouchJoysticks } from "./VirtualTouchJoystick";
 
 import { STARTING_POSITION, configureCamera } from "./camera";
-import { setRespawnPoints } from "./FadeRespawnBehavior";
+import { FadeRespawnBehavior, setRespawnPoints } from "./FadeRespawnBehavior";
 import { InteractionManager } from "./interactionManager";
 import { loadMeshes } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
@@ -33,6 +33,7 @@ import { GUIButtons } from "./InteractableButtons";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
 import { Observable } from "@babylonjs/core";
+import { InteractableBehavior } from "./interactableBehavior";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -212,8 +213,13 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     // Places meshes to their proper places in the scene, including rotation.
     placeMeshes(meshes);
 
+    FadeRespawnBehavior.allAttachedObservable.add(allAttached => {
+        if (allAttached) {
+            setRespawnPoints(scene);
+        }
+    })
+
     // Set respawn points after placing meshes.
-    setRespawnPoints(scene);
 
     // Places the camera at the starting position.
     placeCamera(camera);

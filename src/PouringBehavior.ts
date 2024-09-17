@@ -1,7 +1,7 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -10,8 +10,9 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
-import { interactionManager } from "./scene";
 import { global } from "./GlobalState";
+import { ParticleSystem, StandardMaterial, Texture } from "@babylonjs/core";
+import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
 
 
 // Works with InteractableBehavior and HighlightBehavior to determine
@@ -29,11 +30,15 @@ export class PouringBehavior implements Behavior<Mesh> {
     onBeforePourObservable: Observable<AbstractMesh>;
     onMidPourObservable: Observable<AbstractMesh>;
     onAfterPourObservable: Observable<AbstractMesh>;
+    onAttachObservable: Observable<Boolean>;
     liquidMesh?: AbstractMesh; // If this is set, setting empty to true will make this mesh invisible, and setting empty to false will make it visible.
     #empty: boolean = false;
     pourDelay: number = 1000;
     animating: boolean = false;
     onAnimationChangeObservable: Observable<Boolean>;
+    #scene: Scene;
+    particleSystem: ParticleSystem;
+    isParticlesSetup: boolean = false;
     
     constructor() {
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
@@ -41,6 +46,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.onMidPourObservable = new Observable();
         this.onAfterPourObservable = new Observable();
         this.onAnimationChangeObservable = new Observable();
+        this.onAttachObservable = new Observable();
     }
 
     get name() {
@@ -59,10 +65,10 @@ export class PouringBehavior implements Behavior<Mesh> {
             throw new Error(`${this.name} behavior must have Interactable present on the same mesh.`);
         }
         this.mesh.addBehavior(this.#highlightBehavior);
-
-
         const scene = mesh.getScene();
+        this.#scene = scene;
         const camera = scene.activeCamera;
+
         const targets = this.#interactableBehavior.interactionManager.interactableMeshes as AbstractMesh[];
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
             if (state === GrabState.GRAB) {
@@ -153,6 +159,8 @@ export class PouringBehavior implements Behavior<Mesh> {
                 tilted = false;
             }
         });
+
+        this.onAttachObservable.notifyObservers(true);
     }
 
     detach = () => {
@@ -165,6 +173,9 @@ export class PouringBehavior implements Behavior<Mesh> {
             this.#renderObserver.remove();
         }
         this.#highlightBehavior.unhighlightAll();
+        this.onAttachObservable.notifyObservers(false);
+        const smokeBehavior = this.mesh.getBehaviorByName("smoke") as CylinderSmokeBehavior;
+        smokeBehavior.detach();
     }
 
     get empty(): boolean {
@@ -247,4 +258,14 @@ export class PouringBehavior implements Behavior<Mesh> {
         this.onAfterPourObservable.notifyObservers(target);
         this.empty = true;
     }
+    startSmokes() {
+        const smokeBehavior = this.mesh.getBehaviorByName("smoke") as CylinderSmokeBehavior;
+        smokeBehavior.startSystem();
+    }
+
+    stopSmokes () {
+        const smokeBehavior = this.mesh.getBehaviorByName("smoke") as CylinderSmokeBehavior;
+        smokeBehavior.startSystem();
+    }
+    
 }

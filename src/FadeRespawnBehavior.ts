@@ -4,7 +4,7 @@ import { Animation } from "@babylonjs/core/Animations/animation";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Observer } from "@babylonjs/core/Misc/observable";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { GrabState, IMeshGrabInfo } from "./interactionManager";
@@ -27,6 +27,8 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     #animationStateObserver: Nullable<Observer<boolean>> = null;
     #animations: IAnimation[];
     #scene: Scene;
+    static attachCount: number = 0;
+    static allAttachedObservable: Observable<Boolean> = new Observable();    
 
     constructor(speedRatio: number = 1.25) {
         this.#speedRatio = speedRatio;
@@ -75,6 +77,12 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
             }
         })
 
+        // Change 7 to whatever the total number of interactable meshes there are
+        FadeRespawnBehavior.attachCount++;
+        if (FadeRespawnBehavior.attachCount >= 5) {
+            FadeRespawnBehavior.allAttachedObservable.notifyObservers(true);
+        }        
+
     }
 
     detach(): void {
@@ -82,6 +90,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         if (this.#animationStateObserver) {
             this.#animationStateObserver.remove();
         }
+        FadeRespawnBehavior.attachCount--;
     }
 
     #fadeAndRespawn() {
@@ -120,9 +129,15 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 }
 
 export function setRespawnPoints(scene: Scene): void {
-    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn"))
-        .filter(behavior => Boolean(behavior)) as FadeRespawnBehavior[];
+    console.log("Calling set respawn");
+    // this line of code essentially just retrieves all the meshes in the scene that has a FadeRespawnBehavior
+    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn")).filter(behavior => Boolean(behavior)) as FadeRespawnBehavior[];
+
     for (const behavior of behaviors) {
+        while(!behavior?.mesh){
+            // alert("while");
+            console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
+        }
         behavior.setSpawnPoint(behavior.mesh.position, behavior.mesh.rotation);
     }
 }
