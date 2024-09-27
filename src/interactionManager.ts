@@ -19,7 +19,7 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
 import { activateButton, grabButton, meshesLoaded } from "./scene";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { KeyboardEventTypes, pickingVertexShader, UniversalCamera } from "@babylonjs/core";
+import { KeyboardEventTypes, UniversalCamera } from "@babylonjs/core";
 
 interface IModeSelectorMap {
 	[mode: number]: {

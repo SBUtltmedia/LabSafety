@@ -11,6 +11,8 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { PouringBehavior } from "./PouringBehavior";
 import { interactionManager } from "./scene";
 import { InteractionMode } from "./interactionManager";
+import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 
 export function setColor(mesh: AbstractMesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
@@ -56,11 +58,21 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
         });
     } 
 
-    const pouringBehavior = new PouringBehavior();
-    const fadeRespawnBehavior = new FadeRespawnBehavior();
-
     mesh.addBehavior(interactableBehavior);
-    mesh.addBehavior(pouringBehavior);
-    pouringBehavior.liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
-    mesh.addBehavior(fadeRespawnBehavior);
+
+    new Texture(
+        "images/smokeParticleTexture.png",
+    ).onLoadObservable.add(texture => {
+        const cylinderSmokeBehavior = new CylinderSmokeBehavior(texture, mesh);
+        mesh.addBehavior(cylinderSmokeBehavior);
+        const pouringBehavior = new PouringBehavior();
+        pouringBehavior.liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
+        mesh.addBehavior(pouringBehavior);
+        const fadeRespawnBehavior = new FadeRespawnBehavior();
+        mesh.addBehavior(fadeRespawnBehavior);
+
+        cylinderSmokeBehavior.stopSystem();
+    
+    })
+    
 }

@@ -58,6 +58,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #grabber: Nullable<AbstractMesh> = null;
     #defaultGrabObserver: Nullable<Observer<IMeshGrabInfo>> = null;
     #enabled: boolean = true;
+    onAttachObservable: Observable<Boolean> = new Observable();
     
     constructor(interactionManager: InteractionManager, options?: IInteractableOptions) {
         this.interactionManager = interactionManager;
@@ -232,6 +233,9 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             this.#enableDefaultGrab();
         }
         this.interactionManager.interactableMeshes.push(this.#mesh);
+        this.onAttachObservable.notifyObservers(true);
+
+
     }
 
     // Preconditions: !#subscribed and #attached
@@ -296,5 +300,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             this.interactionManager.interactableMeshes.splice(index, 1);
         }
         this.#mesh = null;
+        this.onAttachObservable.notifyObservers(false);
+        InteractableBehavior.attachCount--;
     }
 }
