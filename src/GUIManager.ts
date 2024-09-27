@@ -135,7 +135,7 @@ export class GUIWindows {
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
-            "Congratulations! You have completed the SOP.",
+            "Congratulations! You have completed the SOP",
             buttonClickCallBack,
             ...args
         );
@@ -149,7 +149,7 @@ export class GUIWindows {
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
-            "Oops! You mixed the wrong chemicals which resulted in a fire.",
+            "Oops! You mixed the wrong chemicals which resulted in a fire",
             buttonClickCallBack,
             ...args
         );
