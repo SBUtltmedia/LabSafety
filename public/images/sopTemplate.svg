@@ -53,26 +53,36 @@
         margin: 2px 3px;
     }
 
+    .empty::before,.incorrect::before,.correct::before{
+        font-size: 5px; 
+        line-height: 0.8;
+        <!-- transform: translateY(-5px);     -->
+        position: relative;
+        top: -0.17px;
+    }
 
     .empty::before{
-    content:"&#9744;"
+        content:"&#9744;";
+        color: black; 
     }
 
     .incorrect::before{
-    content:"&#9746;"
-    }
-
-    .incorrect {
+        content:"&#9746;";
         color: red;
     }
 
+    <!-- .incorrect {
+        color: red;
+    } -->
+
     .correct::before{
-        content:"&#9745;"
+        content:"&#9745;";
+        color: green;  
     }
 
-    .correct {
+    <!-- .correct {
         color: green;
-    }
+    } -->
 
     .checkpad {
         margin-right: 1px;
