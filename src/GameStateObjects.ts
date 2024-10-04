@@ -90,15 +90,15 @@ export class GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this._platform = platform;
-        if (newState === GameStates.START) {
+        if (newState === GameStates.BASE) {
             this.hideHUD();
-            return new StartState(global.hudHints["GAME_STATE_START"][this._platform], this._platform);
+            console.log(global.hudHints["GAME_STATE_BASE"]);
+            return new BaseState(global.hudHints["GAME_STATE_BASE"][this._platform], this._platform);
         }
         return null;
     }
 
     displayHUD(): void {
-
         this.textBlock.text = this.text;
         this.textBlock.textWrapping = true;
         this.textBlock.fontSize = 22;
@@ -125,6 +125,7 @@ export class GameState {
         this.textBlock.isVisible = true;
         this.rectangle.isVisible = true;
         this.displayingHUD = true;
+        console.log("set visible");
         // this.advancedTexture.addControl(this.textBlock);
     }
 
@@ -206,11 +207,20 @@ export class BaseState extends GameState {
         this.platform = platform;
         if (newState === GameStates.GRAB) {
             this.hideHUD();
-            return new GrabState(global.hudHints["GAME_STATE_PICK_SOP"][this.platform], this.platform);
-        } else if (newState === GameStates.PICK) {
-            this.hideHUD();
-            return new PickState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
+            if (args.length > 0) {
+                let mesh: AbstractMesh = args[0];
+                console.log(mesh);
+                if (mesh.name === "fire-extinguisher") {
+                    return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"][this.platform], this.platform);        
+                } else if (mesh.name.startsWith("cylinder")) {
+                    return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
+                } else if (mesh.name.startsWith("Door")) {
+                    return new GrabState("Drag around the door's handle to open it", this.platform);
+                }
+            }                        
+            return new GrabState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
         }
+
         return null;
     }
 }

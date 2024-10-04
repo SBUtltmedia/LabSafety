@@ -70,16 +70,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     const camera = new UniversalCamera("camera", STARTING_POSITION);
     const canvas = document.getElementById("canvas");
 
-    let isTouchDevice = false;
-
-    if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
-      isTouchDevice = true;
-    }
-
-    if (isTouchDevice) {
-	    activateButton = GUIButtons(false);
-    }
-
     configureScene(scene, true);
     configureCamera(camera);
     scene.activeCamera = camera;
@@ -147,8 +137,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
             reticle.isVisible = state !== WebXRState.IN_XR;
         });
     }
-
-    setupGameStates(isTouchDevice ? "mobile" : "desktop");
     
     await loadSounds("./json/sounds.json");
     await resetScene(scene);
@@ -225,14 +213,33 @@ export async function resetScene(scene: Scene): Promise<Scene> {
     placeCamera(camera);
 
     meshesLoaded.notifyObservers(true);
+    let isXR = false;    
     
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");
         xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+        isXR = true;    
+    }
+
+    let isTouchDevice = false;
+
+    if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
+      isTouchDevice = true;
+    }
+
+    if (isTouchDevice) {
+	    activateButton = GUIButtons(false);
+    }
+
+    if (stateMachine) {
+        setupGameStates(stateMachine.platform);
+    } else {
+        console.log("setup gs")
+        setupGameStates(isTouchDevice ? "mobile" : "desktop");  
     }
 
     document.exitPointerLock();
-    stateMachine.onStateChangeObervable.notifyObservers(GameStates.START);
+    console.log("change base");
 
     const canvas = document.getElementById("canvas");
     const handleInitialClick: EventListener = (e: Event) => {

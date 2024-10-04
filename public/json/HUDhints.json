@@ -43,5 +43,10 @@
         "desktop": "Left click to pick!",
         "mobile": "Tap on the grab button to pick!",
         "xr": "Squeeze to pick!"
+    },
+    "GAME_STATE_AFTER_SOP": {
+        "desktop": "Mix the cylinders as mentioned in the SOP! Use your left mouse button to interact with them.",
+        "mobile":  "Mix the cylinders as mentioned in the SOP!",
+        "xr":  "Mix the cylinders as mentioned in the SOP! Use your grip to interact with them."
     }
 }

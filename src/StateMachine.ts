@@ -4,6 +4,7 @@ import { interactionManager } from "./scene";
 import { GrabState, InteractionMode } from "./interactionManager";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
+import { global } from "./GlobalState";
 
 //Set up game states
 
@@ -15,16 +16,19 @@ export enum GameStates {
     ACTIVATE,
     PICK,
     WIN,
-    LOSE
+    LOSE,
+    PICK_SOP
 }
 
 export class StateMachine {
     onStateChangeObervable: Observable<GameStates> = new Observable();
     currentGameState: GameState;
     platform: string;
+    changedHints: boolean;
 
     constructor(platform: string) {
-        this.platform = platform
+        this.platform = platform;
+        this.changedHints = false;
         this.currentGameState = new GameState(null, this.platform, GameStates.START);
         this.onStateChangeObervable.add(newState => {
             this.#delegateState(newState);
@@ -56,12 +60,24 @@ export class StateMachine {
             console.log("grab state change: ", meshGrabInfo);
             if (meshGrabInfo.state === GrabState.GRAB) {
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
+                if (meshGrabInfo.mesh.name === "clipboard") {
+                    this.#toggleDisplay();
+                }
             } else {
+                console.log("Drop obj")
+                if (meshGrabInfo.mesh.name === "clipboard") {
+                    if (!this.changedHints) {
+                        this.changedHints = true;
+                        console.log("Drop clip");
+                        for (let platform of ["mobile", "desktop", "xr"]) {
+                            global.hudHints["GAME_STATE_BASE"][platform] = global.hudHints["GAME_STATE_AFTER_SOP"][platform];
+                        }
+                    }
+                }
                 this.#delegateState(GameStates.BASE);
+                this.currentGameState.displayHUD();
             }
-            if (meshGrabInfo.mesh.name === "clipboard") {
-                this.#toggleDisplay();                
-            }            
+
         })
 
         interactionManager.isUsingXRObservable.add(isXR => {
@@ -73,6 +89,8 @@ export class StateMachine {
         finalGameState.add(newStatus => {
             if (newStatus === Status.FAILURE) {
                 this.#delegateState(GameStates.LOSE);
+            } else if (newStatus === Status.RESET) {
+                console.log("Reset!");
             }
         })
 

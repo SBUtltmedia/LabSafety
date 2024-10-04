@@ -1,6 +1,6 @@
 import { HUD_HINTS_PATH } from "./Constants";
 import { IHUDHints, global } from "./GlobalState";
-import { StateMachine } from "./StateMachine";
+import { GameStates, StateMachine } from "./StateMachine";
 
 export let stateMachine: StateMachine;
 
@@ -11,5 +11,7 @@ export const setupGameStates = (platform: string) => {
         .then(r => r.json())
         .then((json: IHUDHints) => {
             global.hudHints = Object.assign({}, json);
-        });
+        }).then(() => {
+            stateMachine.onStateChangeObervable.notifyObservers(GameStates.BASE);
+        })
 }
