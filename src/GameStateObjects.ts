@@ -7,7 +7,8 @@ import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { global } from "./GlobalState";
 import { Control } from "@babylonjs/gui";
 
-import { utilityLayer } from "./scene";
+import { interactionManager, utilityLayer } from "./scene";
+import { Scene } from "@babylonjs/core";
 
 export class GameState {
     text: string;
@@ -29,9 +30,11 @@ export class GameState {
     }
 
     #repositionPlane = (): void => {
-        this.#plane.setParent(utilityLayer.originalScene.activeCamera);
-        this.#plane.position.copyFromFloats(0.1, 1.4, 2);
+        this.#plane.setParent(utilityLayer.originalScene.getMeshByName("controller-1-tracked-pointer-left-pointer"));
+        this.#plane.position.copyFromFloats(0, 0.34, 0);
         this.#plane.rotation.setAll(0);
+        this.#plane.scaling.x = 0.3;
+        this.#plane.scaling.y = 0.3;
     }
 
     constructor(text: string, platform: string, currentGameState: GameStates) {
@@ -70,6 +73,16 @@ export class GameState {
         if (this._platform === "xr") {
             this.rectangle.width = 0.58;
             this.rectangle.height = 0.25;
+            const inputSource = interactionManager.xrExperience.input.controllers.find((controller) => controller.uniqueId === "controller-1-tracked-pointer-left");
+            inputSource.onMotionControllerInitObservable.add(motionController => {
+                const xButton = motionController.getComponentOfType("button");
+                console.log("get motion controller");
+                xButton.onButtonStateChangedObservable.add((observer) => {
+                    if (observer.pressed) {
+                        this.disposeHUD();
+                    }
+                })
+            });            
         } else {
             this.rectangle.width = 0.5;
             this.rectangle.height = 0.2;
@@ -85,6 +98,8 @@ export class GameState {
         
         this.rectangle.addControl(this.textBlock);
         this.advancedTexture.addControl(this.rectangle);
+
+        console.log("set display hud to false");
         this.displayingHUD = false;
     }
 
@@ -109,6 +124,8 @@ export class GameState {
             this.rectangle.height = 0.2;
             this.rectangle.paddingBottom = "10px";
             this.textBlock.paddingTop = "5px";
+        } else if (this._platform === "xr") {
+            this.textBlock.text += "\n\nPress X button to dismiss.";
         }
 
         this.textBlock.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
@@ -124,23 +141,61 @@ export class GameState {
         
         this.textBlock.isVisible = true;
         this.rectangle.isVisible = true;
+        if (this.#plane) {
+            this.#plane.isVisible = true;
+        }
         this.displayingHUD = true;
-        console.log("set visible");
+        console.log("set visible true");
         // this.advancedTexture.addControl(this.textBlock);
     }
 
     hideHUD(): void {
         if (this.rectangle) {
+            console.log("set rect to false");
             this.rectangle.isVisible = false;
         }
         if (this.textBlock) {
+            console.log("set tb to false");
             this.textBlock.isVisible = false;
         }
+        if (this.#plane) {
+            console.log("set plane to false");
+            this.#plane.isVisible = false;
+        }
+        console.log("set display hud to false");
+        this.displayingHUD = false;
+    }
+
+    disposeHUD() {
+        console.log("Dispose HUD");
+        if (this.rectangle) {
+            this.rectangle.dispose();
+        }
+
+        if (this.textBlock) {
+            this.textBlock.dispose();
+        }
+
+        if (this.#plane) {
+            this.#plane.dispose();
+        }
+
+        if (this.advancedTexture) {
+            this.advancedTexture.dispose();
+        }
+
+        let planeMeshes = utilityLayer.utilityLayerScene.getMeshesById("plane_text");
+
+        for (let planeMesh of planeMeshes) {
+            planeMesh.dispose();
+        }
+
         this.displayingHUD = false;
     }
 
     toggleHUD(): void {
-        if (this.displayingHUD) {
+        console.log("Displaying hud: ", this.displayingHUD);
+        if ((this.rectangle && this.rectangle.isVisible) || (this.#plane && this.#plane.isVisible)) {
             this.hideHUD();
         } else {
             this.displayHUD();
@@ -178,35 +233,42 @@ export class StartState extends GameState {
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.hideHUD();
+        this.disposeHUD();
         this.platform = platform;
         return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
     }
 
-    displayHUD(): void {
-        let textblock = this.textBlock;
-        let advancedTexture = this.advancedTexture;
+    // displayHUD(): void {
+    //     let textblock = this.textBlock;
+    //     let advancedTexture = this.advancedTexture;
 
-        textblock.text = this.text;
-        textblock.fontSize = 30;
-        textblock.fontWeight = "bold";
-        textblock.color = "white";
-        advancedTexture.addControl(textblock);
+    //     textblock.text = this.text;
+    //     textblock.fontSize = 30;
+    //     textblock.fontWeight = "bold";
+    //     textblock.color = "white";
+    //     advancedTexture.addControl(textblock);
 
-        textblock.isVisible = true;
-    }
+    //     textblock.isVisible = true;
+    //     this.displayingHUD = true;
+    //     console.log("set visible true");
+
+    // }
 }
 
 export class BaseState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform, GameStates.BASE);
         this.displayHUD();
+        this.displayingHUD = true;
+        console.log("set visible true");
+        console.log("In base state display");
+        console.log(this.displayingHUD);
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
         if (newState === GameStates.GRAB) {
-            this.hideHUD();
+            this.disposeHUD();
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
                 console.log(mesh);
@@ -228,12 +290,16 @@ export class BaseState extends GameState {
 export class GrabState extends GameState {
     constructor(text: string, platform: string) {
         super(text, platform, GameStates.GRAB);
+        console.log("In grab state");
         this.displayHUD();
+        this.displayingHUD = true;
+        console.log("set visible true");
+
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        this.hideHUD();
+        this.disposeHUD();
         if (newState === GameStates.LOSE) {
             return new FailState(global.hudHints["GAME_STATE_FAIL"][this.platform], this.platform);
         }
@@ -250,8 +316,8 @@ export class PickState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
+        this.disposeHUD();
         if (newState === GameStates.GRAB) {
-            this.hideHUD();
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
                 if (mesh.name === "fire-extinguisher") {
@@ -260,7 +326,6 @@ export class PickState extends GameState {
             }
             return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"][this.platform], this.platform);
         } else if (newState === GameStates.BASE) {
-            this.hideHUD();
             return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
         }
         return null;
@@ -275,10 +340,10 @@ export class FailState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         if (newState === GameStates.PICK) {
-            this.hideHUD();
+            this.disposeHUD();
             return new PickState(global.hudHints["GAME_STATE_PICK"][this.platform], this.platform);
         } else if (newState === GameStates.START) {
-            this.hideHUD();
+            this.disposeHUD();
             return new BaseState(global.hudHints["GAME_STATE_BASE"][this.platform], this.platform);
         }
         return this;

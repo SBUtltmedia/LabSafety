@@ -45,14 +45,13 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     if (interactionManager.mode === InteractionMode.XR) {
         interactableBehavior = new InteractableBehavior(interactionManager, {
             activatable: true,
-            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
+            defaultAnchorRotation: new Vector3(0, Math.PI / 2, Math.PI),
             moveAttached: true
-            
         });
     } else {
         interactableBehavior = new InteractableBehavior(interactionManager, {
             activatable: true,
-            defaultRotation: new Vector3(0, Math.PI / 2, Math.PI),
+            defaultAnchorRotation: new Vector3(0, Math.PI / 2, Math.PI),
             moveAttached: false
             
         });
@@ -63,6 +62,9 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     new Texture(
         "images/smokeParticleTexture.png",
     ).onLoadObservable.add(texture => {
+
+        console.log(mesh.name);
+
         const cylinderSmokeBehavior = new CylinderSmokeBehavior(texture, mesh);
         mesh.addBehavior(cylinderSmokeBehavior);
         const pouringBehavior = new PouringBehavior();

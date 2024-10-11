@@ -49,8 +49,9 @@ export class StateMachine {
             this.platform = this.#getStringFromMode(newMode);
             console.log("new mode: ", this.platform);
             this.currentGameState.platform = this.platform;
-            this.currentGameState.toggleHUD();
-            this.currentGameState.toggleHUD();
+            this.currentGameState.disposeHUD();
+            this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"][platform], this.platform, GameStates.START);
+            this.currentGameState.displayHUD();
             if (this.platform !== "loading" && this.platform !== "null") {
                 this.#delegateState(GameStates.BASE);
             }
@@ -75,7 +76,9 @@ export class StateMachine {
                     }
                 }
                 this.#delegateState(GameStates.BASE);
-                this.currentGameState.displayHUD();
+                if (this.currentGameState.displayingHUD === false) {
+                    this.currentGameState.displayHUD();
+                }
             }
 
         })
