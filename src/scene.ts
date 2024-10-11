@@ -139,15 +139,15 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     }
     
     await loadSounds("./json/sounds.json");
-    await resetScene(scene);
+    await initScene(scene);
 
     const splashScreen = document.querySelector("div.splash") as HTMLElement;
     let response= await fetch("./images/Notebook.svg")
     let svg= await response.text();
 
-    splashScreen.style.opacity="0";
+    // splashScreen.style.opacity="0";
     splashScreen.innerHTML = svg;
-    setTimeout(()=> splashScreen.style.opacity="1",1000)
+    // setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
         interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
@@ -176,7 +176,7 @@ function fadeIn(light: Light) {
     }, 60);
 }
 
-export async function resetScene(scene: Scene): Promise<Scene> {
+export async function initScene(scene: Scene): Promise<Scene> {
     const light = scene.getLightByName("light1");
     light.intensity = 0;
     const camera = scene.activeCamera;

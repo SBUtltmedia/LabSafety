@@ -7,6 +7,8 @@ import { placeCamera } from "./placeCamera";
 
 export function createRoom(roomMesh: Mesh) {
 
+    console.log(roomMesh);
+
     const camera = roomMesh.getScene().activeCamera as UniversalCamera;
 
     enableMeshCollisions(roomMesh);

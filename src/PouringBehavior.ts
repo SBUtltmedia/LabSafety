@@ -13,6 +13,7 @@ import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, Interac
 import { global } from "./GlobalState";
 import { ParticleSystem, StandardMaterial, Texture } from "@babylonjs/core";
 import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
+import { Animation } from '@babylonjs/core/Animations/animation';
 
 
 // Works with InteractableBehavior and HighlightBehavior to determine
@@ -125,7 +126,49 @@ export class PouringBehavior implements Behavior<Mesh> {
             const mode = this.#interactableBehavior.interactionManager.interactionMode
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
-                    this.mesh.rotation.z += Math.PI / 3;
+                    const sourcePos = this.mesh.position;
+                    const targetPos = this.#currentTarget.position;
+
+                    let dirVector = new Vector3(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y, targetPos.z - sourcePos.z);
+                    // dirVector = dirVector.normalize();
+                    console.log("Direction vector: ", dirVector);
+                    oldAngle.copyFrom(this.mesh.rotation);
+                    oldPos.copyFrom(this.mesh.position);
+
+                    this.mesh.lookAt(targetPos);
+                    this.mesh.rotation.x = 0;
+                    this.mesh.position.y += 0.1
+                    
+
+                    let rotationAnimation = new Animation(
+                        `rotateAroundZ`,
+                        "rotation.z",
+                        60,
+                        Animation.ANIMATIONTYPE_FLOAT,
+                        Animation.ANIMATIONLOOPMODE_CONSTANT
+                    );
+            
+                    let keyFrames = [];
+                    let closed = {
+                        value: 0,
+                    };
+            
+                    let opened = {
+                        value: -Math.PI / 4
+                    }
+            
+                    keyFrames.push({...closed, frame:0});
+                    keyFrames.push({...opened, frame:60});
+
+                    this.mesh.animations.push(rotationAnimation);
+                    rotationAnimation.setKeys(keyFrames);
+
+                    scene.beginAnimation(this.mesh, 0, 60, false, 1, () => {
+                        console.log("anim end");
+                    });
+
+                    console.log("being animation");
+
                     tilted = true;
                 } else {
                     const sourcePos = this.mesh.position;
@@ -155,6 +198,8 @@ export class PouringBehavior implements Behavior<Mesh> {
                     this.mesh.position.copyFrom(oldPos);
                 } else {
                     this.mesh.rotation.z -= Math.PI / 3;
+                    this.mesh.rotation.copyFrom(oldAngle);
+                    this.mesh.position.copyFrom(oldPos);                    
                 }
                 tilted = false;
             }

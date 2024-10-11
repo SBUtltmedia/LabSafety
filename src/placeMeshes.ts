@@ -1,5 +1,6 @@
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { meshMap } from "./loadMeshes";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
     if (left.id < right.id) {
@@ -13,14 +14,17 @@ function compareById(left: AbstractMesh, right: AbstractMesh): number {
 
 export function placeMeshes(meshes: Mesh[]): void {
     const cylinders = meshes.filter(mesh => {
-        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === "cylinder";
+        return mesh.id.split("-").length === 2 && mesh.id.split("-")[0] === meshMap["cylinder"];
     }).sort(compareById);
     const placards = meshes.filter(mesh => {
-        return mesh.name.split("-")[0] === "placard" && !mesh.name.includes("placard-base")
+        return mesh.name.split("-")[0] === meshMap["placard"] && !mesh.name.includes("placard-base")
     }).sort(compareById);
-    const clipboard = meshes.find(mesh => mesh.id === "clipboard");
+
+    console.log(meshes.map(mesh => mesh.name));
+    
+    const clipboard = meshes.find(mesh => mesh.id === meshMap["clipboard"]);
     const table = meshes.find(mesh => mesh.name === "Table");
-    const fireExtinguisher = meshes.find(mesh => mesh.id === "fire-extinguisher");
+    const fireExtinguisher = meshes.find(mesh => mesh.id === meshMap["fire-extinguisher"]);
     if (table) {
         // @todo: Is this guaranteed? Maybe we can do without the if statement.
         const tableBoundingBox = table.getBoundingInfo().boundingBox;

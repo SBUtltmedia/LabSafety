@@ -7,7 +7,7 @@ import { Status } from "./Task";
 import { startFire } from "./startFire";
 import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
-import { enablePointerLock, resetScene } from "./scene";
+import { enablePointerLock, initScene } from "./scene";
 import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -135,7 +135,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 let camera = scene.activeCamera;
                 GUIWindows.createSuccessScreen(scene, () => {
                     enablePointerLock();
-                    resetScene(scene)
+                    initScene(scene)
                 });
                 global.sounds.success.stop();
                 global.sounds.success.play();
@@ -159,7 +159,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                         if (!state) {
                             isFire = false;
                             GUIWindows.createFailureScreen(scene, () => {
-                                resetScene(scene);
+                                initScene(scene);
                             })
                         }
                     })

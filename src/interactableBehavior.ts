@@ -241,6 +241,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: !#subscribed and #attached
     // Postconditions: #subscribed
     #subscribeToInteractionManager = (): void => {
+        // TODO: race condition investigate
         this.#grabStateObserver = this.interactionManager.onMeshGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
             if (state === GrabState.GRAB && !this.grabbing) {
                 this.#grabberWasVisible = grabber.isVisible;
