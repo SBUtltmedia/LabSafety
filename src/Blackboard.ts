@@ -36,7 +36,7 @@ export const drawBBText = (text: string) => {
     const textureWidth = scaleFactor * (boundingBox.maximum.x - boundingBox.minimum.x);
     const textureHeight = scaleFactor * (boundingBox.maximum.y - boundingBox.minimum.y);
 
-    const fontSize = 60;
+    const fontSize = 70;
     const font = `bold ${fontSize}px 'Cabin Sketch'`;
     const mat = new StandardMaterial("Name", scene);
     mat.backFaceCulling = false;
@@ -50,7 +50,7 @@ export const drawBBText = (text: string) => {
     const textureY = textureHeight / 10;
     const paddingY = textureY * 3;
 
-    const textureXScalingFactor = 1.65;
+    const textureXScalingFactor = 1.45;
 
     canvas.fillStyle = "transparent"; // Note: #000000 here also gives a black background
     texture.clear();
