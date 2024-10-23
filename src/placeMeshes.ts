@@ -1,6 +1,7 @@
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { meshMap } from "./loadMeshes";
+import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
     if (left.id < right.id) {
@@ -70,5 +71,14 @@ export function placeMeshes(meshes: Mesh[]): void {
         fireExtinguisher.position.copyFromFloats(3.73, 1.77, -2.51);
         fireExtinguisher.rotationQuaternion = null;
         fireExtinguisher.rotation.copyFromFloats(0, 0, Math.PI);
+
+        const clipFadeRespawnBehavior = clipboard.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
+        clipFadeRespawnBehavior.spawnPosition.copyFrom(clipboard.position);
+        clipFadeRespawnBehavior.spawnRotation.copyFrom(clipboard.rotation);
+
+        const fireExtinguisherFadeRespawnBehavior = fireExtinguisher.getBehaviorByName("FadeAndRespawn") as FadeRespawnBehavior;
+        fireExtinguisherFadeRespawnBehavior.spawnPosition.copyFrom(fireExtinguisher.position);
+        fireExtinguisherFadeRespawnBehavior.spawnRotation.copyFrom(fireExtinguisher.rotation);        
+
     }
 }

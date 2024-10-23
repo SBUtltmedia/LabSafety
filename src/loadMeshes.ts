@@ -1,8 +1,12 @@
 import { ISceneLoaderAsyncResult, SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 
-export const modelNames = ["rg", "placard", "cylinder", "clipboardc", "fire-extinguisherc"];
+interface IMeshMap {
+    [key: string]: string
+}
 
-export let meshMap = {};
+export const modelNames = ["rg", "placard", "cylinder", "clipboardc", "fire-extinguisherc", "blackboard"];
+
+export let meshMap: IMeshMap = {};
 
 modelNames.forEach(modelName => {
     meshMap[modelName] = modelName

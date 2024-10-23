@@ -18,7 +18,7 @@ import { enableTouchJoysticks } from "./VirtualTouchJoystick";
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { FadeRespawnBehavior, setRespawnPoints } from "./FadeRespawnBehavior";
 import { InteractionManager } from "./interactionManager";
-import { loadMeshes } from "./loadMeshes";
+import { loadMeshes, meshMap } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
@@ -177,6 +177,12 @@ function fadeIn(light: Light) {
 }
 
 export async function initScene(scene: Scene): Promise<Scene> {
+    meshMap["FireCabinet"] = "FireCabinet"
+    meshMap["Glass Divider"] = "Glass Divider"
+    meshMap["room"] = "rg"
+    meshMap["clipboard"] = "clipboardc"
+    meshMap["fire-extinguisher"] = "fire-extinguisherc"
+    
     const light = scene.getLightByName("light1");
     light.intensity = 0;
     const camera = scene.activeCamera;
