@@ -9,33 +9,37 @@ import { createRoom } from "./createRoom";
 import { createFireExtinguisher } from "./createFireExtinguisher";
 import { createFireExtinguisherCabinet } from "./createFireExtinguisherCabinet";
 import { createGlassDivider } from "./createGlassDivider";
+import { meshMap } from "./loadMeshes";
+import { createBlackboard } from "./Blackboard";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.
     // @todo: What if all meshes don't load?
-    const roomMesh = meshes.find(mesh => mesh.name === "room")!;
-    const placardMesh = meshes.find(mesh => mesh.name === "placard")!;
-    const cylinderMesh = meshes.find(mesh => mesh.name === "cylinder")!.getChildMeshes(true)[0] as Mesh;
+    const roomMesh = meshes.find(mesh => mesh.name === meshMap["rg"])!;
+    const placardMesh = meshes.find(mesh => mesh.name === meshMap["placard"])!;
+    const cylinderMesh = meshes.find(mesh => mesh.name === meshMap["cylinder"])!.getChildMeshes(true)[0] as Mesh;
     // @todo: Process the clipboard and fire extinguisher meshes.
-    const clipboardMesh = meshes.find(mesh => mesh.name === "clipboard")!.getChildMeshes(true)[0] as AbstractMesh;
-    const fireExtinguisherMesh = meshes.find(mesh => mesh.name === "fire-extinguisher")!.getChildMeshes(true)[0] as Mesh;
-    const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === "FireCabinet");
+    const clipboardMesh = meshes.find(mesh => mesh.name === meshMap["clipboard"])!.getChildMeshes(true)[0] as AbstractMesh;
+    const fireExtinguisherMesh = meshes.find(mesh => mesh.name === meshMap["fire-extinguisher"])!.getChildMeshes(true)[0] as Mesh;
+    const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === meshMap["FireCabinet"]);
 
-    const glassDivider = meshes.find(mesh => mesh.name === "Glass Divider");
+    const glassDivider = meshes.find(mesh => mesh.name === meshMap["Glass Divider"]);
+    const blackboard = meshes.find(mesh => mesh.name === "blackboard")
 
     createRoom(roomMesh);
 //    roomMesh.setEnabled(false);
     createGlassDivider(glassDivider);
 
     const clipboardRoot = clipboardMesh.parent;
-    clipboardRoot.id = "clipboard-root";
-    clipboardRoot.name = clipboardRoot.id;
     clipboardMesh.setParent(null);
     clipboardRoot.dispose(true);
+
 
     renameClipboard(clipboardMesh);
 
     createClipboard(clipboardMesh);
+
+    meshMap["clipboard"] = clipboardMesh.name;
 
     const placardC = placardMesh.clone(`${placardMesh.name}-c`, placardMesh.parent);
     const placardB = placardMesh.clone(`${placardMesh.name}-b`, placardMesh.parent);
@@ -71,25 +75,21 @@ export function processMeshes(meshes: Mesh[]) {
 
     const fireExtinguisherRoot = fireExtinguisherMesh.parent;
     // Because fireExtinguisherMesh is about to be renamed to "fire-extinguisher"
-    fireExtinguisherRoot.id = "fire-extinguisher-root";
-    fireExtinguisherRoot.name = fireExtinguisherRoot.id;
     fireExtinguisherMesh.setParent(null);
     fireExtinguisherRoot.dispose();
 
     fireExtinguisherMesh.id = "fire-extinguisher";
     fireExtinguisherMesh.name = fireExtinguisherMesh.id;
 
+    meshMap["fire-extinguisher"] = fireExtinguisherMesh.name;
+    
     createFireExtinguisher(fireExtinguisherMesh);
 
     createFireExtinguisherCabinet(fireExtinguisherCabinet);
 
     meshes.push(cylinderC, cylinderB);
-}
 
-function getCylinderBaseMesh(rootMesh: AbstractMesh): Mesh {
-    const meshIdentifier = rootMesh.name.split("-")[1];
-    const baseMesh = rootMesh.getChildMeshes().find(childMesh => childMesh.name === `base-${meshIdentifier}`) as Mesh;
-    return baseMesh;
+    createBlackboard(blackboard);
 }
 
 function renameCylinders(cylinders: Mesh[], identifiers: string[]): void {

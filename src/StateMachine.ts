@@ -49,8 +49,8 @@ export class StateMachine {
             this.platform = this.#getStringFromMode(newMode);
             console.log("new mode: ", this.platform);
             this.currentGameState.platform = this.platform;
-            this.currentGameState.toggleHUD();
-            this.currentGameState.toggleHUD();
+            this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"][platform], this.platform, GameStates.START);
+            this.currentGameState.updateHUDText();
             if (this.platform !== "loading" && this.platform !== "null") {
                 this.#delegateState(GameStates.BASE);
             }
@@ -60,9 +60,6 @@ export class StateMachine {
             console.log("grab state change: ", meshGrabInfo);
             if (meshGrabInfo.state === GrabState.GRAB) {
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
-                if (meshGrabInfo.mesh.name === "clipboard") {
-                    this.#toggleDisplay();
-                }
             } else {
                 console.log("Drop obj")
                 if (meshGrabInfo.mesh.name === "clipboard") {
@@ -75,7 +72,9 @@ export class StateMachine {
                     }
                 }
                 this.#delegateState(GameStates.BASE);
-                this.currentGameState.displayHUD();
+                if (this.currentGameState.displayingHUD === false) {
+                    this.currentGameState.updateHUDText();
+                }
             }
 
         })
@@ -101,10 +100,6 @@ export class StateMachine {
         if (nextState !== null) {
             this.currentGameState = nextState;
         }
-    }
-
-    #toggleDisplay() {
-        this.currentGameState.toggleHUD();
     }
 
     #getStringFromMode(mode: InteractionMode): string {

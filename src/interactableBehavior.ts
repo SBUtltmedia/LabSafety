@@ -23,20 +23,20 @@ import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, Interac
 export interface IInteractableOptions {
     activatable?: boolean, // Specifies whether a mesh is activatable (default false)
     moveAttached?: boolean, // Specifies whether the default grab implementation is used (default true)
-    defaultPosition?: Vector3 // The position (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
-    defaultRotation?: Vector3, // The rotation (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+    defaultAnchorPosition?: Vector3 // The position (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+    defaultAnchorRotation?: Vector3, // The rotation (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
     modeDefaults?: {
         [mode: number]: {
-            defaultPosition?: Vector3, // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultPosition.
-            defaultRotation?: Vector3 // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultRotation.
+            defaultAnchorPosition?: Vector3, // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultPosition.
+            defaultAnchorRotation?: Vector3 // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultRotation.
         }
     }
 }
 
 interface IDefaults {
     [mode: number]: {
-        defaultPosition: Vector3,
-        defaultRotation: Vector3
+        defaultAnchorPosition: Vector3,
+        defaultAnchorRotation: Vector3
     }
 }
 
@@ -67,8 +67,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
         for (const mode of [InteractionMode.DESKTOP, InteractionMode.MOBILE, InteractionMode.XR, InteractionMode.LOADING]) {
             this.defaults[mode] = {
-                defaultPosition: options?.modeDefaults?.[mode]?.defaultPosition || options?.defaultPosition || Vector3.Zero(),
-                defaultRotation: options?.modeDefaults?.[mode]?.defaultRotation || options?.defaultRotation || Vector3.Zero()
+                defaultAnchorPosition: options?.modeDefaults?.[mode]?.defaultAnchorPosition || options?.defaultAnchorPosition || Vector3.Zero(),
+                defaultAnchorRotation: options?.modeDefaults?.[mode]?.defaultAnchorRotation || options?.defaultAnchorRotation || Vector3.Zero()
             }
         }
 
@@ -110,7 +110,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         this.#defaultGrabObserver = this.onGrabStateChangedObservable.add(({ anchor, state }) => {
             if (state === GrabState.GRAB) {
                 this.#mesh.setParent(anchor);
-                const { defaultPosition, defaultRotation } = this.defaults[this.interactionManager.interactionMode];
+                const { defaultAnchorPosition: defaultPosition, defaultAnchorRotation: defaultRotation } = this.defaults[this.interactionManager.interactionMode];
                 this.#mesh.position.copyFrom(defaultPosition);
                 this.#mesh.rotation.copyFrom(defaultRotation);
             } else if (state === GrabState.DROP) {
@@ -241,6 +241,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: !#subscribed and #attached
     // Postconditions: #subscribed
     #subscribeToInteractionManager = (): void => {
+        // TODO: race condition investigate
         this.#grabStateObserver = this.interactionManager.onMeshGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
             if (state === GrabState.GRAB && !this.grabbing) {
                 this.#grabberWasVisible = grabber.isVisible;

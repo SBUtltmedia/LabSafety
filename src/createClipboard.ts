@@ -46,13 +46,13 @@ export function createClipboard(mesh: AbstractMesh): void {
     
     // @todo: Make the clipboard more readable out of XR
     const interactableBehavior = new InteractableBehavior(interactionManager, {
-        defaultRotation: new Vector3(Math.PI, Math.PI / 2, Math.PI / 2),
+        defaultAnchorRotation: new Vector3(Math.PI, Math.PI / 2, Math.PI / 2),
         modeDefaults: {
             [InteractionMode.DESKTOP]: {
-                defaultPosition: new Vector3(0, 0, -0.5)
+                defaultAnchorPosition: new Vector3(0, 0, -0.5)
             },
             [InteractionMode.MOBILE]: {
-                defaultPosition: new Vector3(0, 0, -0.5)
+                defaultAnchorPosition: new Vector3(0, 0, -0.5)
             },
         }
     });

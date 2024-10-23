@@ -19,8 +19,8 @@ export const MIN_FADE_DISTANCE = 0.15;
 
 export class FadeRespawnBehavior implements Behavior<Mesh> {
     mesh: Mesh;
-    spawnPosition: Vector3 = Vector3.Zero();
-    spawnRotation: Vector3 = Vector3.Zero();
+    spawnPosition: Vector3;
+    spawnRotation: Vector3;
     #speedRatio: number;
     #interactableBehavior: InteractableBehavior;
     #grabStateObserver: Observer<IMeshGrabInfo>;
@@ -30,7 +30,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     static attachCount: number = 0;
     static allAttachedObservable: Observable<Boolean> = new Observable();    
 
-    constructor(speedRatio: number = 1.25) {
+    constructor(speedRatio: number = 1.25, spawnPosition: Vector3 = new Vector3(0,2,0)) {
         this.#speedRatio = speedRatio;
 
         this.#animations = [
@@ -52,6 +52,9 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
                 {frame: 30, value: animation.startValue ? 0 : 1}
             ]);
         })
+
+        this.spawnPosition = spawnPosition;
+        this.spawnRotation = Vector3.Zero();
     }
 
     init(): void {
@@ -64,6 +67,9 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
     attach(target: Mesh): void {
         this.mesh = target;
+        this.spawnPosition.copyFrom(this.mesh.position);
+        this.spawnRotation.copyFrom(this.mesh.rotation);
+        console.log(this.mesh.name, "frb", this.spawnPosition);
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
         if (!this.#interactableBehavior) {
             throw new Error(`${this.name} behavior must be attached to a mesh with an Interactable behavior.`);
@@ -79,6 +85,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
         // Change 7 to whatever the total number of interactable meshes there are
         FadeRespawnBehavior.attachCount++;
+        console.log( FadeRespawnBehavior.attachCount, "count");
         if (FadeRespawnBehavior.attachCount >= 5) {
             FadeRespawnBehavior.allAttachedObservable.notifyObservers(true);
         }        
@@ -91,6 +98,7 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
             this.#animationStateObserver.remove();
         }
         FadeRespawnBehavior.attachCount--;
+        console.log("Detach, ", FadeRespawnBehavior.attachCount)
     }
 
     #fadeAndRespawn() {
@@ -118,26 +126,24 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     }
 
     #respawn = () => {
+        console.log(this.spawnPosition);
         this.mesh.position.copyFrom(this.spawnPosition);
         this.mesh.rotation.copyFrom(this.spawnRotation);
     }
 
-    setSpawnPoint = (spawnPosition: Vector3, spawnRotation: Vector3) => {
-        this.spawnPosition.copyFrom(spawnPosition);
-        this.spawnRotation.copyFrom(spawnRotation);
-    }
+    // setSpawnPoint = (spawnPosition: Vector3, spawnRotation: Vector3) => {
+    //     this.spawnPosition.copyFrom(spawnPosition);
+    //     this.spawnRotation.copyFrom(spawnRotation);
+    // }
 }
 
 export function setRespawnPoints(scene: Scene): void {
     console.log("Calling set respawn");
     // this line of code essentially just retrieves all the meshes in the scene that has a FadeRespawnBehavior
-    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn")).filter(behavior => Boolean(behavior)) as FadeRespawnBehavior[];
-
+    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn")).filter(behavior => behavior !== null) as FadeRespawnBehavior[];
+    console.log(behaviors);
     for (const behavior of behaviors) {
-        while(!behavior?.mesh){
-            // alert("while");
-            console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
-        }
-        behavior.setSpawnPoint(behavior.mesh.position, behavior.mesh.rotation);
+        console.log(behavior.mesh);
+        // behavior.setSpawnPoint(behavior.mesh.position, behavior.mesh.rotation);
     }
 }

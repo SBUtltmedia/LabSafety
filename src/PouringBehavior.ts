@@ -13,6 +13,7 @@ import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, Interac
 import { global } from "./GlobalState";
 import { ParticleSystem, StandardMaterial, Texture } from "@babylonjs/core";
 import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
+import { Animation } from '@babylonjs/core/Animations/animation';
 
 
 // Works with InteractableBehavior and HighlightBehavior to determine

@@ -18,7 +18,7 @@ import { enableTouchJoysticks } from "./VirtualTouchJoystick";
 import { STARTING_POSITION, configureCamera } from "./camera";
 import { FadeRespawnBehavior, setRespawnPoints } from "./FadeRespawnBehavior";
 import { InteractionManager } from "./interactionManager";
-import { loadMeshes } from "./loadMeshes";
+import { loadMeshes, meshMap } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
@@ -139,15 +139,15 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     }
     
     await loadSounds("./json/sounds.json");
-    await resetScene(scene);
+    await initScene(scene);
 
     const splashScreen = document.querySelector("div.splash") as HTMLElement;
     let response= await fetch("./images/Notebook.svg")
     let svg= await response.text();
 
-    splashScreen.style.opacity="0";
+    // splashScreen.style.opacity="0";
     splashScreen.innerHTML = svg;
-    setTimeout(()=> splashScreen.style.opacity="1",1000)
+    // setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
         interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
@@ -176,7 +176,13 @@ function fadeIn(light: Light) {
     }, 60);
 }
 
-export async function resetScene(scene: Scene): Promise<Scene> {
+export async function initScene(scene: Scene): Promise<Scene> {
+    meshMap["FireCabinet"] = "FireCabinet"
+    meshMap["Glass Divider"] = "Glass Divider"
+    meshMap["room"] = "rg"
+    meshMap["clipboard"] = "clipboardc"
+    meshMap["fire-extinguisher"] = "fire-extinguisherc"
+    
     const light = scene.getLightByName("light1");
     light.intensity = 0;
     const camera = scene.activeCamera;

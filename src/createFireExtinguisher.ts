@@ -19,7 +19,7 @@ const FIRE_EXTINGUISHER_RANGE = 2;
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultRotation: new Vector3(0, 0, Math.PI)
+        defaultAnchorRotation: new Vector3(0, 0, Math.PI)
     });
 
     const fadeRespawnBehavior = new FadeRespawnBehavior();

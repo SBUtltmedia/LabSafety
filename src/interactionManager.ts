@@ -79,7 +79,7 @@ export class InteractionManager {
 	onModeChangeObservable: Observable<InteractionMode> = new Observable();
 	onHasAnyTargetsObservable: Observable<boolean> = new Observable(); // Fires when this.#activeTargets goes from being empty to non-empty or non-empty to empty.
 	onGrabStateChangedObservable: Observable<IGrabInfo> = new Observable(); // Distinct from onMeshGrabStateChanged in that it notifies all observers, not just the relevant mesh's observer.
-	#scene: Scene;
+	scene: Scene;
 	highlightLayer: HighlightLayer;
 	modeSelectorMap: IModeSelectorMap = {
 		[InteractionMode.DESKTOP]: {},
@@ -101,7 +101,7 @@ export class InteractionManager {
 	isUsingXRObservable: Observable<Boolean> = new Observable();
 
 	constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
-		this.#scene = scene;
+		this.scene = scene;
 		if (xrExperience) {
 			this.xrExperience = xrExperience;
 			this.xrExperience.baseExperience.onStateChangedObservable.add(
@@ -119,7 +119,7 @@ export class InteractionManager {
 
 		this.highlightLayer = new HighlightLayer("interaction-highlight-layer");
 
-		this.#scene.onBeforeRenderObservable.add(() => {
+		this.scene.onBeforeRenderObservable.add(() => {
 			// Clear targets from previous render
 			const numPreviousTargets = this.#activeTargets.length;
 			this.#activeTargets.splice(0, this.#activeTargets.length);
@@ -389,7 +389,7 @@ export class InteractionManager {
 				mode === InteractionMode.MOBILE) &&
 			!this.hasDefaultSelector
 		) {
-			this.#addDefaultSelector(this.#scene.activeCamera);
+			this.#addDefaultSelector(this.scene.activeCamera);
 		}
 
 		console.log("Mode: ", mode);
@@ -457,9 +457,9 @@ export class InteractionManager {
 
 		let cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
 
-		const canvas = this.#scene.getEngine().getRenderingCanvas();
+		const canvas = this.scene.getEngine().getRenderingCanvas();
 
-        const camera = this.#scene.activeCamera as UniversalCamera;
+        const camera = this.scene.activeCamera as UniversalCamera;
 
         console.log("Canvas width: ", canvas.width);
 
@@ -467,7 +467,7 @@ export class InteractionManager {
 			if (this.interactionMode !== InteractionMode.XR && loaded) {
 				for (let cylinderName of cylinderNames) {
 					const cylinderMesh =
-						this.#scene.getMeshByName(cylinderName);
+						this.scene.getMeshByName(cylinderName);
 
 					let ibh = cylinderMesh.getBehaviorByName(
 						"Interactable"
@@ -483,8 +483,8 @@ export class InteractionManager {
 
                     const roatateEdges = () => {
 						// console.log(this.#scene.pointerX, this.#scene.pointerY);
-						let pointerX = this.#scene.pointerX;
-						let pointerY = this.#scene.pointerY;
+						let pointerX = this.scene.pointerX;
+						let pointerY = this.scene.pointerY;
 
 						// Define border thresholds (e.g., within 10 pixels of the edge)
 						const borderThreshold = 10;
@@ -520,7 +520,7 @@ export class InteractionManager {
 						let mesh = event.pointerInfo.pickInfo.pickedMesh;
 						for (let cName of cylinderNames) {
 							if (mesh.id.startsWith(cName)) {
-								mesh = this.#scene.getMeshByName(cName);
+								mesh = this.scene.getMeshByName(cName);
 								break;
 							}
 						}
@@ -534,7 +534,7 @@ export class InteractionManager {
 						let mesh = event.pointerInfo.pickInfo.pickedMesh;
 						for (let cName of cylinderNames) {
 							if (mesh.id.startsWith(cName)) {
-								mesh = this.#scene.getMeshByName(cName);
+								mesh = this.scene.getMeshByName(cName);
 								break;
 							}
 						}
@@ -551,22 +551,22 @@ export class InteractionManager {
 					cylinderMesh.addBehavior(pointerDragBehavior);
 				}
 
-				const clipboard = this.#scene.getMeshByName("clipboard");
+				const clipboard = this.scene.getMeshByName("clipboard");
 
-				const fireCabinet = this.#scene.getMeshByName("FireCabinet");
+				const fireCabinet = this.scene.getMeshByName("FireCabinet");
 				const doorMesh = fireCabinet.getChildMeshes(true)[0];
 
 				const fireExtinguisher =
-					this.#scene.getMeshByName("fire-extinguisher");
+					this.scene.getMeshByName("fire-extinguisher");
 
 				const castRay = () => {
-					let ray = this.#scene.createPickingRay(
-						this.#scene.pointerX,
-						this.#scene.pointerY,
+					let ray = this.scene.createPickingRay(
+						this.scene.pointerX,
+						this.scene.pointerY,
 						Matrix.Identity(),
-						this.#scene.activeCamera
+						this.scene.activeCamera
 					);
-					let hit = this.#scene.pickWithRay(ray);
+					let hit = this.scene.pickWithRay(ray);
 					if (hit.pickedMesh) {
 						let mesh = hit.pickedMesh;
 						if (mesh.name.startsWith("clipboard")) {
@@ -603,7 +603,7 @@ export class InteractionManager {
 					}
 				};
 
-				this.#scene.onKeyboardObservable.add((kbInfo) => {
+				this.scene.onKeyboardObservable.add((kbInfo) => {
 					if (
 						kbInfo.type === KeyboardEventTypes.KEYUP &&
 						kbInfo.event.key === "x"
@@ -612,8 +612,8 @@ export class InteractionManager {
 					}
 				});
 
-				this.#scene.onPointerDown = castRay;
-				this.#scene.onPointerUp = drop;
+				this.scene.onPointerDown = castRay;
+				this.scene.onPointerUp = drop;
 			}
 		});
 	};
@@ -635,7 +635,7 @@ export class InteractionManager {
 		console.log("Desktop interaction once");
 		this.#configureInteraction();
 
-		this.#scene.onPointerObservable.add((pointerInfo) => {
+		this.scene.onPointerObservable.add((pointerInfo) => {
 			if (this.interactionMode === InteractionMode.DESKTOP) {
 				if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
 					if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
@@ -690,7 +690,7 @@ export class InteractionManager {
 		}
 
 		// for debug purposes
-		this.#scene.onKeyboardObservable.add((kbInfo) => {
+		this.scene.onKeyboardObservable.add((kbInfo) => {
 			if (
 				kbInfo.type === KeyboardEventTypes.KEYDOWN &&
 				kbInfo.event.key === "e"
@@ -718,14 +718,14 @@ export class InteractionManager {
 			);
 		}
 
-		this.#scene.onPointerDown = null;
-		this.#scene.onPointerUp = null;	
+		this.scene.onPointerDown = null;
+		this.scene.onPointerUp = null;	
 
 		// TODO: find a way to dynamically load the cylinder names
 		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
 
 		for (let cylinderName of cylinderNames) {
-			const mesh = this.#scene.getMeshByName(cylinderName);
+			const mesh = this.scene.getMeshByName(cylinderName);
 			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
 			interactableBehavior.moveAttached = true;
 
