@@ -47,18 +47,10 @@ let pointerLockEnabled = true;
 
 export function disablePointerLock(): void {
     pointerLockEnabled = false;
-    const reticle = utilityLayer?.utilityLayerScene.getMeshByName("reticle");
-    if (reticle) {
-        reticle.isVisible = false;
-    }
 }
 
 export function enablePointerLock(): void {
     pointerLockEnabled = true;
-    const reticle = utilityLayer?.utilityLayerScene.getMeshByName("reticle");
-    if (reticle) {
-        reticle.isVisible = true;
-    }
 }
 
 export let utilityLayer: UtilityLayerRenderer;
@@ -82,13 +74,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
-    const reticle = Mesh.CreateSphere("reticle", 10, .0045, scene);
-    const retmat= new StandardMaterial("reticalmaterial", scene); 
-    retmat.emissiveColor = Color3.White();
-    reticle.material = retmat;
-    reticle.isPickable = false;
-    reticle.position.z = 0.3;
-    reticle.parent = camera;
     //const reticle=CreateReticle("reticle", utilityLayer.utilityLayerScene);
     // reticle.setParent(camera);
     // reticle.position.copyFrom(Axis.Z);
@@ -131,11 +116,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         // XR laser pointers
         meshesToPreserveNames.push("laserPointer");
 
-        // Hide the reticle in XR
-        reticle.isVisible = xrExperience.baseExperience.state !== WebXRState.IN_XR;
-        xrExperience.baseExperience.onStateChangedObservable.add(state => {
-            reticle.isVisible = state !== WebXRState.IN_XR;
-        });
     }
     
     await loadSounds("./json/sounds.json");

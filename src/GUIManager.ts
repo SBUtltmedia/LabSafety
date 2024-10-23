@@ -149,7 +149,7 @@ export class GUIWindows {
     ) {
         let guiManager = new GUIManager(scene);
         let prompt = guiManager.createPromptWithButton(
-            "You successfully extinguished the fire!",
+            "You successfully extinguished the fire! Try mixing the chemicals again.",
             buttonClickCallBack,
             ...args
         );
