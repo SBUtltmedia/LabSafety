@@ -152,6 +152,10 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         splashScreen.classList.add("hide");
         interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
         Engine.audioEngine.audioContext.resume();
+        const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
+        if (vrIcon) {
+            vrIcon.classList.remove("hide");
+        }
     }, false);
 
     if (import.meta.env.DEV){
@@ -177,6 +181,11 @@ function fadeIn(light: Light) {
 }
 
 export async function initScene(scene: Scene): Promise<Scene> {
+    const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
+    if (vrIcon) {
+        vrIcon.classList.add("hide");
+    }
+
     meshMap["FireCabinet"] = "FireCabinet"
     meshMap["Glass Divider"] = "Glass Divider"
     meshMap["room"] = "rg"
