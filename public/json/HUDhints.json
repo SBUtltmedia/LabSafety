@@ -30,9 +30,9 @@
         "xr": "You mixed the correct set of cylinders! Read the SOP or continue mixing further to continue."
     },
     "GAME_STATE_FAIL": {
-        "desktop": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and pick the fire extinguisher using the left mouse button. Dispense the foam using the right mouse button.",
-        "mobile": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and extinguish the fire using the action button.",
-        "xr": "You mixed the wrong chemicals that resulted in a fire! Open the fire extinguisher cabinet and pick the extinguisher using grip. Use trigger to dispense the foam."        
+        "desktop": "You caused a fire! Open the extinguisher cabinet, pick the extinguisher (LMB), and dispense foam (RMB).",
+        "mobile": "You caused a fire! Open the cabinet and extinguish the fire using the action button.",
+        "xr": "You caused a fire! Use the grip button to open the cabinet and pick the extinguisher, then use the trigger to dispense the foam."        
     },
     "GAME_STATE_SOP_PASS": {
         "desktop": "You have completed the SOP!",
