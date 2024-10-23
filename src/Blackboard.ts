@@ -46,8 +46,9 @@ export const drawBBText = (text: string) => {
     plane.material = mat;
     var canvas = texture.getContext();
 
-    let textureX = textureWidth / 10;
-    let textureY = textureHeight / 10;
+    const textureX = textureWidth / 10;
+    const textureY = textureHeight / 10;
+    const paddingY = textureY * 3;
 
     const textureXScalingFactor = 1.65;
 
@@ -58,7 +59,7 @@ export const drawBBText = (text: string) => {
     const leading = 20;
     lines.forEach((line, idx) => {
         console.log(line, idx);
-        texture.drawText(line, plane.position.x, textureY + ((fontSize + leading) * idx), font, "white", "transparent", true, true);
+        texture.drawText(line, plane.position.x, paddingY + textureY + ((fontSize + leading) * idx), font, "white", "transparent", true, true);
     })
 
 }
