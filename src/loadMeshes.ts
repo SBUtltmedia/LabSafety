@@ -4,7 +4,7 @@ interface IMeshMap {
     [key: string]: string
 }
 
-export const modelNames = ["rg", "placard", "cylinder", "clipboardc", "fire-extinguisherc"];
+export const modelNames = ["rg", "placard", "cylinder", "clipboardc", "fire-extinguisherc", "blackboard"];
 
 export let meshMap: IMeshMap = {};
 
