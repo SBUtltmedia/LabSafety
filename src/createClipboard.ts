@@ -54,7 +54,7 @@ export function createClipboard(mesh: AbstractMesh): void {
                 defaultAnchorPosition: new Vector3(0, 0, -0.5)
             },
             [InteractionMode.XR]: {
-                defaultAnchorRotation: new Vector3(Math.PI, Math.PI / 2, 70 * Math.PI / 180)
+                defaultAnchorRotation: new Vector3(Math.PI, Math.PI / 2, 65 * Math.PI / 180)
             }
         }
     });
