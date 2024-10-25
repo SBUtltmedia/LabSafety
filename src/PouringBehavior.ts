@@ -119,6 +119,18 @@ export class PouringBehavior implements Behavior<Mesh> {
             }            
         })
 
+        const tilt = (mesh: AbstractMesh, targetTilt: number) => {
+            let newTilt = (targetTilt + mesh.rotation.z) / 2;
+            mesh.rotation.z = newTilt;
+            const threshold = 0.1;
+            console.log(newTilt - targetTilt);
+            if (Math.abs(newTilt - targetTilt) > threshold) {
+                setTimeout(() => {
+                    tilt(mesh, targetTilt);
+                }, 100);
+            }
+        }
+
         let tilted = false;
         let oldAngle: Vector3 = Vector3.Zero();
         let oldPos: Vector3 = Vector3.Zero();
@@ -127,6 +139,7 @@ export class PouringBehavior implements Behavior<Mesh> {
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
                     this.mesh.rotation.z += Math.PI / 3;
+                    // tilt(this.mesh, Math.PI / 3);
                     tilted = true;
                 } else {
                     const sourcePos = this.mesh.position;
