@@ -13,6 +13,7 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { NUM_FIRES } from "./Constants";
 
 const FIRE_EXTINGUISHER_RANGE = 2;
 
@@ -51,10 +52,13 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                     return Boolean(fireBehavior && !fireBehavior.extinguished);
                  });
-                if (pickInfo.hit) {
-                    const fireBehavior = pickInfo.pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-                    if (!fireBehavior.extinguished) {
-                        fireBehavior.extinguish();
+                if (pickInfo.hit && pickInfo.pickedMesh.name === "emitter1") {
+                    for (let i = 1; i <= NUM_FIRES; i++) {
+                        let emitter = scene.getMeshByName(`emitter${i}`);
+                        const fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                        if (!fireBehavior.extinguished) {
+                            fireBehavior.extinguish();
+                        }
                     }
                 }
             });

@@ -13,6 +13,7 @@ import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Observable } from "@babylonjs/core";
+import { NUM_FIRES } from "./Constants";
 
 interface ITaskMap {
     [key: string]: Task
@@ -23,7 +24,7 @@ export const finalGameState: Observable<Status> = new Observable();
 let isFire = false;
 
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
-    const fire = startFire(scene);
+    const fires = startFire(scene);
 
     let taskList: Task[] = [];
     let reverseTaskMap: Map<Task, Array<string>> = new Map();
@@ -146,15 +147,17 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
-                const emitter = scene.getMeshById("emitter");
-                console.log(emitter);
-                let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-                console.log(fireBehavior);
-                fireBehavior.onFireObservable.notifyObservers(true);
+                for (let i = 1; i <= NUM_FIRES; i++) {
+                    const emitter = scene.getMeshById(`emitter${i}`);
+                    let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                    fireBehavior.onFireObservable.notifyObservers(true);    
+                }
                 isFire = true;
                 finalGameState.notifyObservers(Status.FAILURE);
-                
                 if (isFire) {
+                    const emitter = scene.getMeshById(`emitter1`);
+                    let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                    fireBehavior.onFireObservable.notifyObservers(true);   
                     fireBehavior.onFireObservable.add((state) => {
                         if (!state) {
                             isFire = false;
@@ -162,7 +165,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                                 initScene(scene);
                             })
                         }
-                    })
+                    });
                 }
                 break;
             case Status.RESET:

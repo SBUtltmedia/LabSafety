@@ -1,32 +1,44 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene, ParticleHelper } from "@babylonjs/core";
-import { FireMaterial } from "@babylonjs/materials";
 import { FireBehavior } from "./FireBehavior";
 
-export function startFire(scene: Scene): Mesh {
+export function startFire(scene: Scene): Mesh[] {
+    let emitters = [];
 
-    const fireMaterial = new FireMaterial("fire");
-    let emitter= MeshBuilder.CreateBox("emitter", {size: 0.5})
+    emitters.push(MeshBuilder.CreateBox("emitter1", {size: 0.5}));
+    emitters.push(MeshBuilder.CreateBox("emitter2", {size: 0.5}));
+    emitters.push(MeshBuilder.CreateBox("emitter3", {size: 0.5}));
+    emitters.push(MeshBuilder.CreateBox("emitter4", {size: 0.5}));
+    emitters.push(MeshBuilder.CreateBox("emitter5", {size: 0.5}));
 
-    emitter.parent = scene.getMeshById("ExitDoor");
+    for (let emitter of emitters) {
+        emitter.parent = scene.getMeshById("ExitDoor");    
+    }
 
-    ParticleHelper.CreateAsync("fire", scene).then((set) => {
-        emitter.isVisible=false
-        // emitter.position= new Vector3(-4,3,-1.6)
-        const fireBehavior = new FireBehavior();
-        emitter.addBehavior(fireBehavior);        
-        set.emitterNode=emitter;
+    emitters[0].position.copyFromFloats(0,0,0);
+    emitters[1].position.copyFromFloats(0,0,2.5);
+    emitters[2].position.copyFromFloats(-2,0,4);
+    emitters[3].position.copyFromFloats(-4,0,4);
+    emitters[4].position.copyFromFloats(0,0,-2);
 
-        fireBehavior.onFireObservable.add((isRunning) => {
-            if (!isRunning) {
-                set.dispose();
-            } else {
-                set.start();
-            }
-        })
-    });
+    for (let emitter of emitters) {
+        ParticleHelper.CreateAsync("fire", scene).then((set) => {
+            emitter.isVisible=false
+            // emitter.position= new Vector3(-4,3,-1.6)
+            const fireBehavior = new FireBehavior();
+            emitter.addBehavior(fireBehavior);        
+            set.emitterNode=emitter;
 
-    return emitter;
+            fireBehavior.onFireObservable.add((isRunning) => {
+                if (!isRunning) {
+                    set.dispose();
+                } else {
+                    set.start();
+                }
+            })
+        });
+    }
+
+    return emitters;
 }
