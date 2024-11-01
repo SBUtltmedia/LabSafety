@@ -136,6 +136,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         let oldPos: Vector3 = Vector3.Zero();
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
             const mode = this.#interactableBehavior.interactionManager.interactionMode
+            console.log("activate trigger");
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
                     this.mesh.rotation.z += Math.PI / 3;
@@ -164,6 +165,7 @@ export class PouringBehavior implements Behavior<Mesh> {
                 }
                 this.pour();
             } else if (state === ActivationState.INACTIVE && tilted) {
+                console.log("Inactive");
                 if (mode === InteractionMode.XR) {
                     this.mesh.rotation.copyFrom(oldAngle);
                     this.mesh.position.copyFrom(oldPos);
@@ -174,7 +176,7 @@ export class PouringBehavior implements Behavior<Mesh> {
             }
         });
 
-        this.onAttachObservable.notifyObservers(true);
+        // this.onAttachObservable.notifyObservers(true);
     }
 
     detach = () => {

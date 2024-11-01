@@ -250,6 +250,7 @@ export class InteractionManager {
 			}
 		} else {
 			if (selector.grabbedMesh) {
+				console.log("drop selector")
 				this.#notifyGrabMeshObserver(selector.grabbedMesh, {
 					anchor: selector.anchor,
 					grabber: selector.grabber,
@@ -531,6 +532,7 @@ export class InteractionManager {
                         roatateEdges();
 					});
 					pointerDragBehavior.onDragEndObservable.add((event) => {
+						console.log("pointer drag end");
 						let mesh = event.pointerInfo.pickInfo.pickedMesh;
 						for (let cName of cylinderNames) {
 							if (mesh.id.startsWith(cName)) {
@@ -559,6 +561,10 @@ export class InteractionManager {
 				const fireExtinguisher =
 					this.scene.getMeshByName("fire-extinguisher");
 
+				let pickedMesh: Nullable<AbstractMesh>;
+
+				const clickableObjects = [clipboard, fireExtinguisher, doorMesh, fireCabinet];
+
 				const castRay = () => {
 					let ray = this.scene.createPickingRay(
 						this.scene.pointerX,
@@ -568,37 +574,33 @@ export class InteractionManager {
 					);
 					let hit = this.scene.pickWithRay(ray);
 					if (hit.pickedMesh) {
-						let mesh = hit.pickedMesh;
-						if (mesh.name.startsWith("clipboard")) {
-							console.log("clipboard: ", clipboard);
+						let topLevelMesh: Nullable<AbstractMesh>;
+						if (hit.pickedMesh.parent) {
+							topLevelMesh = hit.pickedMesh.parent as AbstractMesh;
+						} else {
+							topLevelMesh = hit.pickedMesh;
+						}
+						console.log(topLevelMesh)
+						if (clickableObjects.includes(topLevelMesh)) {
+							if (topLevelMesh.name.startsWith("FireCabinet")) {
+								topLevelMesh = doorMesh;
+							}
+							pickedMesh = topLevelMesh;
 							this.modeSelectorMap[this.interactionMode][
 								anchor.uniqueId
-							].targetMesh = clipboard;
-							this.#checkGrab(true, anchor.uniqueId);
-						} else if (mesh.name === "Door.001") {
-							this.modeSelectorMap[this.interactionMode][
-								anchor.uniqueId
-							].targetMesh = doorMesh;
-							this.#checkGrab(true, anchor.uniqueId);
-						} else if (
-							mesh.name.startsWith("fire-extinguisher") ||
-							(mesh.parent &&
-								mesh.parent.name.startsWith(
-									"fire-extinguisher"
-								))
-						) {
-							this.modeSelectorMap[this.interactionMode][
-								anchor.uniqueId
-							].targetMesh = fireExtinguisher;
+							].targetMesh = pickedMesh;
 							this.#checkGrab(true, anchor.uniqueId);
 						}
 					}
 				};
 
 				const drop = (event: any, pickInfo: any) => {
+					console.log(pickedMesh);
 					if (
-						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh
+						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && 
+						(clickableObjects.includes(pickedMesh))
 					) {
+						pickedMesh = null;
 						this.#checkGrab(false, anchor.uniqueId);
 					}
 				};
