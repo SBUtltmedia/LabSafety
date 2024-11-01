@@ -21,13 +21,13 @@ function getLines(ctx: ICanvasRenderingContext, text: string, maxWidth: number) 
 }  
 
 export const createBlackboard = (bbMesh: AbstractMesh) => {
-    bbMesh.position.addInPlaceFromFloats(0, 2.3, 1);
+    // bbMesh.position.addInPlaceFromFloats(0, 2.3, 1);
     drawBBText("My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display");
 };
 
 export const drawBBText = (text: string) => {
     const scene = interactionManager.scene;
-    const bbMesh = scene.getMeshByName("blackboard");
+    const bbMesh = scene.getTransformNodeByName("blackboard");
     const plane = bbMesh.getChildMeshes().find(mesh => mesh.name === "Surface");
 
     const scaleFactor = 1024;
@@ -36,7 +36,7 @@ export const drawBBText = (text: string) => {
     const textureWidth = scaleFactor * (boundingBox.maximum.x - boundingBox.minimum.x);
     const textureHeight = scaleFactor * (boundingBox.maximum.y - boundingBox.minimum.y);
 
-    const fontSize = 70;
+    const fontSize = 90;
     const font = `bold ${fontSize}px 'Cabin Sketch'`;
     const mat = new StandardMaterial("Name", scene);
     mat.backFaceCulling = false;
@@ -48,9 +48,9 @@ export const drawBBText = (text: string) => {
 
     const textureX = textureWidth / 10;
     const textureY = textureHeight / 10;
-    const paddingY = textureY * 3;
+    const paddingY = textureY * 2.75;
 
-    const textureXScalingFactor = 1.45;
+    const textureXScalingFactor = 1.15;
 
     canvas.fillStyle = "transparent"; // Note: #000000 here also gives a black background
     texture.clear();

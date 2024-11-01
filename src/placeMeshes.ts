@@ -26,6 +26,7 @@ export function placeMeshes(meshes: Mesh[]): void {
     const clipboard = meshes.find(mesh => mesh.id === meshMap["clipboard"]);
     const table = meshes.find(mesh => mesh.name === "Table");
     const fireExtinguisher = meshes.find(mesh => mesh.id === meshMap["fire-extinguisher"]);
+
     if (table) {
         // @todo: Is this guaranteed? Maybe we can do without the if statement.
         const tableBoundingBox = table.getBoundingInfo().boundingBox;

@@ -10,12 +10,11 @@ import { createFireExtinguisher } from "./createFireExtinguisher";
 import { createFireExtinguisherCabinet } from "./createFireExtinguisherCabinet";
 import { createGlassDivider } from "./createGlassDivider";
 import { meshMap } from "./loadMeshes";
-import { createBlackboard } from "./Blackboard";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.
     // @todo: What if all meshes don't load?
-    const roomMesh = meshes.find(mesh => mesh.name === meshMap["rg"])!;
+    const roomMesh = meshes.find(mesh => mesh.name === meshMap["rgBB"])!;
     const placardMesh = meshes.find(mesh => mesh.name === meshMap["placard"])!;
     const cylinderMesh = meshes.find(mesh => mesh.name === meshMap["cylinder"])!.getChildMeshes(true)[0] as Mesh;
     // @todo: Process the clipboard and fire extinguisher meshes.
@@ -24,7 +23,6 @@ export function processMeshes(meshes: Mesh[]) {
     const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === meshMap["FireCabinet"]);
 
     const glassDivider = meshes.find(mesh => mesh.name === meshMap["Glass Divider"]);
-    const blackboard = meshes.find(mesh => mesh.name === "blackboard")
 
     createRoom(roomMesh);
 //    roomMesh.setEnabled(false);
@@ -88,8 +86,6 @@ export function processMeshes(meshes: Mesh[]) {
     createFireExtinguisherCabinet(fireExtinguisherCabinet);
 
     meshes.push(cylinderC, cylinderB);
-
-    createBlackboard(blackboard);
 }
 
 function renameCylinders(cylinders: Mesh[], identifiers: string[]): void {

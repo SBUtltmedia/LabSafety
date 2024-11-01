@@ -20,15 +20,16 @@ export class SmokeParticles {
         let particleSystem: ParticleSystem | GPUParticleSystem;
 
         if (GPUParticleSystem.IsSupported) {
+            console.log("Is GPU")
             particleSystem = new GPUParticleSystem("particles", { capacity:15000 }, scene);
-            particleSystem.activeParticleCount = 2000;
+            particleSystem.activeParticleCount = 2700;
         } else {
             particleSystem = new ParticleSystem("particles", 2000 , scene);
         }
 
         particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
     
-        particleSystem.emitRate = 150;
+        particleSystem.emitRate = 170;
 
         particleSystem.createPointEmitter(new Vector3(-3.5, -3.5, 0), new Vector3(3.5,3.5, 0));
 
@@ -48,7 +49,7 @@ export class SmokeParticles {
         particleSystem.minSize = 0.01;
         particleSystem.maxSize = 0.02;
      
-        let gradientSize = 0.3;
+        let gradientSize = 0.30;
 
         particleSystem.addSizeGradient(gradientSize, gradientSize, gradientSize);
 

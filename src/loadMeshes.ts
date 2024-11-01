@@ -4,7 +4,7 @@ interface IMeshMap {
     [key: string]: string
 }
 
-export const modelNames = ["rg", "placard", "cylinder", "clipboardc", "fire-extinguisherc", "blackboard"];
+export const modelNames = ["rgBB", "placard", "cylinder", "clipboardc", "fire-extinguisherc"];
 
 export let meshMap: IMeshMap = {};
 
@@ -12,7 +12,7 @@ modelNames.forEach(modelName => {
     meshMap[modelName] = modelName
 })
 
-meshMap = {...meshMap, "FireCabinet": "FireCabinet", "Glass Divider": "Glass Divider", "room": "rg", "clipboard": "clipboardc", "fire-extinguisher": "fire-extinguisherc"};
+meshMap = {...meshMap, "FireCabinet": "FireCabinet", "Glass Divider": "Glass Divider", "room": "rgBB", "clipboard": "clipboardc", "fire-extinguisher": "fire-extinguisherc"};
 
 
 export function loadMeshes(names: string[] = modelNames): Promise<ISceneLoaderAsyncResult[]> {
