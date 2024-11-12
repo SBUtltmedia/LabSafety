@@ -119,62 +119,92 @@ export class PouringBehavior implements Behavior<Mesh> {
             }            
         })
 
-        const tilt = (mesh: AbstractMesh, targetTilt: number) => {
-            let newTilt = (targetTilt + mesh.rotation.z) / 2;
-            mesh.rotation.z = newTilt;
-            const threshold = 0.1;
-            console.log(newTilt - targetTilt);
-            if (Math.abs(newTilt - targetTilt) > threshold) {
-                setTimeout(() => {
-                    tilt(mesh, targetTilt);
-                }, 100);
+        let waitForFinish = false;
+        let isQueued = false;
+        const tiltQueue: { mesh: AbstractMesh; initialTilt: number; targetTilt: number }[] = [];
+        
+        const processTiltQueue = () => {
+            if (tiltQueue.length === 0 || waitForFinish) return;
+        
+            const { mesh, initialTilt, targetTilt } = tiltQueue.shift()!;
+            let tiltAnim = new Animation("rotate", "rotation.z", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            let rotateKeys = [
+                { frame: 0, value: initialTilt },
+                { frame: 60, value: targetTilt }
+            ];
+
+        
+            console.log("Tilt playing");
+        
+            tiltAnim.setKeys(rotateKeys);
+            waitForFinish = true;
+            this.#scene.beginDirectAnimation(mesh, [tiltAnim], 0, 60, false, 1.5, () => {
+                console.log("Animation end");
+                waitForFinish = false;
+                tilted = targetTilt !== 0; // Update `tilted` based on targetTilt
+                processTiltQueue(); // Process the next tilt in queue
+            });
+        }
+        
+        // Function to queue tilt requests
+        const tilt = (mesh: AbstractMesh, initialTilt: number, targetTilt: number) => {
+            tiltQueue.push({ mesh, initialTilt, targetTilt });
+            if (!waitForFinish) {
+                processTiltQueue();
             }
         }
-
+        
         let tilted = false;
         let oldAngle: Vector3 = Vector3.Zero();
         let oldPos: Vector3 = Vector3.Zero();
+        let dir = 1;
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
-            const mode = this.#interactableBehavior.interactionManager.interactionMode
+            const mode = this.#interactableBehavior.interactionManager.interactionMode;
             console.log("activate trigger");
+        
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
+                isQueued = true; // Set flag to avoid duplicate tilt-back queue
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
-                    this.mesh.rotation.z += Math.PI / 3;
-                    // tilt(this.mesh, Math.PI / 3);
+                    if (this.#currentTarget.position.x >= this.mesh.position.x) {
+                        tilt(this.mesh, 0, Math.PI / 3);
+                    } else {
+                        dir = -1;
+                        tilt(this.mesh, 0, -Math.PI / 3);
+                    }
                     tilted = true;
                 } else {
                     const sourcePos = this.mesh.position;
                     const targetPos = this.#currentTarget.position;
-
+        
                     let dirVector = new Vector3(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y, targetPos.z - sourcePos.z);
-                    // dirVector = dirVector.normalize();
                     console.log("Direction vector: ", dirVector);
                     oldAngle.copyFrom(this.mesh.rotation);
                     oldPos.copyFrom(this.mesh.position);
-
+        
                     this.mesh.lookAt(targetPos);
                     this.mesh.rotation.x = 0;
-                    this.mesh.rotation.y *= -1
-                    this.mesh.rotation.z =  Math.PI + Math.PI / 4;
-
+                    this.mesh.rotation.y *= -1;
+                    this.mesh.rotation.z = Math.PI + Math.PI / 4;
+        
                     console.log(this.#currentTarget.position);
-
-                    this.mesh.position.y += 0.1
-
+        
+                    this.mesh.position.y += 0.1;
                     tilted = true;
                 }
                 this.pour();
-            } else if (state === ActivationState.INACTIVE && tilted) {
+            } else if (state === ActivationState.INACTIVE && isQueued) {
                 console.log("Inactive");
+                isQueued = false;
                 if (mode === InteractionMode.XR) {
                     this.mesh.rotation.copyFrom(oldAngle);
                     this.mesh.position.copyFrom(oldPos);
                 } else {
-                    this.mesh.rotation.z -= Math.PI / 3;
+                    tilt(this.mesh, dir * Math.PI / 3, 0); // Queue up the tilt back
+                    dir = 1;
                 }
-                tilted = false;
             }
         });
+        
 
         // this.onAttachObservable.notifyObservers(true);
     }

@@ -37,7 +37,7 @@ export const drawBBText = (text: string) => {
     const textureHeight = scaleFactor * (boundingBox.maximum.y - boundingBox.minimum.y);
 
     const fontSize = 120;
-    const font = `bold ${fontSize}px 'Cabin Sketch'`;
+    const font = `bold ${fontSize}px 'Margarine'`;
     const mat = new StandardMaterial("Name", scene);
     mat.backFaceCulling = false;
     const texture = new DynamicTexture("testText", { width: textureWidth, height: textureHeight }, scene);
