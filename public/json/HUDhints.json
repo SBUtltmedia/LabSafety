@@ -1,8 +1,8 @@
 {
     "GAME_STATE_START": {
         "desktop": "Click to begin",
+        "mobile": "Tap to begin",
         "xr": "Tap to begin",
-        "mobile": "Tap to begin"
     },
     "GAME_STATE_BASE": {
         "desktop": "Use W,A,S,D keys to move. Use your mouse to look around. Left-click to interact and right-click to use. Left-click on the clipboard to learn more.",

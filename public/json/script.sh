@@ -37,12 +37,12 @@ platforms=('desktop' 'mobile' 'xr')
 for ((i = 0; i < ${#messages[@]}; i++)); do
   # Calculate the key (1-based index)
     key=$((i % 3))
-
+    
     f5-tts_infer-cli \
     --model "F5-TTS" \
     --ref_audio "ref_audio.wav" \
     --ref_text "The content, subtitle or transcription of reference audio." \
     --gen_text "Some text you want TTS model generate for you."\
-    --gen_file = "$key_$i.wav"
+    --gen_file = "${platforms[$key]}_$i.wav"
 
 done
