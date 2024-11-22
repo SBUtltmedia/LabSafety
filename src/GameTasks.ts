@@ -14,6 +14,8 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Observable } from "@babylonjs/core";
 import { NUM_FIRES } from "./Constants";
+import { setupGameStates, stateMachine } from "./setupGameStates";
+import { GameStates } from "./StateMachine";
 
 interface ITaskMap {
     [key: string]: Task
@@ -136,7 +138,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 let camera = scene.activeCamera;
                 GUIWindows.createSuccessScreen(scene, () => {
                     enablePointerLock();
-                    initScene(scene)
+                    initScene(scene);
                 });
                 global.sounds.success.stop();
                 global.sounds.success.play();

@@ -3,26 +3,17 @@ import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { Light } from "@babylonjs/core/Lights/light";
-import { Axis } from "@babylonjs/core/Maths/math.axis"
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
-import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { Ellipse } from "@babylonjs/gui";
-import { PointLight } from "@babylonjs/core/Lights/pointLight";
-import { StandardMaterial, Color3 } from "@babylonjs/core";
-
-import { enableTouchJoysticks } from "./VirtualTouchJoystick";
-
 import { STARTING_POSITION, configureCamera } from "./camera";
-import { FadeRespawnBehavior, setRespawnPoints } from "./FadeRespawnBehavior";
 import { InteractionManager } from "./interactionManager";
 import { loadMeshes, meshMap } from "./loadMeshes";
 import { placeCamera } from "./placeCamera";
 import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
-import { CreateReticle } from "./reticle";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
 import { loadSounds } from "./SoundManager";
@@ -33,7 +24,6 @@ import { GUIButtons } from "./InteractableButtons";
 import { finalGameState } from "./GameTasks";
 import { Status } from "./Task";
 import { Observable } from "@babylonjs/core";
-import { InteractableBehavior } from "./interactableBehavior";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -55,12 +45,29 @@ export function enablePointerLock(): void {
 
 export let utilityLayer: UtilityLayerRenderer;
 
+// BAD CODE! FIND A BETTER WAY
+let stateMachineFirstTime = false;
+
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
     log("createSceneAsync start");
     const scene = new Scene(engine);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
     const camera = new UniversalCamera("camera", STARTING_POSITION);
     const canvas = document.getElementById("canvas");
+
+    let isTouchDevice = false;
+
+    if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
+      isTouchDevice = true;
+    }
+
+    if (stateMachine) {
+        setupGameStates(stateMachine.platform);
+    } else {
+        setupGameStates(isTouchDevice ? "mobile" : "desktop");  
+    }
+
+    stateMachineFirstTime = true;
 
     configureScene(scene, true);
     configureCamera(camera);
@@ -73,8 +80,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
-
-    const utterance = new SpeechSynthesisUtterance("Hello, World");
 
     //const reticle=CreateReticle("reticle", utilityLayer.utilityLayerScene);
     // reticle.setParent(camera);
@@ -211,29 +216,30 @@ export async function initScene(scene: Scene): Promise<Scene> {
     placeCamera(camera);
 
     meshesLoaded.notifyObservers(true);
-    let isXR = false;    
+
+    if (!stateMachineFirstTime) {
+        if (stateMachine) {
+            setupGameStates(stateMachine.platform);
+        }
+    }
+
+    stateMachineFirstTime = false;
     
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");
         xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
-        isXR = true;    
     }
 
     let isTouchDevice = false;
 
     if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.maxTouchPoints > 0)) {
       isTouchDevice = true;
-    }
+    }    
 
     if (isTouchDevice) {
 	    activateButton = GUIButtons(false);
-    }
+    }    
 
-    if (stateMachine) {
-        setupGameStates(stateMachine.platform);
-    } else {
-        setupGameStates(isTouchDevice ? "mobile" : "desktop");  
-    }
 
     document.exitPointerLock();
 

@@ -21,8 +21,7 @@ function getLines(ctx: ICanvasRenderingContext, text: string, maxWidth: number) 
 }  
 
 export const createBlackboard = () => {
-    // bbMesh.position.addInPlaceFromFloats(0, 2.3, 1);
-    drawBBText("My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display");
+    drawBBText("Loading...");
 };
 
 export const drawBBText = (text: string) => {
@@ -36,7 +35,7 @@ export const drawBBText = (text: string) => {
     const textureWidth = scaleFactor * (boundingBox.maximum.x - boundingBox.minimum.x);
     const textureHeight = scaleFactor * (boundingBox.maximum.y - boundingBox.minimum.y);
 
-    const fontSize = 120;
+    const fontSize = 115;
     const font = `bold ${fontSize}px 'Margarine'`;
     const mat = new StandardMaterial("Name", scene);
     mat.backFaceCulling = false;

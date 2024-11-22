@@ -5,7 +5,7 @@ import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { global } from "./GlobalState";
 import { drawBBText } from "./Blackboard";
-import { HudHint, soundMap, platformMap } from "./setupGameStates";
+import { HudHint, soundMap, platformMap, HUDAudioFiles } from "./setupGameStates";
 
 
 export class GameState {
@@ -17,6 +17,7 @@ export class GameState {
     currentState: GameStates;
     displayingHUD: boolean;
     audioFileName: string;
+    howlerAudioObject: Howl;
 
     set platform(val: string) {
         this._platform = val;
@@ -32,7 +33,9 @@ export class GameState {
             this.text = hudHint[this._platform];
         }
         this.currentState = currentGameState;
-        this.audioFileName = `${this._platform}_${soundMap.get(hudHint)[platformMap[this._platform]]}.wav`;
+        this.audioFileName = `sounds/${this._platform}_${soundMap.get(hudHint)[platformMap[this._platform]]}.wav`;
+        this.howlerAudioObject = HUDAudioFiles.get(this.audioFileName);
+
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -51,6 +54,18 @@ export class GameState {
         this._platform = "xr";
         this.updateHUDText();
     }
+
+    playHintAudio(): void {
+        if (this.howlerAudioObject) {
+            this.howlerAudioObject.play();
+        }
+    }
+
+    stopHintAudio(): void {
+        if (this.howlerAudioObject) {
+            this.howlerAudioObject.stop();
+        }
+    }
 }
 
 export class StartState extends GameState {
@@ -60,6 +75,7 @@ export class StartState extends GameState {
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.stopHintAudio();
         this.platform = platform;
         return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
     }
@@ -74,6 +90,7 @@ export class BaseState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
+        this.stopHintAudio();
         if (newState === GameStates.GRAB) {
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
@@ -102,6 +119,7 @@ export class GrabState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
+        this.stopHintAudio();
         if (newState === GameStates.LOSE) {
             return new FailState(global.hudHints["GAME_STATE_FAIL"], this.platform);
         }
@@ -118,6 +136,7 @@ export class PickState extends GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
+        this.stopHintAudio();
         if (newState === GameStates.GRAB) {
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
@@ -140,6 +159,7 @@ export class FailState extends GameState {
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
+        this.stopHintAudio();
         return this;
     }    
 }
