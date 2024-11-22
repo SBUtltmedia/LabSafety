@@ -69,7 +69,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.mesh = target;
         this.spawnPosition.copyFrom(this.mesh.position);
         this.spawnRotation.copyFrom(this.mesh.rotation);
-        console.log(this.mesh.name, "frb", this.spawnPosition);
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
         if (!this.#interactableBehavior) {
             throw new Error(`${this.name} behavior must be attached to a mesh with an Interactable behavior.`);
@@ -77,7 +76,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
         this.#scene = this.mesh.getScene();
 
         this.#grabStateObserver = this.#interactableBehavior.onGrabStateChangedObservable.add(({ state }) => {
-            console.log("Change grab state....");
             if (state === GrabState.DROP) {
                 this.#fadeAndRespawn();
             }
@@ -85,7 +83,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
 
         // Change 7 to whatever the total number of interactable meshes there are
         FadeRespawnBehavior.attachCount++;
-        console.log( FadeRespawnBehavior.attachCount, "count");
         if (FadeRespawnBehavior.attachCount >= 5) {
             FadeRespawnBehavior.allAttachedObservable.notifyObservers(true);
         }        
@@ -98,7 +95,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
             this.#animationStateObserver.remove();
         }
         FadeRespawnBehavior.attachCount--;
-        console.log("Detach, ", FadeRespawnBehavior.attachCount)
     }
 
     #fadeAndRespawn() {
@@ -126,7 +122,6 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     }
 
     #respawn = () => {
-        console.log(this.spawnPosition);
         this.mesh.position.copyFrom(this.spawnPosition);
         this.mesh.rotation.copyFrom(this.spawnRotation);
     }
@@ -137,13 +132,8 @@ export class FadeRespawnBehavior implements Behavior<Mesh> {
     // }
 }
 
-export function setRespawnPoints(scene: Scene): void {
-    console.log("Calling set respawn");
-    // this line of code essentially just retrieves all the meshes in the scene that has a FadeRespawnBehavior
-    const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn")).filter(behavior => behavior !== null) as FadeRespawnBehavior[];
-    console.log(behaviors);
-    for (const behavior of behaviors) {
-        console.log(behavior.mesh);
-        // behavior.setSpawnPoint(behavior.mesh.position, behavior.mesh.rotation);
-    }
-}
+// export function setRespawnPoints(scene: Scene): void {
+//     console.log("Calling set respawn");
+//     // this line of code essentially just retrieves all the meshes in the scene that has a FadeRespawnBehavior
+//     const behaviors = scene.meshes.map(mesh => mesh.getBehaviorByName("FadeAndRespawn")).filter(behavior => behavior !== null) as FadeRespawnBehavior[];
+// }

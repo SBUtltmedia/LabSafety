@@ -33,7 +33,6 @@ export class HighlightBehavior implements Behavior<Mesh> {
     }
 
     highlightSelf = (color:Color3) => {
-        console.log(this.highlightLayer.addMesh(this.mesh, this.color))
         if (!this.highlightLayer.hasMesh(this.mesh)) {
             this.highlightLayer.addMesh(this.mesh, color);
         }

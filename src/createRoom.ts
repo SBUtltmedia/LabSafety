@@ -7,16 +7,11 @@ import { placeCamera } from "./placeCamera";
 import { createBlackboard } from "./Blackboard";
 
 export function createRoom(roomMesh: Mesh) {
-
-    console.log(roomMesh);
-
     const camera = roomMesh.getScene().activeCamera as UniversalCamera;
 
     enableMeshCollisions(roomMesh);
 
-    const blackboard = roomMesh.getChildren().find(mesh => mesh.name === "blackboard") 
-    console.log(blackboard);
-    createBlackboard(blackboard);
+    createBlackboard();
 
     placeCamera(camera);
 

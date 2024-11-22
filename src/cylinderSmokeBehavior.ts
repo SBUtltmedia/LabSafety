@@ -65,14 +65,11 @@ export class CylinderSmokeBehavior implements Behavior<Mesh> {
     }
 
     startSystem() {
-        console.log("smoke start");
         this.particleSystem.start();
         this.isRunning = true;
-        console.log("start isRunning: ", true)
     }
 
     stopSystem() {
-        console.log("stop system", this.isRunning);
         this.particleSystem.stop();
         this.isRunning = false;
     }

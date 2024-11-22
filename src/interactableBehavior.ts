@@ -71,8 +71,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 defaultAnchorRotation: options?.modeDefaults?.[mode]?.defaultAnchorRotation || options?.defaultAnchorRotation || Vector3.Zero()
             }
         }
-
-        console.log("this activatable: ", this.#activatable);
     }
 
     get name(): string {
@@ -137,9 +135,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     set moveAttached(value: boolean) {
         // If this is called before the behavior is attached to a mesh,
         // default grab will be enabled as part of being attached.
-        console.log(value);
         if (value && !this.#moveAttached && this.#mesh) {
-            console.log("Enable default grab");
             this.#enableDefaultGrab();
         } else if (!value && this.#moveAttached && this.#mesh) {
             this.#disableDefaultGrab();
@@ -182,8 +178,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Postconditions: this.grabbing
     #grab = (anchor: AbstractMesh, grabber: AbstractMesh): void => {
         this.onGrabStateChangedObservable.notifyObservers({ anchor, grabber, state: GrabState.GRAB });
-
-        console.log("Interactable behavior grab")
         
         // Satisfying the postcondition
         this.#anchor = anchor;
@@ -191,11 +185,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
         // Hide the grabber
         if (this.hideGrabber && this.#grabberWasVisible) {
-            console.log("Grabber invisible");
             grabber.isVisible = false;
         }
-
-        console.log("Grab method end...", this.#anchor, this.#grabber);
     }
 
     // Preconditions: this.grabbing

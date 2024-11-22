@@ -220,7 +220,6 @@ export class InteractionManager {
 	#checkGrab = (grab: boolean, anchorId: number) => {
 		const selector = this.modeSelectorMap[this.interactionMode][anchorId];
 		if (grab) {
-			console.log(selector, "grab!");
 			if (selector.targetMesh) {
 				if (selector.targetMesh.id.includes("cylinder-")) {
 					// selector.anchor.rotationQuaternion = null;
@@ -250,7 +249,6 @@ export class InteractionManager {
 			}
 		} else {
 			if (selector.grabbedMesh) {
-				console.log("drop selector")
 				this.#notifyGrabMeshObserver(selector.grabbedMesh, {
 					anchor: selector.anchor,
 					grabber: selector.grabber,
@@ -271,7 +269,6 @@ export class InteractionManager {
 		// Note that we notify the behavior even if it isn't active or even activatable.
 		// This is handled in the InteractableBehavior.
 		if (activate) {
-			console.log("Notify observers");
 			this.#notifyActivationMeshObserver(grabbedMesh, {
 				anchor,
 				grabber,
@@ -445,7 +442,6 @@ export class InteractionManager {
 	};
 
 	#configureInteraction = () => {
-		console.log("Configure Interaction!!!!!!");
 		const selector = Object.values(
 			this.modeSelectorMap[InteractionMode.MOBILE]
 		).find(({ anchor }) => anchor.name === "default-anchor");
@@ -461,8 +457,6 @@ export class InteractionManager {
 		const canvas = this.scene.getEngine().getRenderingCanvas();
 
         const camera = this.scene.activeCamera as UniversalCamera;
-
-        console.log("Canvas width: ", canvas.width);
 
 		meshesLoaded.add((loaded) => {
 			if (this.interactionMode !== InteractionMode.XR && loaded) {
@@ -532,7 +526,6 @@ export class InteractionManager {
                         roatateEdges();
 					});
 					pointerDragBehavior.onDragEndObservable.add((event) => {
-						console.log("pointer drag end");
 						let mesh = event.pointerInfo.pickInfo.pickedMesh;
 						for (let cName of cylinderNames) {
 							if (mesh.id.startsWith(cName)) {
@@ -549,7 +542,6 @@ export class InteractionManager {
                         camera.attachControl(true);
                         roatateEdges();
 					});
-					console.log("adding pointer drag");
 					cylinderMesh.addBehavior(pointerDragBehavior);
 				}
 
@@ -580,7 +572,6 @@ export class InteractionManager {
 						} else {
 							topLevelMesh = hit.pickedMesh;
 						}
-						console.log(topLevelMesh)
 						if (clickableObjects.includes(topLevelMesh)) {
 							if (topLevelMesh.name.startsWith("FireCabinet")) {
 								topLevelMesh = doorMesh;
@@ -595,7 +586,6 @@ export class InteractionManager {
 				};
 
 				const drop = (event: any, pickInfo: any) => {
-					console.log(pickedMesh);
 					if (
 						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && 
 						(clickableObjects.includes(pickedMesh))

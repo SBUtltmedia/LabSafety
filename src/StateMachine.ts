@@ -29,7 +29,7 @@ export class StateMachine {
     constructor(platform: string) {
         this.platform = platform;
         this.changedHints = false;
-        this.currentGameState = new GameState(null, this.platform, GameStates.START);
+        this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"], this.platform, GameStates.START);
         this.onStateChangeObervable.add(newState => {
             this.#delegateState(newState);
         });
@@ -45,11 +45,9 @@ export class StateMachine {
         })
 
         interactionManager.onModeChangeObservable.add(newMode => {
-            console.log("im new mode: ", newMode);
             this.platform = this.#getStringFromMode(newMode);
-            console.log("new mode: ", this.platform);
             this.currentGameState.platform = this.platform;
-            this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"][platform], this.platform, GameStates.START);
+            this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"], this.platform, GameStates.START);
             this.currentGameState.updateHUDText();
             if (this.platform !== "loading" && this.platform !== "null") {
                 this.#delegateState(GameStates.BASE);
@@ -57,18 +55,13 @@ export class StateMachine {
         })
 
         interactionManager.onGrabStateChangedObservable.add((meshGrabInfo)  => {
-            console.log("grab state change: ", meshGrabInfo);
             if (meshGrabInfo.state === GrabState.GRAB) {
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
             } else {
-                console.log("Drop obj")
                 if (meshGrabInfo.mesh.name === "clipboard") {
                     if (!this.changedHints) {
                         this.changedHints = true;
-                        console.log("Drop clip");
-                        for (let platform of ["mobile", "desktop", "xr"]) {
-                            global.hudHints["GAME_STATE_BASE"][platform] = global.hudHints["GAME_STATE_AFTER_SOP"][platform];
-                        }
+                        global.hudHints["GAME_STATE_BASE"] = global.hudHints["GAME_STATE_AFTER_SOP"];
                     }
                 }
                 this.#delegateState(GameStates.BASE);
@@ -89,7 +82,7 @@ export class StateMachine {
             if (newStatus === Status.FAILURE) {
                 this.#delegateState(GameStates.LOSE);
             } else if (newStatus === Status.RESET) {
-                console.log("Reset!");
+                console.log("Reset state machine");
             }
         })
 

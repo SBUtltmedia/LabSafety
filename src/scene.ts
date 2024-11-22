@@ -74,6 +74,8 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
+    const utterance = new SpeechSynthesisUtterance("Hello, World");
+
     //const reticle=CreateReticle("reticle", utilityLayer.utilityLayerScene);
     // reticle.setParent(camera);
     // reticle.position.copyFrom(Axis.Z);
@@ -136,6 +138,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
         if (vrIcon) {
             vrIcon.classList.remove("hide");
         }
+
     }, false);
 
     if (import.meta.env.DEV){
@@ -196,11 +199,11 @@ export async function initScene(scene: Scene): Promise<Scene> {
     // Places meshes to their proper places in the scene, including rotation.
     placeMeshes(meshes);
 
-    FadeRespawnBehavior.allAttachedObservable.add(allAttached => {
-        if (allAttached) {
-            setRespawnPoints(scene);
-        }
-    })
+    // FadeRespawnBehavior.allAttachedObservable.add(allAttached => {
+    //     if (allAttached) {
+    //         setRespawnPoints(scene);
+    //     }
+    // })
 
     // Set respawn points after placing meshes.
 
@@ -229,12 +232,10 @@ export async function initScene(scene: Scene): Promise<Scene> {
     if (stateMachine) {
         setupGameStates(stateMachine.platform);
     } else {
-        console.log("setup gs")
         setupGameStates(isTouchDevice ? "mobile" : "desktop");  
     }
 
     document.exitPointerLock();
-    console.log("change base");
 
     const canvas = document.getElementById("canvas");
     const handleInitialClick: EventListener = (e: Event) => {

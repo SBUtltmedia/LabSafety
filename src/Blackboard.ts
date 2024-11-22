@@ -20,7 +20,7 @@ function getLines(ctx: ICanvasRenderingContext, text: string, maxWidth: number) 
     return lines;
 }  
 
-export const createBlackboard = (bbMesh: AbstractMesh) => {
+export const createBlackboard = () => {
     // bbMesh.position.addInPlaceFromFloats(0, 2.3, 1);
     drawBBText("My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display My text that I want to display");
 };
@@ -55,10 +55,8 @@ export const drawBBText = (text: string) => {
     canvas.fillStyle = "transparent"; // Note: #000000 here also gives a black background
     texture.clear();
     const lines = getLines(canvas, text, textureX * textureXScalingFactor);
-    console.log(lines);
     const leading = 20;
     lines.forEach((line, idx) => {
-        console.log(line, idx);
         texture.drawText(line, plane.position.x, paddingY + textureY + ((fontSize + leading) * idx), font, "white", "transparent", true, true);
     })
 

@@ -2,7 +2,7 @@
     "GAME_STATE_START": {
         "desktop": "Click to begin",
         "mobile": "Tap to begin",
-        "xr": "Tap to begin",
+        "xr": "Tap to begin"
     },
     "GAME_STATE_BASE": {
         "desktop": "Use W,A,S,D keys to move. Use your mouse to look around. Left-click to interact and right-click to use. Left-click on the clipboard to learn more.",
@@ -47,6 +47,11 @@
     "GAME_STATE_AFTER_SOP": {
         "desktop": "Mix the cylinders as mentioned in the SOP! Use your left mouse button to interact with them.",
         "mobile":  "Mix the cylinders as mentioned in the SOP!",
-        "xr":  "Mix the cylinders as mentioned in the SOP! Use your grip to interact with them."
+        "xr":  "Mix the cylinders a,s mentioned in the SOP! Use your grip to interact with them."
+    },
+    "GAME_STATE_DOOR_GRAB": {
+        "desktop": "Drag around the door's handle to open it",
+        "mobile":  "Drag around the door's handle to open it",
+        "xr":  "Drag around the door's handle to open it."
     }
 }

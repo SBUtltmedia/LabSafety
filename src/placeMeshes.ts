@@ -20,8 +20,6 @@ export function placeMeshes(meshes: Mesh[]): void {
     const placards = meshes.filter(mesh => {
         return mesh.name.split("-")[0] === meshMap["placard"] && !mesh.name.includes("placard-base")
     }).sort(compareById);
-
-    console.log(meshes.map(mesh => mesh.name));
     
     const clipboard = meshes.find(mesh => mesh.id === meshMap["clipboard"]);
     const table = meshes.find(mesh => mesh.name === "Table");

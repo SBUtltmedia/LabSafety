@@ -62,9 +62,6 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
     new Texture(
         "images/smokeParticleTexture.png",
     ).onLoadObservable.add(texture => {
-
-        console.log(mesh.name);
-
         const cylinderSmokeBehavior = new CylinderSmokeBehavior(texture, mesh);
         mesh.addBehavior(cylinderSmokeBehavior);
         const pouringBehavior = new PouringBehavior();

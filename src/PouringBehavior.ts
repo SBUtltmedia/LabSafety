@@ -59,7 +59,6 @@ export class PouringBehavior implements Behavior<Mesh> {
     }
 
     attach = (mesh: Mesh) => {
-        console.log("Attach");
         this.mesh = mesh;
         this.#interactableBehavior = this.mesh.getBehaviorByName("Interactable") as InteractableBehavior;
         if (!this.#interactableBehavior) {
@@ -99,10 +98,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         });
 
         this.#mobileGrabStateObserver = this.#interactableBehavior.onMobileGrabStateChangeObservable.add(state => {
-            console.log("Mobile state change!!");
-            console.log(targets);
             if (state === GrabState.GRAB) {
-                console.log("Mobile grab state")
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
                     this.#changeTarget(target,null);
@@ -133,13 +129,9 @@ export class PouringBehavior implements Behavior<Mesh> {
                 { frame: 60, value: targetTilt }
             ];
 
-        
-            console.log("Tilt playing");
-        
             tiltAnim.setKeys(rotateKeys);
             waitForFinish = true;
             this.#scene.beginDirectAnimation(mesh, [tiltAnim], 0, 60, false, 1.5, () => {
-                console.log("Animation end");
                 waitForFinish = false;
                 tilted = targetTilt !== 0; // Update `tilted` based on targetTilt
                 processTiltQueue(); // Process the next tilt in queue
@@ -160,7 +152,6 @@ export class PouringBehavior implements Behavior<Mesh> {
         let dir = 1;
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
             const mode = this.#interactableBehavior.interactionManager.interactionMode;
-            console.log("activate trigger");
         
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 isQueued = true; // Set flag to avoid duplicate tilt-back queue
@@ -177,7 +168,6 @@ export class PouringBehavior implements Behavior<Mesh> {
                     const targetPos = this.#currentTarget.position;
         
                     let dirVector = new Vector3(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y, targetPos.z - sourcePos.z);
-                    console.log("Direction vector: ", dirVector);
                     oldAngle.copyFrom(this.mesh.rotation);
                     oldPos.copyFrom(this.mesh.position);
         
@@ -186,14 +176,12 @@ export class PouringBehavior implements Behavior<Mesh> {
                     this.mesh.rotation.y *= -1;
                     this.mesh.rotation.z = Math.PI + Math.PI / 4;
         
-                    console.log(this.#currentTarget.position);
         
                     this.mesh.position.y += 0.1;
                     tilted = true;
                 }
                 this.pour();
             } else if (state === ActivationState.INACTIVE && isQueued) {
-                console.log("Inactive");
                 isQueued = false;
                 if (mode === InteractionMode.XR) {
                     this.mesh.rotation.copyFrom(oldAngle);
@@ -247,7 +235,6 @@ export class PouringBehavior implements Behavior<Mesh> {
             const isNotCurrentMesh = this.mesh !== target;
             const isPourable = Boolean(target.getBehaviorByName("Pouring"));
             const targetNotGrabbed = !(target.getBehaviorByName("Interactable") as InteractableBehavior).grabbing;
-            // console.log("target not grabbed: ", targetNotGrabbed);
             const intersectingTarget = this.mesh.intersectsMesh(target);
             return isNotCurrentMesh && isPourable && targetNotGrabbed && intersectingTarget;
         });

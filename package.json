@@ -15,6 +15,7 @@
     "@babylonjs/core": "latest",
     "cross-env": "latest",
     "handlebars": "latest",
+    "howler": "^2.2.4",
     "pepjs": "latest"
   },
   "devDependencies": {
