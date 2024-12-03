@@ -48,8 +48,7 @@ const loadFilesRecursively = async (keys: string[], index = 0): Promise<void> =>
         const sound = await createAndLoadHowl(fileName);
         HUDAudioFiles.set(fileName, sound);
         console.log(`File at index ${index} loaded successfully`);
-        await loadFilesRecursively(keys, index + 1); // Load the next file
-    } catch (error) {
+        await loadFilesRecursively(keys, index + 1); // Load   
         console.log(`Error loading file at index ${index}:`, error);
         await loadFilesRecursively(keys, index + 1); // Load the next file
     }
