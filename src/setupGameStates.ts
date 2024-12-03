@@ -6,8 +6,9 @@ import {Howl, Howler} from 'howler';
 export let stateMachine: StateMachine;
 
 export type HudHint = {[key: string]: string};
+export interface FileArray {[key: string]: string};
 
-export let soundMap = new Map<HudHint, string[]>();
+export let soundMap = new Map<HudHint, number>();
 
 export const platformMap: {[key: string]: number} = {
     "desktop": 0,
@@ -16,43 +17,41 @@ export const platformMap: {[key: string]: number} = {
 };
 
 export let HUDAudioFiles = new Map<string, Howl>();
+export let HintAudioFiles = new Map<HudHint, FileArray>();
 
-const createAndLoadHowl = (fileName: string): Promise<Howl> => {
+const filePathPrefix = "sounds/narration"
+
+const createHowlerObject = (filename: string) => {
     return new Promise((resolve, reject) => {
-        console.log("file name: ", fileName);
         const sound = new Howl({
-            src: [fileName],
+            src: [`${filePathPrefix}/${filename}`],
             autoplay: false,
             loop: false,
             volume: 1.0,
             onload: () => {
-                console.log(`${fileName} has loaded`);
+                console.log(`filename has been loaded`);
+                HUDAudioFiles.set(filename, sound);
                 resolve(sound);
             },
             onloaderror: (id, error) => {
-                console.log(`Error loading ${fileName}: ${error}`);
+                console.log(`Error loading file ${filename}`, error);
                 reject(error);
             }
         });
-    });
-};
+    })
+}
 
-const loadFilesRecursively = async (keys: string[], index = 0): Promise<void> => {
-    if (index >= keys.length) {
-        console.log("All files have been loaded");
+const loadFiles = async (fileIdx: number) => {
+    const filenames = HUDAudioFiles.keys().toArray();
+
+    if (fileIdx >= filenames.length) {
+        console.log("All files loaded");
         return;
     }
 
-    try {
-        const fileName = keys[index];
-        const sound = await createAndLoadHowl(fileName);
-        HUDAudioFiles.set(fileName, sound);
-        console.log(`File at index ${index} loaded successfully`);
-        await loadFilesRecursively(keys, index + 1); // Load   
-        console.log(`Error loading file at index ${index}:`, error);
-        await loadFilesRecursively(keys, index + 1); // Load the next file
-    }
-};
+    await createHowlerObject(filenames[fileIdx]);
+    await loadFiles(fileIdx + 1);
+}
 
 export const setupGameStates = async(platform: string) => {
     console.log(global.hudHints);
@@ -61,25 +60,20 @@ export const setupGameStates = async(platform: string) => {
             .then(r => r.json())
             .then((json: IHUDHints) => {
                 global.hudHints = Object.assign({}, json);
-                Object.keys(global.hudHints).map((hudName, idx) => {
-                    soundMap.set(global.hudHints[hudName], [`${idx * 3}`, `${(idx * 3) + 1}`, `${(idx * 3) + 2}`]);
+                Object.keys(global.hudHints).map((hudName, hudIdx) => {
+                    soundMap.set(global.hudHints[hudName], hudIdx + 1);
+                    HintAudioFiles.set(global.hudHints[hudName], {"desktop": `desktop_${hudIdx + 1}.wav`, "mobile": `mobile_${hudIdx + 1}.wav`, "xr": `xr_${hudIdx + 1}.wav`});
                 });
                 soundMap.keys().forEach(key => {
-                    const idxarr = soundMap.get(key);
+                    const hudIdx = soundMap.get(key);
                     ["desktop", "mobile", "xr"].forEach(platform => {
-                        idxarr.forEach(idx => {
-                            const fileName = `sounds/${platform}_${idx}.wav`;
-                            HUDAudioFiles.set(fileName, null);
-                        })
+                        const fileName = `${platform}_${hudIdx}.wav`;
+                        HUDAudioFiles.set(fileName, null);
                     })
                 })
             
-                const filenames = HUDAudioFiles.keys().toArray();
-
-                loadFilesRecursively(filenames).then(() => {
-                    console.log("All files loaded");
+                loadFiles(0).then(() => {
                     stateMachine = new StateMachine(platform);
-                    stateMachine.onStateChangeObervable.notifyObservers(GameStates.BASE);
                 });
             });
     } else {

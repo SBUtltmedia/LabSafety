@@ -5,7 +5,7 @@ import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { global } from "./GlobalState";
 import { drawBBText } from "./Blackboard";
-import { HudHint, soundMap, platformMap, HUDAudioFiles } from "./setupGameStates";
+import { HudHint, soundMap, platformMap, HUDAudioFiles, HintAudioFiles } from "./setupGameStates";
 
 
 export class GameState {
@@ -18,6 +18,7 @@ export class GameState {
     displayingHUD: boolean;
     audioFileName: string;
     howlerAudioObject: Howl;
+    playBaseAudioOnce: boolean = true;
 
     set platform(val: string) {
         this._platform = val;
@@ -27,15 +28,21 @@ export class GameState {
         return this._platform;
     }
 
-    constructor(hudHint: HudHint, platform: string, currentGameState: GameStates) {
+    constructor(hudHint: HudHint, platform: string, currentGameState: GameStates, audioFileName?: string) {
         if (hudHint && platform) {
             this._platform = platform;
             this.text = hudHint[this._platform];
         }
         this.currentState = currentGameState;
-        this.audioFileName = `sounds/${this._platform}_${soundMap.get(hudHint)[platformMap[this._platform]]}.wav`;
+        if (audioFileName) {
+            this.audioFileName = audioFileName;
+        } else {
+            this.audioFileName = HintAudioFiles.get(hudHint)[platform];
+        }
         this.howlerAudioObject = HUDAudioFiles.get(this.audioFileName);
 
+        this.stopHintAudio();
+        this.playHintAudio();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -86,6 +93,7 @@ export class BaseState extends GameState {
         super(hudHint, platform, GameStates.BASE);
         this.updateHUDText();
         this.displayingHUD = true;
+        console.log("In Base state");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
