@@ -99,7 +99,6 @@ export class BaseState extends GameState {
         this.hudHint = hudHint;
         this.updateHUDText();
         this.displayingHUD = true;
-        console.log("In Base state");
         this.playHintAudio();
     }
 
@@ -143,7 +142,6 @@ export class GrabState extends GameState {
         this.updateHUDText();
         this.displayingHUD = true;
         this.playHintAudio();
-        console.log("In Grab State");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -162,7 +160,6 @@ export class PickState extends GameState {
         super(hudHint, platform, GameStates.PICK);
         this.updateHUDText();
         this.playHintAudio();
-        console.log("In Pick state");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
