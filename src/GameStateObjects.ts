@@ -189,7 +189,6 @@ export class FailState extends GameState {
         super(hudHint, platform, GameStates.PICK);
         this.updateHUDText();
         this.playHintAudio();
-        console.log("In fail state");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
