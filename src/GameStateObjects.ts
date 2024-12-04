@@ -42,7 +42,6 @@ export class GameState {
         this.howlerAudioObject = HUDAudioFiles.get(this.audioFileName);
 
         this.stopHintAudio();
-        this.playHintAudio();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -64,6 +63,7 @@ export class GameState {
 
     playHintAudio(): void {
         if (this.howlerAudioObject) {
+            this.howlerAudioObject.stop();
             this.howlerAudioObject.play();
         }
     }
@@ -79,6 +79,7 @@ export class StartState extends GameState {
     constructor(hudHint: HudHint, platform: string) {
         super(hudHint, platform, GameStates.START);
         this.updateHUDText();
+        this.playHintAudio();
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -89,17 +90,36 @@ export class StartState extends GameState {
 }
 
 export class BaseState extends GameState {
+    static playMoveHintFirstTime: boolean = true;
+    static playAfterSOPFirstTime: boolean = true;
+    hudHint: HudHint;
+
     constructor(hudHint: HudHint, platform: string) {
         super(hudHint, platform, GameStates.BASE);
+        this.hudHint = hudHint;
         this.updateHUDText();
         this.displayingHUD = true;
         console.log("In Base state");
+        this.playHintAudio();
+    }
+
+    playHintAudio(): void {
+        if (this.howlerAudioObject) {
+            console.log("Playing audio base state");
+            if (this.hudHint === global.hudHints["GAME_STATE_BASE"] && BaseState.playMoveHintFirstTime) {
+                BaseState.playMoveHintFirstTime = false;
+                this.howlerAudioObject.play();
+            } else if (this.hudHint === global.hudHints["GAME_STATE_AFTER_SOP"] && BaseState.playAfterSOPFirstTime) {
+                BaseState.playAfterSOPFirstTime = false;
+                this.howlerAudioObject.play();
+            }
+        }
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        this.stopHintAudio();
         if (newState === GameStates.GRAB) {
+            this.stopHintAudio();
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
                 if (mesh.name === "fire-extinguisher") {
@@ -122,7 +142,8 @@ export class GrabState extends GameState {
         super(hudHint, platform, GameStates.GRAB);
         this.updateHUDText();
         this.displayingHUD = true;
-
+        this.playHintAudio();
+        console.log("In Grab State");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
@@ -140,12 +161,14 @@ export class PickState extends GameState {
     constructor(hudHint: HudHint, platform: string) {
         super(hudHint, platform, GameStates.PICK);
         this.updateHUDText();
+        this.playHintAudio();
+        console.log("In Pick state");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this.platform = platform;
-        this.stopHintAudio();
         if (newState === GameStates.GRAB) {
+            this.stopHintAudio();
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
                 if (mesh.name === "fire-extinguisher") {
@@ -154,6 +177,7 @@ export class PickState extends GameState {
             }
             return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"], this.platform);
         } else if (newState === GameStates.BASE) {
+            this.stopHintAudio();
             return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
         }
         return null;
@@ -164,10 +188,11 @@ export class FailState extends GameState {
     constructor(hudHint: HudHint, platform: string) {
         super(hudHint, platform, GameStates.PICK);
         this.updateHUDText();
+        this.playHintAudio();
+        console.log("In fail state");
     }
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.stopHintAudio();
         return this;
     }    
 }
