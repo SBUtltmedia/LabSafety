@@ -83,6 +83,8 @@ export class StateMachine {
                 this.#delegateState(GameStates.LOSE);
             } else if (newStatus === Status.RESET) {
                 console.log("Reset state machine");
+            } else if (newStatus === Status.SUCCESSFUL) {
+                this.#delegateState(GameStates.WIN);
             }
         })
 

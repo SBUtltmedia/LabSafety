@@ -148,7 +148,9 @@ export class GrabState extends GameState {
         this.platform = platform;
         this.stopHintAudio();
         if (newState === GameStates.LOSE) {
-            return new FailState(global.hudHints["GAME_STATE_FAIL"], this.platform);
+            return new EndState(global.hudHints["GAME_STATE_FAIL"], this.platform);
+        } else if (newState === GameStates.WIN) {
+            return new EndState(global.hudHints["GAME_STATE_SOP_PASS"], this.platform);
         }
         return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
     }
@@ -181,7 +183,7 @@ export class PickState extends GameState {
     }    
 }
 
-export class FailState extends GameState {
+export class EndState extends GameState {
     constructor(hudHint: HudHint, platform: string) {
         super(hudHint, platform, GameStates.PICK);
         this.updateHUDText();
