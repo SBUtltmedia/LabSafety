@@ -53,6 +53,9 @@ export class GameState {
     }
 
     updateHUDText(): void {
+        if (this.text === null || this.text === undefined) {
+            this.text = "Loading...";
+        }
         drawBBText(this.text);
     }
 
