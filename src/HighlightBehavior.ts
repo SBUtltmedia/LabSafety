@@ -25,6 +25,7 @@ export class HighlightBehavior implements Behavior<Mesh> {
     }
 
     attach = (mesh: Mesh) => {
+        console.log("Attach!")
         this.mesh = mesh;
     }
 
@@ -33,7 +34,7 @@ export class HighlightBehavior implements Behavior<Mesh> {
     }
 
     highlightSelf = (color:Color3) => {
-        if (!this.highlightLayer.hasMesh(this.mesh)) {
+        if (this.mesh !== undefined && !this.highlightLayer.hasMesh(this.mesh)) {
             this.highlightLayer.addMesh(this.mesh, color);
         }
     }
@@ -46,7 +47,7 @@ export class HighlightBehavior implements Behavior<Mesh> {
     }
 
     unhighlightSelf = () => {
-        if (this.highlightLayer.hasMesh(this.mesh)) {
+        if (this.mesh !== undefined && this.highlightLayer.hasMesh(this.mesh)) {
             this.highlightLayer.removeMesh(this.mesh);
         }
     }

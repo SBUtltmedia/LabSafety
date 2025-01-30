@@ -586,9 +586,10 @@ export class InteractionManager {
 				};
 
 				const drop = (event: any, pickInfo: any) => {
+					// make sure only pointerUp on left click is registered as drop
 					if (
 						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && 
-						(clickableObjects.includes(pickedMesh))
+						(clickableObjects.includes(pickedMesh)) && event.button === 0
 					) {
 						pickedMesh = null;
 						this.#checkGrab(false, anchor.uniqueId);
