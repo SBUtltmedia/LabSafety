@@ -4,7 +4,7 @@ import { ListItem } from "./UpdateClipboardBehavior";
 import { PouringBehavior } from "./PouringBehavior";
 import { log } from "./utils";
 import { Status } from "./Task";
-import { startFire } from "./startFire";
+import { setupFires } from "./startFire";
 import { FireBehavior } from "./FireBehavior";
 import { GUIWindows } from "./GUIManager";
 import { enablePointerLock, initScene } from "./scene";
@@ -26,7 +26,7 @@ export const finalGameState: Observable<Status> = new Observable();
 let isFire = false;
 
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
-    const fires = startFire(scene);
+    const fires = setupFires(scene);
 
     let taskList: Task[] = [];
     let reverseTaskMap: Map<Task, Array<string>> = new Map();
@@ -154,21 +154,34 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                     let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
                     fireBehavior.onFireObservable.notifyObservers(true);    
                 }
-                isFire = true;
-                finalGameState.notifyObservers(Status.FAILURE);
-                if (isFire) {
-                    const emitter = scene.getMeshById(`emitter1`);
-                    let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-                    fireBehavior.onFireObservable.notifyObservers(true);   
-                    fireBehavior.onFireObservable.add((state) => {
-                        if (!state) {
-                            isFire = false;
-                            GUIWindows.createFailureScreen(scene, () => {
-                                initScene(scene);
-                            })
-                        }
-                    });
-                }
+                let fire1 = false;
+                let fire2 = false;
+
+                const emitter1 = scene.getMeshById("emitter1");
+                const emitter2 = scene.getMeshById("emitter2");
+
+                const fb1 = emitter1.getBehaviorByName("Fire") as FireBehavior;
+                const fb2 = emitter2.getBehaviorByName("Fire") as FireBehavior;
+
+                fb1.onFireObservable.add(state => {
+                    if (!state) {
+                        fire1 = true;
+                    }
+                });
+                fb2.onFireObservable.add(state => {
+                    if (!state) {
+                        fire2 = true;
+                    }
+                });
+
+                let obs = scene.onBeforeRenderObservable.add(() => {
+                    if (fire1 && fire2) {
+                        GUIWindows.createFailureScreen(scene, () => {
+                            obs.remove();
+                            initScene(scene);
+                        })
+                    }
+                })
                 break;
             case Status.RESET:
                 finalGameState.notifyObservers(Status.RESET);

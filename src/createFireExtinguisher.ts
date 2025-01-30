@@ -22,7 +22,8 @@ const FIRE_EXTINGUISHER_RANGE = 4.3;
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultAnchorRotation: new Vector3(0, 0, Math.PI)
+        defaultAnchorRotation: new Vector3(0, -0.28, Math.PI),
+        defaultAnchorPosition: new Vector3(0.3, -0.1, 0)
     });
 
     const fadeRespawnBehavior = new FadeRespawnBehavior();
@@ -58,7 +59,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
             return Boolean(fireBehavior && !fireBehavior.extinguished);
          });
         
-        if (pickInfo.hit && pickInfo.pickedMesh.name === "emitter1") {
+        if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("emitter")) {
             hightlightBehav.highlightSelf(new Color3(0, 255, 0));
         } else {
             hightlightBehav.unhighlightSelf();
@@ -79,16 +80,14 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     return Boolean(fireBehavior && !fireBehavior.extinguished);
                  });
                 
-                if (pickInfo.hit && pickInfo.pickedMesh.name === "emitter1") {
+                if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("emitter")) {
                     console.log("Hit!");
                     if (timeout === null) {
                         timeout = setTimeout(() => {
-                            for (let i = 1; i <= NUM_FIRES; i++) {
-                                let emitter = scene.getMeshByName(`emitter${i}`);
-                                const fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-                                if (!fireBehavior.extinguished) {
-                                    fireBehavior.extinguish();
-                                }
+                            const emitter = pickInfo.pickedMesh;
+                            const fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                            if (!fireBehavior.extinguished) {
+                                fireBehavior.extinguish();
                             }
                         }, 2500);
                     }

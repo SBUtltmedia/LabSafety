@@ -28,4 +28,4 @@ export const PLACARD_MESH_NAME = 'placard';
 export const SOP_TEMPLATE_PATH = `${rootPath}images/sopTemplate.svg`;
 export const HUD_HINTS_PATH = `${rootPath}json/HUDhints.json`;
 
-export const NUM_FIRES = 5;
+export const NUM_FIRES = 4;

@@ -265,8 +265,8 @@ function configureScene(scene: Scene, debug: boolean): void {
         import("@babylonjs/inspector").then(({ Inspector }) => {
             Inspector.Hide();
             window.addEventListener("keydown", (ev) => {
-                // Shift+Ctrl+Alt+I
-                if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
+                // Shift+Alt+I
+                if (ev.shiftKey && ev.altKey && ev.keyCode === 73) {
                     if (Inspector.IsVisible) {
                         Inspector.Hide();
                     } else {

@@ -3,14 +3,13 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene, ParticleHelper } from "@babylonjs/core";
 import { FireBehavior } from "./FireBehavior";
 
-export function startFire(scene: Scene): Mesh[] {
+export function setupFires(scene: Scene): Mesh[] {
     let emitters = [];
 
     emitters.push(MeshBuilder.CreateBox("emitter1", {size: 0.5}));
     emitters.push(MeshBuilder.CreateBox("emitter2", {size: 0.5}));
     emitters.push(MeshBuilder.CreateBox("emitter3", {size: 0.5}));
     emitters.push(MeshBuilder.CreateBox("emitter4", {size: 0.5}));
-    emitters.push(MeshBuilder.CreateBox("emitter5", {size: 0.5}));
 
     for (let emitter of emitters) {
         emitter.parent = scene.getMeshById("ExitDoor");    
@@ -20,7 +19,6 @@ export function startFire(scene: Scene): Mesh[] {
     emitters[1].position.copyFromFloats(0,0,2.5);
     emitters[2].position.copyFromFloats(-2,0,4);
     emitters[3].position.copyFromFloats(-4,0,4);
-    emitters[4].position.copyFromFloats(0,0,-2);
 
     for (let emitter of emitters) {
         ParticleHelper.CreateAsync("fire", scene).then((set) => {
