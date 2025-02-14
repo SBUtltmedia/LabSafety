@@ -34,13 +34,14 @@ export class GameState {
             this.text = hudHint[this._platform];
         }
         this.currentState = currentGameState;
-        if (audioFileName) {
-            this.audioFileName = audioFileName;
-        } else {
-            this.audioFileName = HintAudioFiles.get(hudHint)[platform];
+        if (hudHint !== undefined) {
+            if (audioFileName) {
+                this.audioFileName = audioFileName;
+            } else {
+                this.audioFileName = HintAudioFiles.get(hudHint)[platform];
+            }
+            this.howlerAudioObject = HUDAudioFiles.get(this.audioFileName);
         }
-        this.howlerAudioObject = HUDAudioFiles.get(this.audioFileName);
-
         this.stopHintAudio();
     }
 
