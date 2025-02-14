@@ -49,7 +49,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
     let timeout: number = null;
     let hightlightBehav = mesh.getBehaviorByName("Highlight") as HighlightBehavior;
 
-    let hotspotStack = ["hotspot3", "hotspot2", "hotspot1"];
+    let hotspotStack = ["hotspot1", "hotspot2", "hotspot3", "hotspot2", "hotspot1"];
 
     let currentHotspot = hotspotStack[hotspotStack.length - 1];
     hotspotStack.pop();

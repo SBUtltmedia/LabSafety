@@ -39,17 +39,17 @@ export function setupFires(scene: Scene): Mesh[] {
     let hotspot1 = MeshBuilder.CreateSphere("hotspot1", {diameter: 0.45});
     hotspot1.parent = scene.getMeshById("ExitDoor");
     hotspot1.isVisible = false;
-    hotspot1.position = new Vector3(0, 0, -0.8);
+    hotspot1.position = new Vector3(0, -0.5, -0.8);
 
     let hotspot2 = MeshBuilder.CreateSphere("hotspot2", {diameter: 0.45});
     hotspot2.parent = scene.getMeshById("ExitDoor");
     hotspot2.isVisible = false;
-    hotspot2.position = new Vector3(0, 0, -0.2);
+    hotspot2.position = new Vector3(0, -0.5, -0.2);
 
     let hotspot3 = MeshBuilder.CreateSphere("hotspot3", {diameter: 0.45});
     hotspot3.parent = scene.getMeshById("ExitDoor");
     hotspot3.isVisible = false;
-    hotspot3.position = new Vector3(0, 0, 0.4);    
+    hotspot3.position = new Vector3(0, -0.5, 0.4);    
     
     createGUIElement(hotspot1);
     createGUIElement(hotspot2);
