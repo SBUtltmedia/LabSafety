@@ -154,34 +154,30 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                     let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
                     fireBehavior.onFireObservable.notifyObservers(true);    
                 }
-                let fire1 = false;
-                let fire2 = false;
-
-                const emitter1 = scene.getMeshById("emitter1");
-                const emitter2 = scene.getMeshById("emitter2");
-
-                const fb1 = emitter1.getBehaviorByName("Fire") as FireBehavior;
-                const fb2 = emitter2.getBehaviorByName("Fire") as FireBehavior;
-
-                fb1.onFireObservable.add(state => {
-                    if (!state) {
-                        fire1 = true;
-                    }
-                });
-                fb2.onFireObservable.add(state => {
-                    if (!state) {
-                        fire2 = true;
-                    }
-                });
-
+                let hotspots = [scene.getMeshByName("hotspot1"), scene.getMeshByName("hotspot2"), scene.getMeshByName("hotspot3")];
+                hotspots[0].isVisible = true;
+                hotspots[0].setEnabled(true);
                 let obs = scene.onBeforeRenderObservable.add(() => {
-                    if (fire1 && fire2) {
-                        GUIWindows.createFailureScreen(scene, () => {
-                            obs.remove();
-                            initScene(scene);
-                        })
+                    let ok = true;
+                    for (let hotspot of hotspots) {
+                        if (hotspot.isVisible) {
+                            ok = false;
+                        }
                     }
-                })
+    
+                    if (ok) {
+                        for (let i = 1; i <= NUM_FIRES; i++) {
+                            let emitter = scene.getMeshByName(`emitter${i}`)
+                            let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                            fireBehavior.extinguish();
+                        }
+                        obs.remove();
+                        GUIWindows.createFailureScreen(scene, () => {
+                            initScene(scene);
+                        });                    
+                    }    
+                });
+
                 break;
             case Status.RESET:
                 finalGameState.notifyObservers(Status.RESET);

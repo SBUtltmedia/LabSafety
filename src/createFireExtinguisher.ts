@@ -22,8 +22,8 @@ const FIRE_EXTINGUISHER_RANGE = 4.3;
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultAnchorRotation: new Vector3(0, -0.28, Math.PI),
-        defaultAnchorPosition: new Vector3(0.3, -0.1, 0)
+        defaultAnchorRotation: new Vector3(-0.05, 0, Math.PI),
+        defaultAnchorPosition: new Vector3(0, -0.1, 0)
     });
 
     const fadeRespawnBehavior = new FadeRespawnBehavior();
@@ -49,6 +49,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
     debugSphere2.isVisible = false;
     let timeout: number = null;
     let hightlightBehav = mesh.getBehaviorByName("Highlight") as HighlightBehavior;
+
+    let hotspotStack = ["hotspot3", "hotspot2", "hotspot1"];
+
+    let currentHotspot = hotspotStack[hotspotStack.length - 1];
+    hotspotStack.pop();
     
     scene.onBeforeRenderObservable.add(() => {
         const ray = new Ray(mesh.absolutePosition, mesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
@@ -56,15 +61,18 @@ export function createFireExtinguisher(mesh: Mesh): void {
         debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
         const pickInfo = scene.pickWithRay(ray, pickedMesh => {
             const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-            return Boolean(fireBehavior && !fireBehavior.extinguished);
-         });
+            const isEmitter = pickedMesh.name.startsWith("hotspot");
+            return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
+        });
         
-        if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("emitter")) {
+        if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
             hightlightBehav.highlightSelf(new Color3(0, 255, 0));
         } else {
             hightlightBehav.unhighlightSelf();
         }
     });
+
+    let timeoutCleared = true;
 
     interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
         if (state === ActivationState.ACTIVE) {
@@ -77,28 +85,42 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
                 const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                     const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-                    return Boolean(fireBehavior && !fireBehavior.extinguished);
+                    const isEmitter = pickedMesh.name.startsWith("hotspot");
+                    return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
                  });
                 
-                if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("emitter")) {
-                    console.log("Hit!");
-                    if (timeout === null) {
+                if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
+                    let currentHotspotMesh = scene.getMeshByName(currentHotspot);
+                    let pickedMesh = pickInfo.pickedMesh;
+                    if (timeoutCleared && pickedMesh === currentHotspotMesh) {
+                        timeoutCleared = false;
                         timeout = setTimeout(() => {
-                            const emitter = pickInfo.pickedMesh;
-                            const fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-                            if (!fireBehavior.extinguished) {
-                                fireBehavior.extinguish();
+                            currentHotspotMesh.isVisible = false;
+                            currentHotspotMesh.setEnabled(false);
+                            if (hotspotStack.length > 0) {
+                                currentHotspot = hotspotStack[hotspotStack.length - 1];
+                                currentHotspotMesh = scene.getMeshByName(currentHotspot);
+                                hotspotStack.pop();
+                                scene.getMeshByName(currentHotspot).isVisible = true;
+                                scene.getMeshByName(currentHotspot).setEnabled(true);
                             }
-                        }, 2500);
+                            timeoutCleared = true;
+                            console.log("Clearing timeout");
+                        }, 1000);
                     }
+                } else {
+                    clearTimeout(timeout);
+                    timeoutCleared = true;
                 }
             });
             // @todo: Activate particles
         } else if (state === ActivationState.INACTIVE) {
             smokeSystem.stop();
             if (timeout) {
+                console.log("clear timeout");
                 clearTimeout(timeout);
                 timeout = null;
+                timeoutCleared = true;
             }
             // Remove observer
             if (observer) {

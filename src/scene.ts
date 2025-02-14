@@ -239,8 +239,16 @@ export async function initScene(scene: Scene): Promise<Scene> {
 
     if (isTouchDevice) {
 	    activateButton = GUIButtons(false);
-    }    
+    }
 
+    let hotspotStack = [scene.getMeshById("hotspot1"), scene.getMeshById("hotspot2"), scene.getMeshById("hotspot3")];
+
+    for (let hotspot of hotspotStack) {
+        if (hotspot) {
+            hotspot.isVisible = false;
+            hotspot.setEnabled(true);
+        }
+    }
 
     document.exitPointerLock();
 
