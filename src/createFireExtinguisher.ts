@@ -56,19 +56,22 @@ export function createFireExtinguisher(mesh: Mesh): void {
     hotspotStack.pop();
     
     scene.onBeforeRenderObservable.add(() => {
-        const ray = new Ray(mesh.absolutePosition, mesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
-        debugSphere1.setAbsolutePosition(ray.origin);
-        debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
-        const pickInfo = scene.pickWithRay(ray, pickedMesh => {
-            const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-            const isEmitter = pickedMesh.name.startsWith("hotspot");
-            return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
-        });
-        
-        if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
-            hightlightBehav.highlightSelf(new Color3(0, 255, 0));
-        } else {
-            hightlightBehav.unhighlightSelf();
+        const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
+        if (hoseMesh !== undefined) {
+            const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
+            debugSphere1.setAbsolutePosition(ray.origin);
+            debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+            const pickInfo = scene.pickWithRay(ray, pickedMesh => {
+                const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
+                const isEmitter = pickedMesh.name.startsWith("hotspot");
+                return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
+            });
+            
+            if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
+                hightlightBehav.highlightSelf(new Color3(0, 255, 0));
+            } else {
+                hightlightBehav.unhighlightSelf();
+            }
         }
     });
 
@@ -79,38 +82,40 @@ export function createFireExtinguisher(mesh: Mesh): void {
             smokeSystem.start();
             observer = scene.onBeforeRenderObservable.add(() => {
                 // Check for hitting the fire
-                // @todo: The ray should originate from the nozzle mesh.
-                const ray = new Ray(mesh.absolutePosition, mesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
-                debugSphere1.setAbsolutePosition(ray.origin);
-                debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
-                const pickInfo = scene.pickWithRay(ray, pickedMesh => {
-                    const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-                    const isEmitter = pickedMesh.name.startsWith("hotspot");
-                    return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
-                 });
-                
-                if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
-                    let currentHotspotMesh = scene.getMeshByName(currentHotspot);
-                    let pickedMesh = pickInfo.pickedMesh;
-                    if (timeoutCleared && pickedMesh === currentHotspotMesh) {
-                        timeoutCleared = false;
-                        timeout = setTimeout(() => {
-                            currentHotspotMesh.isVisible = false;
-                            currentHotspotMesh.setEnabled(false);
-                            if (hotspotStack.length > 0) {
-                                currentHotspot = hotspotStack[hotspotStack.length - 1];
-                                currentHotspotMesh = scene.getMeshByName(currentHotspot);
-                                hotspotStack.pop();
-                                scene.getMeshByName(currentHotspot).isVisible = true;
-                                scene.getMeshByName(currentHotspot).setEnabled(true);
-                            }
-                            timeoutCleared = true;
-                            console.log("Clearing timeout");
-                        }, 1000);
+                const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
+                if (hoseMesh !== undefined) {
+                    const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
+                    debugSphere1.setAbsolutePosition(ray.origin);
+                    debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+                    const pickInfo = scene.pickWithRay(ray, pickedMesh => {
+                        const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
+                        const isEmitter = pickedMesh.name.startsWith("hotspot");
+                        return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
+                    });
+                    
+                    if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
+                        let currentHotspotMesh = scene.getMeshByName(currentHotspot);
+                        let pickedMesh = pickInfo.pickedMesh;
+                        if (timeoutCleared && pickedMesh === currentHotspotMesh) {
+                            timeoutCleared = false;
+                            timeout = setTimeout(() => {
+                                currentHotspotMesh.isVisible = false;
+                                currentHotspotMesh.setEnabled(false);
+                                if (hotspotStack.length > 0) {
+                                    currentHotspot = hotspotStack[hotspotStack.length - 1];
+                                    currentHotspotMesh = scene.getMeshByName(currentHotspot);
+                                    hotspotStack.pop();
+                                    scene.getMeshByName(currentHotspot).isVisible = true;
+                                    scene.getMeshByName(currentHotspot).setEnabled(true);
+                                }
+                                timeoutCleared = true;
+                                console.log("Clearing timeout");
+                            }, 1000);
+                        }
+                    } else {
+                        clearTimeout(timeout);
+                        timeoutCleared = true;
                     }
-                } else {
-                    clearTimeout(timeout);
-                    timeoutCleared = true;
                 }
             });
             // @todo: Activate particles
