@@ -12,10 +12,12 @@ import { global } from "./GlobalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Observable } from "@babylonjs/core";
+import { MeshBuilder, Observable } from "@babylonjs/core";
 import { NUM_FIRES } from "./Constants";
 import { setupGameStates, stateMachine } from "./setupGameStates";
 import { GameStates } from "./StateMachine";
+import { Animation } from '@babylonjs/core/Animations/animation';
+
 
 interface ITaskMap {
     [key: string]: Task
@@ -149,11 +151,46 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
+
+                const whiteScreenMaterial = new StandardMaterial("whiteScreenMat", scene);
+                whiteScreenMaterial.emissiveColor = new Color3(1, 1, 1);
+
+                const whiteScreen = MeshBuilder.CreatePlane("whiteScreen", { size: 10 }, scene);
+                whiteScreen.material = whiteScreenMaterial;
+                whiteScreen.position.z = -0.5;          
+
                 for (let i = 1; i <= NUM_FIRES; i++) {
                     const emitter = scene.getMeshById(`emitter${i}`);
                     let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
                     fireBehavior.onFireObservable.notifyObservers(true);    
                 }
+
+                whiteScreenMaterial.alpha = 1;
+                const fadeOutAnimation = new Animation(
+                    "fadeOut",
+                    "material.alpha",
+                    30, // Frame rate
+                    Animation.ANIMATIONTYPE_FLOAT,
+                    Animation.ANIMATIONLOOPMODE_CONSTANT
+                );
+            
+                const keys = [
+                    { frame: 0, value: 1 },
+                    { frame: 30, value: 0.5 },
+                    { frame: 60, value: 0 }
+                ];
+            
+                fadeOutAnimation.setKeys(keys);
+            
+                whiteScreen.animations = [];
+                whiteScreen.animations.push(fadeOutAnimation);
+            
+                // Start the animation
+                scene.beginAnimation(whiteScreen, 0, 60, false, 1, () => {
+                    // After animation finishes, hide the screen
+                    whiteScreen.isVisible = false;
+                });                
+
                 let hotspots = [scene.getMeshByName("hotspot1"), scene.getMeshByName("hotspot2"), scene.getMeshByName("hotspot3")];
                 hotspots[0].isVisible = true;
                 hotspots[0].setEnabled(true);
