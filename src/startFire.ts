@@ -12,9 +12,9 @@ export const createGUIElement = (mesh: Mesh) => {
     c1.width = 2;
     c1.height = 2;
     c1.color = "black";
-    c1.background = "blue";
+    c1.background = "#00aaff";
     c1.thickness = 2;
-    c1.alpha = 0.40;
+    c1.alpha = 0.9;
 
     adt.addControl(c1);
 }
@@ -36,17 +36,17 @@ export function setupFires(scene: Scene): Mesh[] {
     emitters[2].position.copyFromFloats(-2,0,4);
     emitters[3].position.copyFromFloats(-4,0,4);
 
-    let hotspot1 = MeshBuilder.CreateSphere("hotspot1", {diameter: 0.35});
+    let hotspot1 = MeshBuilder.CreateSphere("hotspot1", {diameter: 0.45});
     hotspot1.parent = scene.getMeshById("ExitDoor");
     hotspot1.isVisible = false;
     hotspot1.position = new Vector3(0, 0, -0.8);
 
-    let hotspot2 = MeshBuilder.CreateSphere("hotspot2", {diameter: 0.35});
+    let hotspot2 = MeshBuilder.CreateSphere("hotspot2", {diameter: 0.45});
     hotspot2.parent = scene.getMeshById("ExitDoor");
     hotspot2.isVisible = false;
     hotspot2.position = new Vector3(0, 0, -0.2);
 
-    let hotspot3 = MeshBuilder.CreateSphere("hotspot3", {diameter: 0.35});
+    let hotspot3 = MeshBuilder.CreateSphere("hotspot3", {diameter: 0.45});
     hotspot3.parent = scene.getMeshById("ExitDoor");
     hotspot3.isVisible = false;
     hotspot3.position = new Vector3(0, 0, 0.4);    

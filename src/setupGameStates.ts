@@ -29,7 +29,6 @@ const createHowlerObject = (filename: string) => {
             loop: false,
             volume: 1.0,
             onload: () => {
-                console.log(`filename has been loaded`);
                 HUDAudioFiles.set(filename, sound);
                 resolve(sound);
             },
@@ -54,7 +53,6 @@ const loadFiles = async (fileIdx: number) => {
 }
 
 export const setupGameStates = async(platform: string) => {
-    console.log(global.hudHints);
     if (Object.keys(global.hudHints).length === 0) {
         fetch(HUD_HINTS_PATH)
             .then(r => r.json())
@@ -77,7 +75,6 @@ export const setupGameStates = async(platform: string) => {
                 });
             });
     } else {
-        console.log("Re setup game states");
         stateMachine = new StateMachine(platform);
         stateMachine.onStateChangeObervable.notifyObservers(GameStates.BASE);        
     }

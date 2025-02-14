@@ -219,7 +219,6 @@ export async function initScene(scene: Scene): Promise<Scene> {
 
     if (!stateMachineFirstTime) {
         if (stateMachine) {
-            console.log("setup game states new");
             setupGameStates(stateMachine.platform);
         }
     }

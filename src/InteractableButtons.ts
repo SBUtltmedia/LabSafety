@@ -31,12 +31,10 @@ export const GUIButtons = (isRight = true) => {
     actionButton.top = -bottomJoystickOffset;
 
     actionButton.onPointerDownObservable.add(() => {
-        console.log("Pointer down!");
         actionButton.background = "gray";
     })
 
     actionButton.onPointerUpObservable.add(() => {
-        console.log("Pointer up");
         actionButton.background = "white";
     })
 

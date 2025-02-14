@@ -13,9 +13,8 @@ import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
-import { NUM_FIRES } from "./Constants";
 import { HighlightBehavior } from "./HighlightBehavior";
-import { Color3 } from "@babylonjs/core";
+import { Color3, RayHelper } from "@babylonjs/core";
 
 const FIRE_EXTINGUISHER_RANGE = 4.3;
 
@@ -54,13 +53,22 @@ export function createFireExtinguisher(mesh: Mesh): void {
 
     let currentHotspot = hotspotStack[hotspotStack.length - 1];
     hotspotStack.pop();
-    
+
+    // interactableBehavior.onGrabStateChangedObservable.add((grabInfo) => {
+    //     if (grabInfo.state === GrabState.GRAB) {
+    //         debugSphere2.isVisible = true;
+    //     } else {
+    //         debugSphere2.isVisible = false;
+    //     }
+    // })    
+
     scene.onBeforeRenderObservable.add(() => {
         const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
         if (hoseMesh !== undefined) {
             const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
             debugSphere1.setAbsolutePosition(ray.origin);
             debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+
             const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                 const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                 const isEmitter = pickedMesh.name.startsWith("hotspot");
@@ -76,6 +84,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
     });
 
     let timeoutCleared = true;
+    let prevRayHelper: RayHelper = null;
 
     interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
         if (state === ActivationState.ACTIVE) {
@@ -85,8 +94,18 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
                 if (hoseMesh !== undefined) {
                     const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
+                    if (prevRayHelper !== null) {
+                        prevRayHelper.dispose();
+                    }
+                    const rayHelper = new RayHelper(ray);
+                    rayHelper.show(scene, new Color3(0, 255, 0));
+                    prevRayHelper = rayHelper;
+
                     debugSphere1.setAbsolutePosition(ray.origin);
                     debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+
+                    debugSphere2.isVisible = true;
+
                     const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                         const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                         const isEmitter = pickedMesh.name.startsWith("hotspot");
@@ -109,7 +128,6 @@ export function createFireExtinguisher(mesh: Mesh): void {
                                     scene.getMeshByName(currentHotspot).setEnabled(true);
                                 }
                                 timeoutCleared = true;
-                                console.log("Clearing timeout");
                             }, 1000);
                         }
                     } else {
@@ -121,8 +139,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
             // @todo: Activate particles
         } else if (state === ActivationState.INACTIVE) {
             smokeSystem.stop();
+            debugSphere2.isVisible = false;
+            if (prevRayHelper !== null) {
+                prevRayHelper.dispose();
+            }            
             if (timeout) {
-                console.log("clear timeout");
                 clearTimeout(timeout);
                 timeout = null;
                 timeoutCleared = true;

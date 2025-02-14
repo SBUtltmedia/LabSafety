@@ -390,8 +390,6 @@ export class InteractionManager {
 			this.#addDefaultSelector(this.scene.activeCamera);
 		}
 
-		console.log("Mode: ", mode);
-
 		if (mode === InteractionMode.DESKTOP) {
 			this.#configureDesktopInteractionOnce();
 		} else if (mode === InteractionMode.MOBILE) {
@@ -624,8 +622,6 @@ export class InteractionManager {
 			);
 		}
 		const { anchor } = selector;
-
-		console.log("Desktop interaction once");
 		this.#configureInteraction();
 
 		this.scene.onPointerObservable.add((pointerInfo) => {
@@ -659,12 +655,9 @@ export class InteractionManager {
 		}
 		const { anchor } = selector;
 
-		console.log("Mobile");
-
 		// @todo: Add hooks to call this.#checkGrab() and this.#checkActivate() when the appropriate buttons are pressed.
 		let activateMethod = this.#checkActivate;
 
-		console.log("Mobile interaction once");
 		this.#configureInteraction();
 
 		if (activateButton) {
@@ -693,7 +686,6 @@ export class InteractionManager {
 				kbInfo.type === KeyboardEventTypes.KEYUP &&
 				kbInfo.event.key === "e"
 			) {
-				console.log("key up");
 				activateMethod(false, anchor.uniqueId);
 			}
 		});
@@ -722,7 +714,6 @@ export class InteractionManager {
 			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
 			interactableBehavior.moveAttached = true;
 
-			console.log("removing pointer drag");
 			const pointerDrag = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
 			pointerDrag.detach();
 		}

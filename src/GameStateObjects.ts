@@ -108,7 +108,6 @@ export class BaseState extends GameState {
 
     playHintAudio(): void {
         if (this.howlerAudioObject) {
-            console.log("Playing audio base state");
             if (this.hudHint === global.hudHints["GAME_STATE_BASE"] && BaseState.playMoveHintFirstTime) {
                 BaseState.playMoveHintFirstTime = false;
                 this.howlerAudioObject.play();
