@@ -157,7 +157,8 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
 
                 const whiteScreen = MeshBuilder.CreatePlane("whiteScreen", { size: 10 }, scene);
                 whiteScreen.material = whiteScreenMaterial;
-                whiteScreen.position.z = -0.5;          
+                whiteScreen.parent = scene.activeCamera;
+                whiteScreen.position.z += 0.5;                
 
                 for (let i = 1; i <= NUM_FIRES; i++) {
                     const emitter = scene.getMeshById(`emitter${i}`);
