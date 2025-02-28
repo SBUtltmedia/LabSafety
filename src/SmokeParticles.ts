@@ -21,41 +21,41 @@ export class SmokeParticles {
 
         if (GPUParticleSystem.IsSupported) {
             console.log("Using the GPU for particle system")
-            particleSystem = new GPUParticleSystem("particles", { capacity:15000 }, scene);
-            particleSystem.activeParticleCount = 2700;
+            particleSystem = new ParticleSystem("particles", 15000, scene);
         } else {
-            particleSystem = new ParticleSystem("particles", 2000 , scene);
+            particleSystem = new ParticleSystem("particles", 10000 , scene);
         }
 
-        particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
+        particleSystem.particleTexture = new Texture("images/smokeParticleTexture.png", scene);
     
-        particleSystem.emitRate = 170;
+        let x = 0.25, y = 1, z = x;
 
-        particleSystem.createPointEmitter(new Vector3(-3.5, -3.5, 0), new Vector3(3.5,3.5, 0));
+        particleSystem.createPointEmitter(
+            new Vector3(x, y, -z),
+            new Vector3(-x, -y, z)
+        )
 
-        particleSystem.gravity = new Vector3(0, 0, 20);
+        particleSystem.emitRate = 5000;
 
-        // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
-        // along with the source mesh (fire extinguisher in this case).
+
+        // // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
+        // // along with the source mesh (fire extinguisher in this case).
         particleSystem.isLocal = true;
 
+        particleSystem.gravity = new Vector3(0, 0, 100);
+
         // how long before the particles dispose
-        particleSystem.minLifeTime = 0.3;
-        particleSystem.maxLifeTime = 0.3;
+        particleSystem.minLifeTime = 0.7;
+        particleSystem.maxLifeTime = 0.7;
 
-        particleSystem.minEmitPower = 0.7;
-        particleSystem.maxEmitPower = 0.5;
+        particleSystem.minSize = 0.05;
+        particleSystem.maxSize = 0.35;
 
-        particleSystem.minSize = 0.01;
-        particleSystem.maxSize = 0.02;
-     
-        let gradientSize = 0.30;
-
-        particleSystem.addSizeGradient(gradientSize, gradientSize, gradientSize);
 
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 
-        particleSystem.emitter = this.#mesh;
+        particleSystem.emitter = this.#mesh as AbstractMesh;
+        particleSystem.emitter.position.z += 0.1;
 
         this.particleSystem = particleSystem;
     }

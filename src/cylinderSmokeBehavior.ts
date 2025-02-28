@@ -15,7 +15,7 @@ export class CylinderSmokeBehavior implements Behavior<Mesh> {
 
     constructor(texture: Texture, mesh: Mesh) {
         this.mesh = mesh;
-        this.particleSystem = new ParticleSystem("particles", 5000, this.mesh._scene);
+        this.particleSystem = new ParticleSystem("particles", 500, this.mesh._scene);
         this.particleSystem.particleTexture = texture;
         this.isRunning = false;
     }
@@ -33,18 +33,15 @@ export class CylinderSmokeBehavior implements Behavior<Mesh> {
 
         const liquidMesh = this.mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");
     
-        this.particleSystem.minLifeTime = 0.7;
+        this.particleSystem.minLifeTime = 0.5;
         this.particleSystem.maxLifeTime = 0.7;
-        this.particleSystem.emitRate = 5000;
-        this.particleSystem.gravity = new Vector3(0, 20, 0);
-        this.particleSystem.minSize = 0.05;
-        this.particleSystem.maxSize = 0.35;
-
-        let x = 2.5, y = 10, z = x;
-
+        this.particleSystem.emitRate = 100;
+        this.particleSystem.gravity = new Vector3(0, 0.5, 0);
+        this.particleSystem.minSize = 0.01;
+        this.particleSystem.maxSize = 0.07;
         this.particleSystem.createPointEmitter(
-            new Vector3(-x, y, -z),
-            new Vector3(x, y, z)
+            new Vector3(0, 0, 0),
+            new Vector3(0, 1, 0)
         )
 
         const targetColor = (liquidMesh.material as StandardMaterial).diffuseColor;
@@ -60,10 +57,6 @@ export class CylinderSmokeBehavior implements Behavior<Mesh> {
         this.particleSystem.emitter = (this.mesh as AbstractMesh).position;
         this.particleSystem.stop();
         this.isRunning = false;
-
-        setTimeout(() => {
-            this.startSystem();
-        }, 500)
     }
 
     detach(): void {
