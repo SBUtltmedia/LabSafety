@@ -16,6 +16,7 @@
     "cross-env": "latest",
     "handlebars": "latest",
     "howler": "^2.2.4",
+    "lil-gui": "^0.20.0",
     "pepjs": "latest"
   },
   "devDependencies": {

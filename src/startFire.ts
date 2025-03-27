@@ -1,6 +1,6 @@
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Scene, ParticleHelper, Vector3 } from "@babylonjs/core";
+import { Scene, ParticleHelper, Vector3, StandardMaterial, Color3 } from "@babylonjs/core";
 import { FireBehavior } from "./FireBehavior";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Ellipse } from "@babylonjs/gui";
@@ -9,14 +9,24 @@ export const createGUIElement = (mesh: Mesh) => {
     let adt = AdvancedDynamicTexture.CreateForMesh(mesh);
     let c1 = new Ellipse();
 
-    c1.width = 2;
-    c1.height = 2;
-    c1.color = "black";
-    c1.background = "#00aaff";
-    c1.thickness = 2;
+    c1.width = "100%"
+    c1.height = "100%";
+    c1.color = "Orange";
+    c1.thickness = 40;
+    c1.background = "green";
     c1.alpha = 0.9;
 
     adt.addControl(c1);
+}
+
+export const createHotspot = (name: string, pos: Vector3, scene: Scene) => {
+    let hotspot1 = MeshBuilder.CreatePlane(name, {size: 0.25});
+    hotspot1.parent = scene.getMeshById("ExitDoor");
+    hotspot1.isVisible = false;
+    hotspot1.position = pos;
+    hotspot1.rotation = new Vector3(0, Math.PI / 2, 0);
+
+    return hotspot1;
 }
 
 export function setupFires(scene: Scene): Mesh[] {
@@ -25,7 +35,6 @@ export function setupFires(scene: Scene): Mesh[] {
     emitters.push(MeshBuilder.CreateBox("emitter1", {size: 0.5}));
     emitters.push(MeshBuilder.CreateBox("emitter2", {size: 0.5}));
     emitters.push(MeshBuilder.CreateBox("emitter3", {size: 0.5}));
-    emitters.push(MeshBuilder.CreateBox("emitter4", {size: 0.5}));
 
     for (let emitter of emitters) {
         emitter.parent = scene.getMeshById("ExitDoor");    
@@ -34,22 +43,10 @@ export function setupFires(scene: Scene): Mesh[] {
     emitters[0].position.copyFromFloats(0,0,0);
     emitters[1].position.copyFromFloats(0,0,2.5);
     emitters[2].position.copyFromFloats(-2,0,4);
-    emitters[3].position.copyFromFloats(-4,0,4);
 
-    let hotspot1 = MeshBuilder.CreateSphere("hotspot1", {diameter: 0.45});
-    hotspot1.parent = scene.getMeshById("ExitDoor");
-    hotspot1.isVisible = false;
-    hotspot1.position = new Vector3(0, -0.5, -0.8);
-
-    let hotspot2 = MeshBuilder.CreateSphere("hotspot2", {diameter: 0.45});
-    hotspot2.parent = scene.getMeshById("ExitDoor");
-    hotspot2.isVisible = false;
-    hotspot2.position = new Vector3(0, -0.5, -0.2);
-
-    let hotspot3 = MeshBuilder.CreateSphere("hotspot3", {diameter: 0.45});
-    hotspot3.parent = scene.getMeshById("ExitDoor");
-    hotspot3.isVisible = false;
-    hotspot3.position = new Vector3(0, -0.5, 0.4);    
+    let hotspot1 = createHotspot("hotspot1", new Vector3(-0.1, -0.5, -0.8), scene);
+    let hotspot2 = createHotspot("hotspot2", new Vector3(-0.1, -0.5, -0.2), scene);
+    let hotspot3 = createHotspot("hotspot3", new Vector3(-0.1, -0.5, 0.4), scene);
     
     createGUIElement(hotspot1);
     createGUIElement(hotspot2);
