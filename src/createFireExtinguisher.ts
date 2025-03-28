@@ -21,8 +21,8 @@ const FIRE_EXTINGUISHER_RANGE = 4.3;
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultAnchorRotation: new Vector3(-0.05, 0, Math.PI),
-        defaultAnchorPosition: new Vector3(0, -0.1, 0)
+        defaultAnchorRotation: new Vector3(-0.05, -0.5, Math.PI),
+        defaultAnchorPosition: new Vector3(0.25, -0.1, 0)
     });
 
     const fadeRespawnBehavior = new FadeRespawnBehavior();
@@ -97,14 +97,12 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     if (prevRayHelper !== null) {
                         prevRayHelper.dispose();
                     }
-                    const rayHelper = new RayHelper(ray);
-                    rayHelper.show(scene, new Color3(0, 255, 0));
-                    prevRayHelper = rayHelper;
+                    // const rayHelper = new RayHelper(ray);
+                    // rayHelper.show(scene, new Color3(0, 255, 0));
+                    // prevRayHelper = rayHelper;
 
                     debugSphere1.setAbsolutePosition(ray.origin);
                     debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
-
-                    debugSphere2.isVisible = true;
 
                     const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                         const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;

@@ -3,6 +3,8 @@ import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Color4, MeshBuilder } from "@babylonjs/core";
+import GUI from 'lil-gui'; 
 
 export class SmokeParticles {
     particleSystem: ParticleSystem | GPUParticleSystem;
@@ -21,43 +23,75 @@ export class SmokeParticles {
 
         if (GPUParticleSystem.IsSupported) {
             console.log("Using the GPU for particle system")
-            particleSystem = new GPUParticleSystem("particles", { capacity:15000 }, scene);
-            particleSystem.activeParticleCount = 2700;
+            particleSystem = new ParticleSystem("particles", 150000, scene);
         } else {
-            particleSystem = new ParticleSystem("particles", 2000 , scene);
+            particleSystem = new ParticleSystem("particles", 100000 , scene);
         }
 
-        particleSystem.particleTexture = new Texture("https://raw.githubusercontent.com/PatrickRyanMS/BabylonJStextures/master/FFV/smokeParticleTexture.png", scene);
+        particleSystem.particleTexture = new Texture("images/smokeParticleTexture2.png", scene);
     
-        particleSystem.emitRate = 170;
+        let x = 1, y = 1.5, z = x;
 
-        particleSystem.createPointEmitter(new Vector3(-3.5, -3.5, 0), new Vector3(3.5,3.5, 0));
+        particleSystem.color1 = new Color4(0.7,0.7,0.7, 0.3);
+        particleSystem.color2 = particleSystem.color1;
+        particleSystem.colorDead = new Color4(1,1,1, 0);
 
-        particleSystem.gravity = new Vector3(0, 0, 20);
+        particleSystem.renderingGroupId = 1;
 
-        // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
-        // along with the source mesh (fire extinguisher in this case).
-        particleSystem.isLocal = true;
+
+        particleSystem.createPointEmitter(
+            new Vector3(x, y, -z),
+            new Vector3(-x, -y, z)
+        )
+
+        particleSystem.emitRate = 15000;
+
+        const gui = new GUI();
+
+
+        // // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
+        // // along with the source mesh (fire extinguisher in this case).
+        let props = {
+
+        };
+        let gravity = new Vector3(0, 0, 90)
+       let obj = { isLocal : true,
+
+        gravity,
 
         // how long before the particles dispose
-        particleSystem.minLifeTime = 0.3;
-        particleSystem.maxLifeTime = 0.3;
+        minLifeTime : 0.2,
+        maxLifeTime : 1,
 
-        particleSystem.minEmitPower = 0.7;
-        particleSystem.maxEmitPower = 0.5;
+        minSize : 0.05,
+        maxSize : 0.05
+        }
 
-        particleSystem.minSize = 0.01;
-        particleSystem.maxSize = 0.02;
-     
-        let gradientSize = 0.30;
+        let emitterSphere = MeshBuilder.CreateSphere("emitterSphere", {diameter: 0.05})
+        emitterSphere.parent = this.#mesh.getChildMeshes().find(mesh => mesh.name === "Hose");
+        console.log("hose: ", this.#mesh.getChildMeshes().find(mesh => mesh.name === "Hose"))
 
-        particleSystem.addSizeGradient(gradientSize, gradientSize, gradientSize);
+        emitterSphere.position = new Vector3(0, 0.08, 0);
+        // emitterSphere.rotation = new Vector3(0, Math.PI/2, 0);
+
+        emitterSphere.isVisible = false;
+
+        for (let entry of Object.entries(obj)) {
+            // @ts-ignore
+            particleSystem[entry[0]] = entry[1];
+            // gui.add(particleSystem, entry[0]);
+        }
+        // gui.add(particleSystem, obj["gravity"].x);
+        console.log(Object.entries(particleSystem));
+
 
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 
-        particleSystem.emitter = this.#mesh;
+        particleSystem.emitter = emitterSphere;
+        particleSystem.emitter.position.z += 0.1;
 
         this.particleSystem = particleSystem;
+        // this.start();
     }
 
     start() {
