@@ -46,14 +46,7 @@ export class SmokeParticles {
 
         particleSystem.emitRate = 15000;
 
-        const gui = new GUI();
 
-
-        // // The particle system is now in the local space of the source mesh. Without this, the rotation and the position of the particle system would not change
-        // // along with the source mesh (fire extinguisher in this case).
-        let props = {
-
-        };
         let gravity = new Vector3(0, 0, 90)
        let obj = { isLocal : true,
 

@@ -5,6 +5,12 @@ import { FireBehavior } from "./FireBehavior";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Ellipse } from "@babylonjs/gui";
 
+interface IHotspotMap {
+    [key: string]: Ellipse
+};
+
+export let HotspotEllipseMap: IHotspotMap = {};
+
 export const createGUIElement = (mesh: Mesh) => {
     let adt = AdvancedDynamicTexture.CreateForMesh(mesh);
     let c1 = new Ellipse();
@@ -15,6 +21,8 @@ export const createGUIElement = (mesh: Mesh) => {
     c1.thickness = 40;
     c1.background = "green";
     c1.alpha = 0.9;
+
+    HotspotEllipseMap[mesh.name] = c1;
 
     adt.addControl(c1);
 }
