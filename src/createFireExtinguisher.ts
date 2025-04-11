@@ -14,8 +14,12 @@ import { ActivationState } from "./interactionManager";
 import { interactionManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { HighlightBehavior } from "./HighlightBehavior";
-import { Color3, RayHelper } from "@babylonjs/core";
-import { HotspotEllipseMap } from "./startFire";
+import { Animatable, AnimationEvent, Color3, RayHelper } from "@babylonjs/core";
+import { DEFAULT_BG, HIT_BG, HotspotEllipseMap } from "./startFire";
+import { Animation } from "@babylonjs/core/Animations/animation";
+import { Ellipse } from "@babylonjs/gui";
+
+
 
 const FIRE_EXTINGUISHER_RANGE = 4.3;
 
@@ -82,10 +86,15 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 hightlightBehav.unhighlightSelf();
             }
         }
-    });
+    });    
 
     let timeoutCleared = true;
     let prevRayHelper: RayHelper = null;
+    let anim: Animatable = null;
+
+    const fromColor = Color3.FromHexString(DEFAULT_BG);
+    const toColor = Color3.FromHexString(HIT_BG);
+
 
     interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
         if (state === ActivationState.ACTIVE) {
@@ -114,15 +123,47 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
                         let currentHotspotMesh = scene.getMeshByName(currentHotspot);
                         let pickedMesh = pickInfo.pickedMesh;
+
+                        console.log("Hit!");
+
                         if (timeoutCleared && pickedMesh === currentHotspotMesh) {
                             timeoutCleared = false;
                             
                             let c1 = HotspotEllipseMap[pickedMesh.name];
-                            c1.background = "blue";
+                            let keys = [];
 
-                            timeout = setTimeout(() => {
+                            const animation = new Animation(
+                                "guiColorTransition",
+                                "background",
+                                60,
+                                Animation.ANIMATIONTYPE_COLOR3,
+                                Animation.ANIMATIONLOOPMODE_CONSTANT
+                            );
+
+                            let numFrames = 100;
+                        
+
+                            for (let i = 0; i <= numFrames; i++) {
+                                const lerpColor = Color3.Lerp(fromColor, toColor, i / numFrames);
+                                keys.push({
+                                    frame: i,
+                                    value: lerpColor
+                                });
+                                animation.addEvent(new AnimationEvent(i, 
+                                    (frame) => {
+                                        let hexString = lerpColor.toHexString();
+                                        c1.background = hexString;
+                                    }, true)
+                                );
+                            }
+                            animation.setKeys(keys);
+
+                            c1.animations = [animation];
+                            anim = scene.beginAnimation(c1, 0, numFrames, false, 5);
+                            anim.onAnimationEnd = () => {
                                 currentHotspotMesh.isVisible = false;
                                 currentHotspotMesh.setEnabled(false);
+                                c1.background = DEFAULT_BG;
                                 if (hotspotStack.length > 0) {
                                     currentHotspot = hotspotStack[hotspotStack.length - 1];
                                     currentHotspotMesh = scene.getMeshByName(currentHotspot);
@@ -131,16 +172,20 @@ export function createFireExtinguisher(mesh: Mesh): void {
                                     scene.getMeshByName(currentHotspot).setEnabled(true);
                                 }
                                 timeoutCleared = true;
-                            }, 400);
+                            }
                         }
                     } else {
-                        clearTimeout(timeout);
                         timeoutCleared = true;
 
                         for (let key of Object.keys(HotspotEllipseMap)) {
                             let c1 = HotspotEllipseMap[key];
-                            c1.background = "green";
-                        }
+                            let anim = scene.getAnimatableByTarget(c1);
+                            if (anim) {
+                                anim.onAnimationEnd = () => {};
+                                scene.stopAnimation(c1);
+                            }
+                            c1.background = DEFAULT_BG;                        
+                        }                     
                     }
                 }
             });
@@ -154,13 +199,22 @@ export function createFireExtinguisher(mesh: Mesh): void {
             if (timeout) {
                 clearTimeout(timeout);
                 timeout = null;
-                timeoutCleared = true;
+                timeoutCleared = true;             
             }
             // Remove observer
             if (observer) {
                 observer.remove();
                 observer = null;
             }
+            for (let key of Object.keys(HotspotEllipseMap)) {
+                let c1 = HotspotEllipseMap[key];
+                let anim = scene.getAnimatableByTarget(c1);
+                if (anim) {
+                    anim.onAnimationEnd = () => {};
+                    scene.stopAnimation(c1);
+                }
+                c1.background = DEFAULT_BG;                        
+            }            
             // @todo: Deactivate particles
         }
     });

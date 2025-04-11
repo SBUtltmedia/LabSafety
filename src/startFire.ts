@@ -10,6 +10,8 @@ interface IHotspotMap {
 };
 
 export let HotspotEllipseMap: IHotspotMap = {};
+export const DEFAULT_BG = "#FF0000";
+export const HIT_BG = "#00FF00";
 
 export const createGUIElement = (mesh: Mesh) => {
     let adt = AdvancedDynamicTexture.CreateForMesh(mesh);
@@ -19,7 +21,7 @@ export const createGUIElement = (mesh: Mesh) => {
     c1.height = "100%";
     c1.color = "Orange";
     c1.thickness = 40;
-    c1.background = "green";
+    c1.background = DEFAULT_BG;
     c1.alpha = 0.9;
 
     HotspotEllipseMap[mesh.name] = c1;
