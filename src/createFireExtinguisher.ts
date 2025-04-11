@@ -15,13 +15,14 @@ import { interactionManager } from "./scene";
 import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
 import { HighlightBehavior } from "./HighlightBehavior";
 import { Color3, RayHelper } from "@babylonjs/core";
+import { HotspotEllipseMap } from "./startFire";
 
 const FIRE_EXTINGUISHER_RANGE = 4.3;
 
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultAnchorRotation: new Vector3(-0.05, -0.5, Math.PI),
+        defaultAnchorRotation: new Vector3(-0.05, -0.20, Math.PI),
         defaultAnchorPosition: new Vector3(0.25, -0.1, 0)
     });
 
@@ -115,6 +116,10 @@ export function createFireExtinguisher(mesh: Mesh): void {
                         let pickedMesh = pickInfo.pickedMesh;
                         if (timeoutCleared && pickedMesh === currentHotspotMesh) {
                             timeoutCleared = false;
+                            
+                            let c1 = HotspotEllipseMap[pickedMesh.name];
+                            c1.background = "blue";
+
                             timeout = setTimeout(() => {
                                 currentHotspotMesh.isVisible = false;
                                 currentHotspotMesh.setEnabled(false);
@@ -126,11 +131,16 @@ export function createFireExtinguisher(mesh: Mesh): void {
                                     scene.getMeshByName(currentHotspot).setEnabled(true);
                                 }
                                 timeoutCleared = true;
-                            }, 1000);
+                            }, 400);
                         }
                     } else {
                         clearTimeout(timeout);
                         timeoutCleared = true;
+
+                        for (let key of Object.keys(HotspotEllipseMap)) {
+                            let c1 = HotspotEllipseMap[key];
+                            c1.background = "green";
+                        }
                     }
                 }
             });
