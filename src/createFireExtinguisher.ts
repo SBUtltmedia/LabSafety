@@ -21,12 +21,12 @@ import { Ellipse } from "@babylonjs/gui";
 
 
 
-const FIRE_EXTINGUISHER_RANGE = 4.3;
+const FIRE_EXTINGUISHER_RANGE = 8;
 
 export function createFireExtinguisher(mesh: Mesh): void {
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         activatable: true,
-        defaultAnchorRotation: new Vector3(-0.05, -0.20, Math.PI),
+        defaultAnchorRotation: new Vector3(-0.05, -0, Math.PI),
         defaultAnchorPosition: new Vector3(0.25, -0.1, 0)
     });
 
@@ -67,33 +67,58 @@ export function createFireExtinguisher(mesh: Mesh): void {
     //     }
     // })    
 
-    scene.onBeforeRenderObservable.add(() => {
-        const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
-        if (hoseMesh !== undefined) {
-            const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
-            debugSphere1.setAbsolutePosition(ray.origin);
-            debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+    let prevRayHelper: RayHelper = null;
 
-            const pickInfo = scene.pickWithRay(ray, pickedMesh => {
-                const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
-                const isEmitter = pickedMesh.name.startsWith("hotspot");
-                return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
-            });
+    // scene.onBeforeRenderObservable.add(() => {
+    //     const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
+    //     if (hoseMesh !== undefined) {
+    //         const ray = new Ray(new Vector3(hoseMesh.absolutePosition._x, hoseMesh.absolutePosition._y + 0.1, hoseMesh.absolutePosition._z), hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
+
+    //         debugSphere1.setAbsolutePosition(ray.origin);
+    //         debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));      
+
+    //         const pickInfo = scene.pickWithRay(ray, pickedMesh => {
+    //             const isEmitter = pickedMesh.name.startsWith("hotspot");
+    //             return isEmitter;
+    //         });
             
-            if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
-                hightlightBehav.highlightSelf(new Color3(0, 255, 0));
-            } else {
-                hightlightBehav.unhighlightSelf();
-            }
-        }
-    });    
+    //         if (pickInfo.pickedMesh && pickInfo.pickedMesh.name.startsWith("hotspot")) {
+    //             hightlightBehav.highlightSelf(new Color3(0, 255, 0));
+    //         } else {
+    //             hightlightBehav.unhighlightSelf();
+    //         }
+    //     }
+    // });
 
     let timeoutCleared = true;
-    let prevRayHelper: RayHelper = null;
     let anim: Animatable = null;
 
     const fromColor = Color3.FromHexString(DEFAULT_BG);
     const toColor = Color3.FromHexString(HIT_BG);
+
+    const NUM_FRAMES = 100;
+
+    let isRelease = false;
+
+
+    let performHotspotAnimation = (c1: Ellipse, frame: number) => {
+        if (c1.background === toColor.toHexString() || frame === NUM_FRAMES) {
+            return;
+        }
+        const lerpColor = Color3.Lerp(fromColor, toColor, frame / NUM_FRAMES);
+
+        c1.background = lerpColor.toHexString();
+
+        if (!isRelease) {
+            requestAnimationFrame(() => performHotspotAnimation(c1, frame + 1));
+        } else {
+            // reset back
+            for (let hotspot of Object.keys(HotspotEllipseMap)) {
+                let c = HotspotEllipseMap[hotspot];
+                c.background = "#F00";
+            }
+        }
+    }
 
 
     interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
@@ -103,16 +128,29 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 // Check for hitting the fire
                 const hoseMesh = mesh.getChildren().find(cm => cm.name === "Hose") as Mesh;
                 if (hoseMesh !== undefined) {
-                    const ray = new Ray(hoseMesh.absolutePosition, hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
-                    if (prevRayHelper !== null) {
-                        prevRayHelper.dispose();
-                    }
-                    // const rayHelper = new RayHelper(ray);
-                    // rayHelper.show(scene, new Color3(0, 255, 0));
-                    // prevRayHelper = rayHelper;
+                    const ray = new Ray(new Vector3(hoseMesh.absolutePosition._x, hoseMesh.absolutePosition._y + 0.1, hoseMesh.absolutePosition._z), hoseMesh.getDirection(Axis.Z).normalize(), FIRE_EXTINGUISHER_RANGE);
 
                     debugSphere1.setAbsolutePosition(ray.origin);
                     debugSphere2.setAbsolutePosition(ray.origin.add(ray.direction.scale(ray.length)));
+
+                    if (prevRayHelper !== null) {
+                        prevRayHelper.dispose();
+                    }
+        
+                    const rayHelper = new RayHelper(ray);
+                    rayHelper.show(scene, new Color3(0, 255, 0));
+                    prevRayHelper = rayHelper;                    
+
+                    const olpickInfo = scene.pickWithRay(ray, pickedMesh => {
+                        const isEmitter = pickedMesh.name.startsWith("hotspot");
+                        return isEmitter;
+                    });
+
+                    if (olpickInfo.pickedMesh && olpickInfo.pickedMesh.name.startsWith("hotspot")) {
+                        hightlightBehav.highlightSelf(new Color3(0, 255, 0));
+                    } else {
+                        hightlightBehav.unhighlightSelf();
+                    }                    
 
                     const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                         const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
@@ -121,46 +159,24 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     });
                     
                     if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
+                        isRelease = false;
+
+                        hightlightBehav.highlightSelf(new Color3(0, 255, 0));
+
                         let currentHotspotMesh = scene.getMeshByName(currentHotspot);
                         let pickedMesh = pickInfo.pickedMesh;
 
-                        console.log("Hit!");
 
                         if (timeoutCleared && pickedMesh === currentHotspotMesh) {
+                            console.log("Hit!");
+
                             timeoutCleared = false;
-                            
+
                             let c1 = HotspotEllipseMap[pickedMesh.name];
-                            let keys = [];
 
-                            const animation = new Animation(
-                                "guiColorTransition",
-                                "background",
-                                60,
-                                Animation.ANIMATIONTYPE_COLOR3,
-                                Animation.ANIMATIONLOOPMODE_CONSTANT
-                            );
+                            performHotspotAnimation(c1, 0);
 
-                            let numFrames = 100;
-                        
-
-                            for (let i = 0; i <= numFrames; i++) {
-                                const lerpColor = Color3.Lerp(fromColor, toColor, i / numFrames);
-                                keys.push({
-                                    frame: i,
-                                    value: lerpColor
-                                });
-                                animation.addEvent(new AnimationEvent(i, 
-                                    (frame) => {
-                                        let hexString = lerpColor.toHexString();
-                                        c1.background = hexString;
-                                    }, true)
-                                );
-                            }
-                            animation.setKeys(keys);
-
-                            c1.animations = [animation];
-                            anim = scene.beginAnimation(c1, 0, numFrames, false, 5);
-                            anim.onAnimationEnd = () => {
+                            timeout = setTimeout(() => {
                                 currentHotspotMesh.isVisible = false;
                                 currentHotspotMesh.setEnabled(false);
                                 c1.background = DEFAULT_BG;
@@ -172,9 +188,68 @@ export function createFireExtinguisher(mesh: Mesh): void {
                                     scene.getMeshByName(currentHotspot).setEnabled(true);
                                 }
                                 timeoutCleared = true;
-                            }
+                            }, 1000);
+                         
+                            
+                            // let keys = [];
+
+                            // const animation = new Animation(
+                            //     "guiColorTransition",
+                            //     "background",
+                            //     60,
+                            //     Animation.ANIMATIONTYPE_COLOR3,
+                            //     Animation.ANIMATIONLOOPMODE_CONSTANT
+                            // );
+
+                            // let numFrames = 100;                     
+                            
+                            // const tstobj = { color: fromColor.clone(), animations: [] };
+
+                            // keys = [
+                            //     { frame: 0, value: fromColor },
+                            //     { frame: 100, value: toColor }
+                            // ]
+
+                            // for (let i = 0; i <= numFrames; i++) {
+                            //     const lerpColor = Color3.Lerp(fromColor, toColor, i / numFrames);
+                                // keys.push({
+                                //     frame: i,
+                                //     value: lerpColor
+                                // });
+                            //     animation.addEvent(new AnimationEvent(i, 
+                            //         (frame) => {
+                            //             let hexString = lerpColor.toHexString();
+                            //             c1.background = hexString;
+                            //         }, true)
+                            //     );
+                            // }
+                            // animation.setKeys(keys);
+
+                            // console.log(animation);
+
+                            // tstobj.animations = [animation];
+                            // anim = scene.beginAnimation(tstobj, 0, numFrames, false, 4);
+
+                            // // let obs = scene.onBeforeRenderObservable.add(())
+
+                            // anim.onAnimationEnd = () => {
+                            //     currentHotspotMesh.isVisible = false;
+                            //     currentHotspotMesh.setEnabled(false);
+                            //     c1.background = DEFAULT_BG;
+                            //     if (hotspotStack.length > 0) {
+                            //         currentHotspot = hotspotStack[hotspotStack.length - 1];
+                            //         currentHotspotMesh = scene.getMeshByName(currentHotspot);
+                            //         hotspotStack.pop();
+                            //         scene.getMeshByName(currentHotspot).isVisible = true;
+                            //         scene.getMeshByName(currentHotspot).setEnabled(true);
+                            //     }
+                            //     timeoutCleared = true;
+                            // }
                         }
                     } else {
+                        isRelease = true;
+                        clearTimeout(timeout);
+                        timeout = null;
                         timeoutCleared = true;
 
                         for (let key of Object.keys(HotspotEllipseMap)) {
@@ -192,6 +267,10 @@ export function createFireExtinguisher(mesh: Mesh): void {
             // @todo: Activate particles
         } else if (state === ActivationState.INACTIVE) {
             smokeSystem.stop();
+
+            isRelease = true;
+
+
             debugSphere2.isVisible = false;
             if (prevRayHelper !== null) {
                 prevRayHelper.dispose();
@@ -214,8 +293,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     scene.stopAnimation(c1);
                 }
                 c1.background = DEFAULT_BG;                        
-            }            
-            // @todo: Deactivate particles
+            }
         }
     });
 }
