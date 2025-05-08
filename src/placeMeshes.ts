@@ -67,7 +67,7 @@ export function placeMeshes(meshes: Mesh[]): void {
         );
 
         // @todo: Hard-coded, bad!
-        fireExtinguisher.position.copyFromFloats(3.73, 1.77, -2.51);
+        fireExtinguisher.position.copyFromFloats(3.73, 1, -2);
         fireExtinguisher.rotationQuaternion = null;
         fireExtinguisher.rotation.copyFromFloats(0, 0, Math.PI);
 

@@ -545,15 +545,12 @@ export class InteractionManager {
 
 				const clipboard = this.scene.getMeshByName("clipboard");
 
-				const fireCabinet = this.scene.getMeshByName("FireCabinet");
-				const doorMesh = fireCabinet.getChildMeshes(true)[0];
-
 				const fireExtinguisher =
 					this.scene.getMeshByName("fire-extinguisher");
 
 				let pickedMesh: Nullable<AbstractMesh>;
 
-				const clickableObjects = [clipboard, fireExtinguisher, doorMesh, fireCabinet];
+				const clickableObjects = [clipboard, fireExtinguisher];
 
 				const castRay = () => {
 					let ray = this.scene.createPickingRay(
@@ -571,9 +568,6 @@ export class InteractionManager {
 							topLevelMesh = hit.pickedMesh;
 						}
 						if (clickableObjects.includes(topLevelMesh)) {
-							if (topLevelMesh.name.startsWith("FireCabinet")) {
-								topLevelMesh = doorMesh;
-							}
 							pickedMesh = topLevelMesh;
 							this.modeSelectorMap[this.interactionMode][
 								anchor.uniqueId

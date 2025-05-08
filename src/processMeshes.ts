@@ -7,7 +7,6 @@ import { createCylinder } from "./createCylinder";
 import { createPlacard } from "./createPlacard";
 import { createRoom } from "./createRoom";
 import { createFireExtinguisher } from "./createFireExtinguisher";
-import { createFireExtinguisherCabinet } from "./createFireExtinguisherCabinet";
 import { createGlassDivider } from "./createGlassDivider";
 import { meshMap } from "./loadMeshes";
 
@@ -20,7 +19,6 @@ export function processMeshes(meshes: Mesh[]) {
     // @todo: Process the clipboard and fire extinguisher meshes.
     const clipboardMesh = meshes.find(mesh => mesh.name === meshMap["clipboard"])!.getChildMeshes(true)[0] as AbstractMesh;
     const fireExtinguisherMesh = meshes.find(mesh => mesh.name === meshMap["fire-extinguisher"])!.getChildMeshes(true)[0] as Mesh;
-    const fireExtinguisherCabinet = meshes.find(mesh => mesh.name === meshMap["FireCabinet"]);
 
     const glassDivider = meshes.find(mesh => mesh.name === meshMap["Glass Divider"]);
 
@@ -82,8 +80,6 @@ export function processMeshes(meshes: Mesh[]) {
     meshMap["fire-extinguisher"] = fireExtinguisherMesh.name;
     
     createFireExtinguisher(fireExtinguisherMesh);
-
-    createFireExtinguisherCabinet(fireExtinguisherCabinet);
 
     meshes.push(cylinderC, cylinderB);
 }
