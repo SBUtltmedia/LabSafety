@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NAND Contraption</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles */
+        :root {
+            --game-width-ref: 1200;
+        }
+        html {
+            font-size: 16px;
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            background-color: #5a3a22;
+            background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1)),
+                              linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%, rgba(0,0,0,0.1));
+            background-size: 3.75rem 3.75rem;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e0d6c4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            overflow: hidden;
+            /* Prevent pull-to-refresh and other touch gestures on body */
+            overscroll-behavior-y: contain;
+        }
+
+        #game-wrapper {
+            position: relative; /* Crucial for absolute positioning children */
+            overflow: hidden;
+            margin: auto;
+            background-color: rgba(0,0,0,0.1);
+            box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        /* Font sizes using rem */
+        h1 { font-size: 2rem; text-shadow: 0.05rem 0.05rem 0.1rem #000; }
+        h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #cbd5e1; }
+        h3 { font-size: 1rem; margin-bottom: 0.3rem; color: #94a3b8; }
+        p, button, span, div, li { font-size: 0.8rem; }
+        button { padding: 0.4rem 0.8rem; }
+
+        /* Layout columns using Flexbox */
+        .main-content {
+            display: flex;
+            flex-direction: column; /* Stack vertically by default */
+            gap: 1rem;
+            width: 100%;
+            flex-grow: 1;
+            padding: 1rem;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+             .main-content {
+                 flex-direction: row; /* Side-by-side on medium+ */
+             }
+        }
+         .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-basis: 50%; /* Roughly equal columns */
+            min-width: 0; /* Allow shrinking */
+            align-items: center; /* Center items in column */
+        }
+        @media (min-width: 768px) {
+             .left-column { align-items: flex-end; padding-right: 0.5rem; }
+             .right-column { align-items: flex-start; padding-left: 0.5rem; }
+        }
+
+
+        .game-section { /* Style for instructions */
+            background-color: rgba(222, 184, 135, 0.8);
+            color: #3b271a;
+            border: 0.1rem solid #8b4513;
+            border-radius: 0.5rem;
+            padding: 0.8rem;
+            width: 100%;
+            max-width: 30rem;
+        }
+        .game-section h2 {
+            border-bottom: 1px solid #a0522d; /* Darker border inside instructions */
+            padding-bottom: 0.3rem;
+            margin-top: 0;
+            color: #3b271a; /* Match text color */
+        }
+
+        /* Shape Grid Styling */
+        .shape-grid-base, .placeholder-grid-base {
+            display: grid; border: 0.125rem solid #8b4513; background-color: #f5f5dc;
+            box-shadow: 0.125rem 0.125rem 0.3125rem rgba(0,0,0,0.5);
+            transition: opacity 0.1s ease-in-out, box-shadow 0.2s ease, background-color 0.2s, border-style 0.2s;
+            position: relative; overflow: hidden;
+        }
+         .shape-grid-base { cursor: grab; }
+         .placeholder-grid-base { background-color: #a9a9a9; border-color: #696969; cursor: default; }
+         .shape-grid-base.dragging, .shape-grid-base.touch-dragging-source { /* Style for original item being dragged */
+            opacity: 0.4 !important; /* Make original more transparent */
+            cursor: grabbing;
+         }
+         .touch-drag-clone { /* Style for the element following the touch */
+            position: fixed; /* Use fixed to position relative to viewport */
+            z-index: 1000;
+            pointer-events: none; /* So it doesn't interfere with elementFromPoint */
+            opacity: 0.75;
+         }
+
+        .shape-cell { border: 0.0625rem solid #deb887; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #3b271a; }
+        .cell-0 { background-color: #d2b48c; }
+        .cell-1 { background-color: #8b4513; color: #f5f5dc; }
+        .grid-4bit { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); width: 3.75rem; height: 3.75rem; }
+        .inventory-item .grid-4bit { width: 4.375rem; height: 4.375rem; }
+        .placeholder-4bit::after { font-size: 2em; }
+        .inventory-item .placeholder-4bit::after { font-size: 2.5em; }
+        .grid-8bit { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); width: 6.25rem; height: 3.125rem; }
+        .inventory-item .grid-8bit { width: 5rem; height: 2.5rem; }
+        .placeholder-8bit::after { font-size: 1.5em; }
+        .inventory-item .placeholder-8bit::after { font-size: 1.2em; }
+        .placeholder-grid-base::after { content: '?'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #696969; font-weight: bold; }
+
+        /* --- Machine Styling --- */
+        .machine { background-color: #a0522d; border: 0.25rem solid #cd853f; border-radius: 0.5rem; padding: 1rem; box-shadow: 0.25rem 0.25rem 0.75rem rgba(0,0,0,0.6); background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 1rem 1rem; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 30rem; }
+        .machine > div { display: flex; flex-direction: row; align-items: center; justify-content: space-around; gap: 0.75rem; width: 100%; flex-wrap: wrap;}
+        .slot, .output-area { border: 0.1875rem dashed #cd853f; background-color: rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; border-radius: 0.3125rem; transition: background-color 0.2s, border-style 0.2s; /* Size set by JS */ }
+        #nand-legend .shape-grid-base { border-width: 0.0625rem; width: 2.5rem; height: 2.5rem; }
+        #nand-legend .grid-4bit { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+        #nand-legend .legend-item { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1.2em; white-space: nowrap; width: auto; color: #8b4513; font-weight: bold; min-height: 2.8rem; }
+        #nand-legend .legend-container { display: flex; justify-content: center; align-items: center; flex-wrap: nowrap; overflow: auto; padding: 0.3rem 0; }
+        .legend-symbol { font-size: 1.5em; font-weight: bold; color: #8b4513; line-height: 1; margin: 0 0.125rem; }
+        #nand-legend { background-color: rgba(222, 184, 135, 0.8); color: #3b271a; border: 0.1rem solid #8b4513; border-radius: 0.5rem; padding: 0.6rem; margin-bottom: 1rem; /* Swapped order, add margin */ width: 100%; max-width: 30rem; }
+        .slot.drag-over { background-color: rgba(255, 215, 0, 0.3); border-style: solid; box-shadow: 0 0 0.5rem gold; }
+        .panel { background-color: #8b4513; border: 0.1rem solid #cd853f; border-radius: 0.3rem; padding: 0.6rem; box-shadow: inset 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.4); }
+        .inventory-panel { flex-grow: 1; display: flex; flex-direction: column; min-height: 9rem; width: 100%; max-width: 30rem; }
+        .inventory-panel h2 { font-size: 1rem; margin-bottom: 0.5rem; text-align: center; }
+        button { background-color: #cd853f; border: 0.1rem solid #8b4513; color: #f5f5dc; border-radius: 0.3rem; cursor: pointer; font-weight: bold; transition: background-color 0.2s; box-shadow: 0.1rem 0.1rem 0.2rem rgba(0,0,0,0.3); }
+        button:hover { background-color: #a0522d; }
+        #win-message { background-color: rgba(0, 128, 0, 0.8); border: 0.1875rem solid gold; color: white; padding: 1.25rem; border-radius: 0.625rem; box-shadow: 0 0 0.9375rem gold; }
+        #win-message button { font-size: 1.1rem; }
+        #instructions { /* Removed background/border, now uses .game-section */ }
+        #status-panel p { font-size: 0.8rem; }
+        #target-string-display { font-size: 1.5rem; }
+        .inventory-item { display: flex; justify-content: center; align-items: center; /* Size set by JS */ }
+        #inventory-area-wrapper { flex-grow: 1; overflow-y: auto; border: 0.06rem solid #cd853f; border-radius: 0.3rem; padding: 0.6rem; background-color: rgba(0,0,0,0.1); min-height: 0; }
+        #inventory-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+        .flash-effect { animation: flash 0.6s ease-out; }
+        @keyframes flash { 0%, 100% { box-shadow: 0.1rem 0.1rem 0.2rem rgba(0,0,0,0.3); } 50% { box-shadow: 0 0 0.9rem 0.3rem gold; } }
+
+        /* --- Tutorial Hand Styles --- */
+        #tutorial-hand-container { /* This is the element that will be animated */
+            position: absolute;
+            z-index: 1000; /* High z-index */
+            font-size: 1.5rem; /* Control hand size */
+            width: 1.5em; /* Size based on font */
+            height: 1.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Don't interfere with clicks */
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.3s ease-in-out; /* Fade effect */
+            border: 1px solid yellow; /* Make it visible for debugging */
+            background-color: rgba(0,0,0,0.3); /* Make it visible */
+            border-radius: 3px;
+            will-change: transform, opacity; /* Optimize animation */
+        }
+        #tutorial-hand-container.visible {
+            opacity: 1;
+        }
+         #tutorial-hint { /* This is the text box */
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background-color: rgba(139, 69, 19, 0.6);
+            border: 1px dashed #cd853f;
+            border-radius: 0.3rem;
+            text-align: center;
+            position: relative;
+            color: #f5f5dc;
+            display: block;
+            overflow: hidden;
+            min-height: 3em;
+        }
+        #tutorial-hint.hidden {
+            display: none;
+        }
+        /* The span inside the text is just for the emoji, not animated */
+        #tutorial-hint .hand-icon-text {
+             font-size: 1.2em; /* Slightly larger than surrounding text */
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <h1 id="game-title" class="text-4xl font-bold text-center text-yellow-300 px-4 py-2" style="text-shadow: 0.125rem 0.125rem 0.1875rem #000;">NAND Contraption</h1>
+
+        <div class="main-content">
+
+            <div class="column left-column">
+                 <div id="nand-legend" class="p-3 text-sm rounded w-full max-w-md">
+                    <h2 class="text-lg font-bold mb-1 text-center">NAND Example (p ↑ q)</h2>
+                    <div class="legend-container">
+                        <div class="legend-item">
+                            <div id="legend-input1-bits"></div>
+                            <span class="legend-symbol">↑</span>
+                            <div id="legend-input2-bits"></div>
+                            <span class="legend-symbol">=</span>
+                            <div id="legend-output-bits"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="instructions" class="game-section p-3 text-sm rounded w-full max-w-md">
+                    <h2 class="text-lg font-bold mb-1">How to Play (<span class="bit-mode-display">4</span>-bit):</h2>
+                    <p>1. Drag available shapes from 'Inventory' into the two 'Input Slots'.</p>
+                    <p>2. The machine calculates the NAND result and shows it in 'Output'.</p>
+                    <p>3. New shapes appear in your inventory after a brief flash.</p>
+                    <p id="goal-text">4. Goal: Create the 'Target Shape' for the current round.</p>
+                    <div id="tutorial-hint">
+                         <p>Try dragging an inventory shape <span class="hand-icon-text">🖐️</span> to an input slot!</p>
+                    </div>
+                </div>
+
+                <div class="flex-grow"></div> </div>
+
+            <div class="column right-column">
+                 <div id="status-panel" class="panel p-3 text-center w-full max-w-md order-first">
+                     </div>
+                 <div class="machine flex flex-col items-center justify-around gap-3 w-full max-w-xl p-3">
+                    <div> <div class="flex flex-col items-center">
+                            <p class="mb-1 font-bold text-xs">Input 1</p>
+                            <div id="slot-1" class="slot"></div>
+                        </div>
+                        <div class="text-2xl font-bold text-yellow-300 self-center">↑</div>
+                        <div class="flex flex-col items-center">
+                            <p class="mb-1 font-bold text-xs">Input 2</p>
+                            <div id="slot-2" class="slot"></div>
+                        </div>
+                        <div class="text-2xl font-bold self-center">=</div>
+                        <div class="flex flex-col items-center">
+                            <p class="mb-1 font-bold text-xs">Output</p>
+                            <div id="output-area" class="output-area"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel w-full p-3 inventory-panel">
+                    <h2 class="text-lg font-bold mb-2 text-center">Inventory</h2>
+                    <div id="inventory-area-wrapper">
+                        <div id="inventory-area" class="flex flex-wrap justify-center gap-2">
+                            </div>
+                     </div>
+                </div>
+                <div class="flex justify-center mt-2">
+                     <button id="reset-button" class="text-sm">Reset</button>
+                </div>
+            </div>
+        </div>
+        <div id="tutorial-hand-container">🖐️</div>
+
+    </div> <div id="win-message" class="hidden fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+        <div id="win-message-content" class="text-center">
+             </div>
+    </div>
+
+    <script>
+        // --- Determine Game Mode ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedBits = urlParams.get('bits');
+        let BIT_MODE = (requestedBits === '8') ? 8 : 4;
+        let IS_8_BIT = (BIT_MODE === 8);
+
+        // --- Constants and Config based on Mode ---
+        let P_VAL = IS_8_BIT ? 170 : 10;
+        let Q_VAL = IS_8_BIT ? 204 : 12;
+        let R_VAL = IS_8_BIT ? 240 : null;
+        let TOTAL_SHAPES = IS_8_BIT ? 256 : 16;
+        let NAND_MASK = IS_8_BIT ? 255 : 15;
+        let GRID_COLS = IS_8_BIT ? 4 : 2;
+        let GRID_ROWS = 2;
+        let GRID_CELLS = GRID_COLS * GRID_ROWS;
+        const targetShapesOrder = [5, 3, 7, 15, 13, 11, 8, 2, 4, 0, 14, 9, 6, 1, 10, 12];
+        let SLOT_WIDTH_REM = IS_8_BIT ? '6.25rem' : '3.75rem';
+        let SLOT_HEIGHT_REM = IS_8_BIT ? '3.125rem' : '3.75rem';
+        let INV_ITEM_WIDTH_REM = IS_8_BIT ? '5rem' : '4.375rem';
+        let INV_ITEM_HEIGHT_REM = IS_8_BIT ? '2.5rem' : '4.375rem';
+        const LEGEND_WIDTH_REM = '2.5rem';
+        const LEGEND_HEIGHT_REM = '2.5rem';
+
+        // --- Game State ---
+        let slot1Value = null;
+        let slot2Value = null;
+        let currentRound = 0;
+        let generatedShapes = new Set();
+        let tutorialHintShown = false;
+        let tutorialAnimationId = null;
+        let positionCheckRetries = 0;
+        const MAX_POSITION_RETRIES = 20;
+
+        // --- DOM Elements ---
+        let gameWrapper, gameTitle, inventoryArea, slot1Div, slot2Div, outputArea,
+            statusPanel, roundMessage, resetButton, winMessageDiv, winMessageContent,
+            playAgainButtonElement, legendInput1, legendInput2, legendOutput,
+            goalText, bitModeDisplays, tutorialHintDiv, animatedHandElement; // Changed handIcon to animatedHandElement
+
+        // --- Touch Drag State ---
+        let touchDragState = {
+            isDragging: false,
+            draggedElement: null,
+            clone: null,
+            value: null,
+            offsetX: 0,
+            offsetY: 0,
+            currentDropTarget: null
+        };
+
+
+        // --- Utility Functions ---
+        function valueToGrid(value, forceBits = null) {
+            const bits = forceBits || BIT_MODE;
+            const cols = bits === 8 ? 4 : 2;
+            const rows = 2;
+            const cells = cols * rows;
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+            for (let i = 0; i < cells; i++) {
+                const bit = (value >> i) & 1;
+                const row = i < cols ? (rows - 1) : 0;
+                const col = i % cols;
+                grid[row][col] = bit;
+            }
+            return grid;
+        }
+
+        function nand(val1, val2) {
+            if (val1 === null || val2 === null) return null;
+            return (val1 & val2) ^ NAND_MASK;
+        }
+
+        function renderShape(value, container, isDraggable = false, isInventory = false, showBits = false, forceBits = null) {
+            container.innerHTML = ''; if (value === null) return;
+            const bits = forceBits || BIT_MODE;
+            const grid = valueToGrid(value, bits);
+            const gridDiv = document.createElement('div');
+            gridDiv.className = `shape-grid-base ${bits === 8 ? 'grid-8bit' : 'grid-4bit'}`;
+            gridDiv.dataset.value = value;
+            if (isInventory) {
+                 gridDiv.style.width = IS_8_BIT ? INV_ITEM_WIDTH_REM : '4.375rem';
+                 gridDiv.style.height = IS_8_BIT ? INV_ITEM_HEIGHT_REM : '4.375rem';
+            }
+            if (isDraggable && generatedShapes.has(value)) {
+                gridDiv.draggable = true;
+                gridDiv.addEventListener('dragstart', handleDragStart);
+                gridDiv.addEventListener('dragend', handleDragEnd);
+                gridDiv.addEventListener('touchstart', handleTouchStart, { passive: false });
+            } else { gridDiv.style.cursor = 'default'; }
+            grid.forEach(row => row.forEach(cellValue => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = `shape-cell cell-${cellValue}`;
+                gridDiv.appendChild(cellDiv);
+            }));
+            container.appendChild(gridDiv);
+        }
+
+        function renderPlaceholder(container, isInventory = false) {
+            container.innerHTML = '';
+            const gridDiv = document.createElement('div');
+            gridDiv.className = `placeholder-grid-base ${IS_8_BIT ? 'grid-8bit' : 'grid-4bit'}`;
+            if (isInventory) {
+                 gridDiv.style.width = IS_8_BIT ? INV_ITEM_WIDTH_REM : '4.375rem';
+                 gridDiv.style.height = IS_8_BIT ? INV_ITEM_HEIGHT_REM : '4.375rem';
+            }
+            for (let i = 0; i < GRID_CELLS; i++) {
+                 const cellDiv = document.createElement('div');
+                 cellDiv.className = 'shape-cell';
+                 gridDiv.appendChild(cellDiv);
+            }
+            container.appendChild(gridDiv);
+        }
+
+        function updateInventoryDisplay() {
+            if (!inventoryArea) return;
+            inventoryArea.innerHTML = '';
+            for (let i = 0; i < TOTAL_SHAPES; i++) {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'inventory-item';
+                itemContainer.id = `inventory-item-${i}`;
+                itemContainer.style.width = IS_8_BIT ? INV_ITEM_WIDTH_REM : '4.375rem';
+                itemContainer.style.height = IS_8_BIT ? INV_ITEM_HEIGHT_REM : '4.375rem';
+                if (generatedShapes.has(i)) {
+                    renderShape(i, itemContainer, true, true);
+                } else {
+                    renderPlaceholder(itemContainer, true);
+                }
+                inventoryArea.appendChild(itemContainer);
+            }
+            if (statusPanel) {
+                const countSpan = statusPanel.querySelector(IS_8_BIT ? '#generated-count' : '#string-count');
+                if (countSpan) countSpan.textContent = generatedShapes.size;
+            }
+        }
+
+        function updateStatusPanel() {
+             if (!statusPanel) return;
+             statusPanel.innerHTML = '';
+             if (IS_8_BIT) {
+                 const header = document.createElement('h2');
+                 header.className = "text-lg font-bold mb-1"; header.textContent = "Progress";
+                 const progressText = document.createElement('p');
+                 progressText.className = "text-base";
+                 progressText.innerHTML = `Shapes Generated: <span id="generated-count">${generatedShapes.size}</span> / ${TOTAL_SHAPES}`;
+                 statusPanel.appendChild(header); statusPanel.appendChild(progressText); statusPanel.appendChild(roundMessage);
+             } else {
+                 const header = document.createElement('h2');
+                 header.className = "text-lg font-bold mb-1"; header.innerHTML = `Round <span id="round-number">${currentRound + 1}</span> / ${TOTAL_SHAPES}`;
+                 const targetLabel = document.createElement('p');
+                 targetLabel.className = "mb-1 text-sm"; targetLabel.textContent = "Target Shape:";
+                 const targetWrapper = document.createElement('div');
+                 targetWrapper.className = "flex justify-center";
+                 const targetDiv = document.createElement('div');
+                 targetDiv.id = "target-shape-display";
+                 targetDiv.className = `border-4 border-yellow-300 rounded inline-block`;
+                 targetWrapper.appendChild(targetDiv);
+                 statusPanel.appendChild(header); statusPanel.appendChild(targetLabel); statusPanel.appendChild(targetWrapper); statusPanel.appendChild(roundMessage);
+                 if (currentRound >= 0 && currentRound < targetShapesOrder.length) {
+                     const targetValue = targetShapesOrder[currentRound];
+                     renderShape(targetValue, targetDiv, false, false, false, 4);
+                 }
+             }
+        }
+
+        function renderLegend() {
+            if (!legendInput1 || !legendInput2 || !legendOutput) return;
+            const legendP = 10; const legendQ = 12; const legendResult = nand(legendP, legendQ);
+            [legendInput1, legendInput2, legendOutput].forEach(el => {
+                el.style.width = LEGEND_WIDTH_REM; el.style.height = LEGEND_HEIGHT_REM;
+                el.className = `shape-grid-base grid-4bit`;
+            });
+            renderShape(legendP, legendInput1, false, false, false, 4);
+            renderShape(legendQ, legendInput2, false, false, false, 4);
+            renderShape(legendResult, legendOutput, false, false, false, 4);
+        }
+
+        // --- Mouse Drag and Drop Handlers ---
+        function handleDragStart(e) {
+            if (!e.target.classList.contains('placeholder-grid-base')) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.value);
+                e.target.classList.add('dragging');
+            } else { e.preventDefault(); }
+        }
+        function handleDragEnd(e) { if (e.target) e.target.classList.remove('dragging'); }
+        function handleDragOver(e) { e.preventDefault(); const ts = e.target.closest('.slot'); if (ts) ts.classList.add('drag-over'); }
+        function handleDragLeave(e) { const ts = e.target.closest('.slot'); if (ts) ts.classList.remove('drag-over'); }
+        function handleDrop(e) {
+            e.preventDefault();
+             const targetSlot = e.target.closest('.slot');
+             if (targetSlot) {
+                targetSlot.classList.remove('drag-over');
+                const droppedValue = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                if (isNaN(droppedValue)) return;
+                const renderContainer = document.createElement('div');
+                renderShape(droppedValue, renderContainer, false, false);
+
+                if (targetSlot.id === 'slot-1') {
+                    slot1Value = droppedValue;
+                    slot1Div.innerHTML = ''; slot1Div.appendChild(renderContainer.firstChild);
+                } else if (targetSlot.id === 'slot-2') {
+                    slot2Value = droppedValue;
+                    slot2Div.innerHTML = ''; slot2Div.appendChild(renderContainer.firstChild);
+                }
+                hideTutorial();
+                triggerNandOperation();
+             }
+        }
+
+         // --- Touch Drag and Drop Handlers ---
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const targetShapeGrid = e.currentTarget.querySelector('.shape-grid-base') || e.currentTarget;
+            if (!targetShapeGrid || touchDragState.isDragging || !targetShapeGrid.dataset.value) return;
+
+            console.log("Touch Start on:", targetShapeGrid);
+
+            touchDragState.isDragging = true;
+            touchDragState.draggedElement = targetShapeGrid;
+            touchDragState.value = targetShapeGrid.dataset.value;
+
+            touchDragState.clone = targetShapeGrid.cloneNode(true);
+            touchDragState.clone.classList.add('touch-drag-clone');
+            document.body.appendChild(touchDragState.clone);
+            targetShapeGrid.classList.add('touch-dragging-source');
+
+            const touch = e.touches[0];
+            const rect = targetShapeGrid.getBoundingClientRect();
+            touchDragState.offsetX = touch.clientX - rect.left;
+            touchDragState.offsetY = touch.clientY - rect.top;
+
+            touchDragState.clone.style.left = `${touch.clientX - touchDragState.offsetX}px`;
+            touchDragState.clone.style.top = `${touch.clientY - touchDragState.offsetY}px`;
+
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleTouchMove(e) {
+            if (!touchDragState.isDragging || !touchDragState.clone) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            touchDragState.clone.style.left = `${touch.clientX - touchDragState.offsetX}px`;
+            touchDragState.clone.style.top = `${touch.clientY - touchDragState.offsetY}px`;
+
+            const touchX = touch.clientX;
+            const touchY = touch.clientY;
+            let newDropTarget = null;
+
+            const slot1Rect = slot1Div.getBoundingClientRect();
+            const slot2Rect = slot2Div.getBoundingClientRect();
+
+            if (touchX >= slot1Rect.left && touchX <= slot1Rect.right && touchY >= slot1Rect.top && touchY <= slot1Rect.bottom) {
+                newDropTarget = slot1Div;
+            } else if (touchX >= slot2Rect.left && touchX <= slot2Rect.right && touchY >= slot2Rect.top && touchY <= slot2Rect.bottom) {
+                newDropTarget = slot2Div;
+            }
+
+            if (touchDragState.currentDropTarget && touchDragState.currentDropTarget !== newDropTarget) {
+                touchDragState.currentDropTarget.classList.remove('drag-over');
+            }
+            if (newDropTarget && touchDragState.currentDropTarget !== newDropTarget) {
+                newDropTarget.classList.add('drag-over');
+            }
+            touchDragState.currentDropTarget = newDropTarget;
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchDragState.isDragging) return;
+
+            if (touchDragState.clone) {
+                touchDragState.clone.remove();
+            }
+            if (touchDragState.draggedElement) {
+                touchDragState.draggedElement.classList.remove('touch-dragging-source');
+            }
+
+            if (touchDragState.currentDropTarget) {
+                touchDragState.currentDropTarget.classList.remove('drag-over');
+                const droppedValue = parseInt(touchDragState.value, 10);
+
+                if (!isNaN(droppedValue)) {
+                    const renderContainer = document.createElement('div');
+                    renderShape(droppedValue, renderContainer, false, false);
+
+                    if (touchDragState.currentDropTarget.id === 'slot-1') {
+                        slot1Value = droppedValue;
+                        slot1Div.innerHTML = ''; slot1Div.appendChild(renderContainer.firstChild);
+                    } else if (touchDragState.currentDropTarget.id === 'slot-2') {
+                        slot2Value = droppedValue;
+                        slot2Div.innerHTML = ''; slot2Div.appendChild(renderContainer.firstChild);
+                    }
+                    hideTutorial();
+                    triggerNandOperation();
+                }
+            }
+
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+            touchDragState = { isDragging: false, clone: null, value: null, offsetX: 0, offsetY: 0, currentDropTarget: null, draggedElement: null };
+        }
+
+
+        // --- Game Logic ---
+        function triggerNandOperation() {
+            if (slot1Value !== null && slot2Value !== null) {
+                const resultValue = nand(slot1Value, slot2Value);
+                 const renderContainer = document.createElement('div');
+                 renderShape(resultValue, renderContainer, false, false);
+                 outputArea.innerHTML = '';
+                 outputArea.appendChild(renderContainer.firstChild);
+                 const outputShapeElement = outputArea.firstChild;
+
+                let wasNewShape = false;
+                if (resultValue !== null && !generatedShapes.has(resultValue)) {
+                     generatedShapes.add(resultValue);
+                     wasNewShape = true;
+                     if (roundMessage) roundMessage.textContent = `New shape ${resultValue} generated!`;
+                     if (roundMessage) setTimeout(() => roundMessage.textContent = '', 2000);
+                     if(IS_8_BIT) updateStatusPanel();
+
+                     if (generatedShapes.size === TOTAL_SHAPES) { winGame(); }
+                }
+
+                setTimeout(clearSlots, 800);
+
+                if (wasNewShape && outputShapeElement) {
+                    outputShapeElement.classList.add('flash-effect');
+                    setTimeout(() => {
+                        if (outputShapeElement) outputShapeElement.classList.remove('flash-effect');
+                        const inventoryTarget = document.getElementById(`inventory-item-${resultValue}`);
+                        if (inventoryTarget) {
+                            const placeholder = inventoryTarget.querySelector('.placeholder-grid-base');
+                            if (placeholder) {
+                                placeholder.classList.add('flash-effect');
+                                setTimeout(() => placeholder.classList.remove('flash-effect'), 600);
+                            }
+                        }
+                        updateInventoryDisplay();
+                        setTimeout(() => { outputArea.innerHTML = ''; }, 100);
+                    }, 600);
+                } else {
+                    setTimeout(() => { outputArea.innerHTML = ''; }, 1000);
+                }
+
+                 if (!IS_8_BIT) { checkTargetMatch(resultValue); }
+            }
+        }
+
+        function checkTargetMatch(generatedValue) {
+             if (currentRound >= targetShapesOrder.length) return;
+             const targetValue = targetShapesOrder[currentRound];
+             if (generatedValue === targetValue) {
+                 if(roundMessage) roundMessage.textContent = `Round ${currentRound + 1} complete! Target ${targetValue} generated.`;
+                 setTimeout(() => {
+                     currentRound++;
+                     if (currentRound >= targetShapesOrder.length || generatedShapes.size === TOTAL_SHAPES) {
+                         if (generatedShapes.size === TOTAL_SHAPES) { winGame(); }
+                         else { if(roundMessage) roundMessage.textContent = 'All targets met, but not all shapes generated yet!'; }
+                     } else {
+                         if(roundMessage) roundMessage.textContent = '';
+                         updateStatusPanel();
+                     }
+                 }, 2500);
+             }
+        }
+
+        function clearSlots() {
+            slot1Value = null; slot2Value = null;
+            if(slot1Div) slot1Div.innerHTML = '';
+            if(slot2Div) slot2Div.innerHTML = '';
+        }
+         function winGame() {
+             if(!winMessageContent || !winMessageDiv) return;
+            winMessageContent.innerHTML = `
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-yellow-300 animate-pulse">MASTER CONTRAPTIONIST!</h2>
+                <p class="text-lg md:text-2xl mb-6 md:mb-8">You've generated all ${TOTAL_SHAPES} shapes!</p>
+            `;
+            winMessageContent.appendChild(playAgainButtonElement);
+            winMessageDiv.classList.remove('hidden');
+         }
+        function resetGame() {
+            generatedShapes = new Set(IS_8_BIT ? [P_VAL, Q_VAL, R_VAL] : [P_VAL, Q_VAL]);
+            slot1Value = null; slot2Value = null;
+            currentRound = 0;
+            if (slot1Div) slot1Div.innerHTML = '';
+            if (slot2Div) slot2Div.innerHTML = '';
+            if (outputArea) outputArea.innerHTML = '';
+            if (roundMessage) roundMessage.textContent = '';
+            if (winMessageDiv) winMessageDiv.classList.add('hidden');
+            if (tutorialHandContainer) {
+                 tutorialHintShown = false;
+                 tutorialHandContainer.style.opacity = 0;
+                 stopTutorialAnimation();
+                 setTimeout(positionTutorialHand, 500);
+            }
+            updateStatusPanel();
+            updateInventoryDisplay();
+            console.log("Game Reset for", BIT_MODE, "bits");
+        }
+
+        // --- Layout and Scaling Function ---
+        function updateLayout() {
+            if (!gameWrapper) return;
+            const viewportWidth = window.innerWidth; const viewportHeight = window.innerHeight;
+            const bodyPadding = parseFloat(window.getComputedStyle(document.body).paddingTop || 0) * 2;
+            const availableHeight = viewportHeight - bodyPadding; const availableWidth = viewportWidth - bodyPadding;
+            let wrapperWidth, wrapperHeight; const targetAspectRatio = 4 / 3;
+            if (availableWidth / availableHeight > targetAspectRatio) {
+                wrapperHeight = availableHeight * 0.98; wrapperWidth = wrapperHeight * targetAspectRatio;
+            } else {
+                wrapperWidth = availableWidth * 0.98; wrapperHeight = wrapperWidth / targetAspectRatio;
+            }
+            wrapperWidth = Math.max(wrapperWidth, 320 * (targetAspectRatio)); wrapperHeight = Math.max(wrapperHeight, 320);
+            gameWrapper.style.width = `${wrapperWidth}px`; gameWrapper.style.height = `${wrapperHeight}px`;
+            const rootFontSize = wrapperWidth / 80;
+            document.documentElement.style.fontSize = `${rootFontSize}px`;
+             const computedSlotWidth = IS_8_BIT ? '6.25rem' : '3.75rem';
+             const computedSlotHeight = IS_8_BIT ? '3.125rem' : '3.75rem';
+             if(slot1Div) slot1Div.style.width = computedSlotWidth;
+             if(slot2Div) slot2Div.style.width = computedSlotWidth;
+             if(outputArea) outputArea.style.width = computedSlotWidth;
+             if(slot1Div) slot1Div.style.height = computedSlotHeight;
+             if(slot2Div) slot2Div.style.height = computedSlotHeight;
+             if(outputArea) outputArea.style.height = computedSlotHeight;
+             if (!tutorialHintShown && tutorialHandContainer && tutorialHandContainer.style.opacity !== '0') {
+                 if (tutorialHandContainer.offsetParent !== null) {
+                     setTimeout(positionTutorialHand, 100);
+                 } else {
+                     stopTutorialAnimation();
+                 }
+             }
+        }
+
+        // --- Tutorial Hand Positioning ---
+        function positionTutorialHand(retryCount = 0) {
+            stopTutorialAnimation();
+            if (tutorialHintShown || !tutorialHandContainer) return;
+
+            const startElement = document.getElementById(`inventory-item-${P_VAL}`);
+            const wrapperRect = gameWrapper.getBoundingClientRect();
+
+            if (!startElement || !wrapperRect || startElement.offsetParent === null || wrapperRect.width === 0) {
+                console.warn(`Cannot position tutorial hand: Elements not ready (Attempt ${retryCount + 1}).`);
+                if (retryCount < MAX_POSITION_RETRIES) {
+                    requestAnimationFrame(() => positionTutorialHand(retryCount + 1));
+                } else {
+                    console.error("Max retries reached for positioning tutorial hand.");
+                }
+                return;
+            }
+
+            const startRect = startElement.getBoundingClientRect();
+            if (startRect.width === 0 || startRect.height === 0) {
+                 console.warn(`Cannot position tutorial hand: Start element has zero dimensions (Attempt ${retryCount + 1}).`);
+                  if (retryCount < MAX_POSITION_RETRIES) {
+                    requestAnimationFrame(() => positionTutorialHand(retryCount + 1));
+                 } else {
+                    console.error("Max retries reached for positioning tutorial hand (zero dimensions).");
+                 }
+                 return;
+            }
+
+            tutorialHandContainer.style.visibility = 'hidden';
+            tutorialHandContainer.style.opacity = 1;
+            const handWidth = tutorialHandContainer.offsetWidth;
+            const handHeight = tutorialHandContainer.offsetHeight;
+            tutorialHandContainer.style.opacity = 0;
+            tutorialHandContainer.style.visibility = 'visible';
+
+            if (handWidth === 0 || handHeight === 0) {
+                 console.warn(`Hand icon dimensions still zero (Attempt ${retryCount + 1}).`);
+                 if (retryCount < MAX_POSITION_RETRIES) {
+                    requestAnimationFrame(() => positionTutorialHand(retryCount + 1));
+                 } else {
+                     console.error("Max retries reached for positioning tutorial hand (zero hand dimensions).");
+                 }
+                 return;
+            }
+
+            const handX = startRect.left + startRect.width / 2 - wrapperRect.left;
+            const handY = startRect.top + startRect.height / 2 - wrapperRect.top;
+            const finalLeft = handX - handWidth / 2;
+            const finalTop = handY - handHeight / 2;
+            tutorialHandContainer.style.left = `${finalLeft}px`;
+            tutorialHandContainer.style.top = `${finalTop}px`;
+            tutorialHandContainer.classList.add('visible');
+            console.log(`Positioned hand at: ${finalLeft}, ${finalTop}`);
+            startTutorialAnimation(); // Start animation after positioning
+        }
+
+        // --- Tutorial Animation (Keep separate for clarity) ---
+        function startTutorialAnimation() {
+             if (!tutorialHandContainer || !slot1Div || tutorialHintShown) return;
+             stopTutorialAnimation();
+
+             const startElement = document.getElementById(`inventory-item-${P_VAL}`);
+             const endElement = slot1Div;
+             const wrapperRect = gameWrapper.getBoundingClientRect();
+
+             if (!startElement || !endElement || startElement.offsetParent === null || endElement.offsetParent === null) {
+                 console.warn("Animation start/end elements not ready for animation.");
+                 return;
+             }
+
+             const startRect = startElement.getBoundingClientRect();
+             const endRect = endElement.getBoundingClientRect();
+             const handWidth = tutorialHandContainer.offsetWidth;
+             const handHeight = tutorialHandContainer.offsetHeight;
+
+             if (startRect.width === 0 || endRect.width === 0 || handWidth === 0) {
+                  console.warn("Cannot start animation due to zero dimensions.");
+                  return;
+             }
+
+             const startX = startRect.left + startRect.width / 2 - wrapperRect.left - handWidth / 2;
+             const startY = startRect.top + startRect.height / 2 - wrapperRect.top - handHeight / 2;
+             const endX = endRect.left + endRect.width / 2 - wrapperRect.left - handWidth / 2;
+             const endY = endRect.top + endRect.height / 2 - wrapperRect.top - handHeight / 2;
+
+             tutorialHandContainer.style.transform = `translate(${startX}px, ${startY}px)`;
+             tutorialHandContainer.style.opacity = 0;
+
+
+             let startTime = null;
+             const duration = 2500;
+
+             function animate(timestamp) {
+                 if (!startTime) startTime = timestamp;
+                 const elapsed = timestamp - startTime;
+                 const progress = (elapsed % duration) / duration;
+                 const currentX = startX + (endX - startX) * progress;
+                 const currentY = startY + (endY - startY) * progress;
+                 let opacity = 0;
+                 if (progress < 0.1) opacity = progress / 0.1;
+                 else if (progress < 0.8) opacity = 1;
+                 else if (progress < 0.95) opacity = (0.95 - progress) / 0.15;
+                 else opacity = 0;
+                 tutorialHandContainer.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                 tutorialHandContainer.style.opacity = opacity;
+                 if (!tutorialHintShown && tutorialHandContainer && !tutorialHandContainer.classList.contains('hidden')) {
+                     tutorialAnimationId = requestAnimationFrame(animate);
+                 } else { stopTutorialAnimation(); }
+             }
+             tutorialAnimationId = requestAnimationFrame(animate);
+        }
+
+
+        function stopTutorialAnimation() { if (tutorialAnimationId) { cancelAnimationFrame(tutorialAnimationId); tutorialAnimationId = null; } if(tutorialHandContainer) tutorialHandContainer.style.opacity = 0; }
+        function hideTutorial() { if (!tutorialHintShown && tutorialHandContainer) { tutorialHintShown = true; stopTutorialAnimation(); } }
+
+        // --- Initialization ---
+        function initGame() {
+            gameWrapper = document.getElementById('game-wrapper'); inventoryArea = document.getElementById('inventory-area');
+            slot1Div = document.getElementById('slot-1'); slot2Div = document.getElementById('slot-2');
+            outputArea = document.getElementById('output-area'); statusPanel = document.getElementById('status-panel');
+            resetButton = document.getElementById('reset-button');
+            winMessageDiv = document.getElementById('win-message'); winMessageContent = document.getElementById('win-message-content');
+            playAgainButtonElement = document.createElement('button'); playAgainButtonElement.className = "text-lg px-4 py-2"; playAgainButtonElement.textContent = "Play Again";
+            playAgainButtonElement.addEventListener('click', resetGame);
+            legendInput1 = document.getElementById('legend-input1-bits'); legendInput2 = document.getElementById('legend-input2-bits'); legendOutput = document.getElementById('legend-output-bits');
+            goalText = document.getElementById('goal-text'); bitModeDisplays = document.querySelectorAll('.bit-mode-display');
+            tutorialHandContainer = document.getElementById('tutorial-hand-container');
+            gameTitle = document.getElementById('game-title');
+            roundMessage = document.createElement('p'); roundMessage.className = "mt-1 h-4 text-sm font-bold text-green-400";
+
+            if (!gameWrapper || !inventoryArea || !statusPanel || !slot1Div || !slot2Div || !resetButton || !winMessageDiv || !tutorialHandContainer) {
+                 console.error("Initialization failed: Essential DOM elements not found.");
+                 document.body.innerHTML = '<h1 style="color:red; text-align:center;">Error: Game elements missing.</h1>'; return;
+            }
+            gameTitle.textContent = `NAND Contraption`; document.title = `NAND Contraption (${BIT_MODE}-bit)`;
+            bitModeDisplays.forEach(el => el.textContent = BIT_MODE);
+            if (goalText) {
+                if (IS_8_BIT) { goalText.textContent = `4. Goal: Generate all ${TOTAL_SHAPES} possible shapes!`; }
+                else { goalText.textContent = `4. Goal: Create the 'Target Shape' for the current round.`; }
+            }
+            updateLayout();
+            [slot1Div, slot2Div].forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver); slot.addEventListener('dragleave', handleDragLeave); slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('touchmove', handleTouchMove, { passive: false });
+                slot.addEventListener('touchend', handleTouchEnd);
+            });
+            resetButton.addEventListener('click', resetGame);
+            tutorialHintShown = false;
+            if(tutorialHandContainer) tutorialHandContainer.style.opacity = 0; // Start hidden
+            setTimeout(positionTutorialHand, 500); // Attempt to position and show
+            renderLegend(); resetGame();
+            console.log("Game Initialized for", BIT_MODE, "bits");
+            window.addEventListener('resize', updateLayout);
+        }
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+
+</body>
+</html>
