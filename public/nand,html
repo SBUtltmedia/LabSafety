@@ -709,7 +709,7 @@
              }
         }
 
-        // --- Tutorial Hand Positioning ---
+        // --- Tutorial Han Positioning ---
         function positionTutorialHand(retryCount = 0) {
             stopTutorialAnimation();
             if (tutorialHintShown || !tutorialHandContainer) return;
