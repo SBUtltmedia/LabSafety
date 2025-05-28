@@ -2,7 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { PointerInput } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnums";
-import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { PointerEventTypes, PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -219,28 +219,36 @@ export class InteractionManager {
 
 	#findGrabAndNotify = (grab: boolean, anchorId: number) => {
 		const selector = this.modeSelectorMap[this.interactionMode][anchorId];
-		let grabState;
-		let mesh;
 		if (grab) {
 			if (selector.targetMesh) {
-				selector.grabbedMesh = selector.targetMesh;
-				selector.targetMesh = null;
-				grabState = GrabState.GRAB;
-				mesh = selector.grabbedMesh;
+				if (selector.targetMesh.id.includes("cylinder-")) {
+					selector.grabbedMesh = selector.targetMesh;
+					selector.targetMesh = null;
+					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
+						anchor: selector.anchor,
+						grabber: selector.grabber,
+						state: GrabState.GRAB,
+					});
+				} else {
+					selector.grabbedMesh = selector.targetMesh;
+					selector.targetMesh = null;
+					this.#notifyGrabMeshObserver(selector.grabbedMesh, {
+						anchor: selector.anchor,
+						grabber: selector.grabber,
+						state: GrabState.GRAB,
+					});
+				}
 			}
 		} else {
 			if (selector.grabbedMesh) {
-				mesh = selector.grabbedMesh;
+				this.#notifyGrabMeshObserver(selector.grabbedMesh, {
+					anchor: selector.anchor,
+					grabber: selector.grabber,
+					state: GrabState.DROP,
+				});
 				selector.grabbedMesh = null;
-				grabState = GrabState.DROP;
 			}
 		}
-
-		this.#notifyGrabMeshObserver(mesh, {
-			anchor: selector.anchor,
-			grabber: selector.grabber,
-			state: grabState,
-		});
 	};
 
 	#checkActivate = (activate: boolean, anchorId: number) => {
@@ -511,8 +519,6 @@ export class InteractionManager {
 							].targetMesh = mesh;
 							this.#findGrabAndNotify(true, anchor.uniqueId);
 							rotateEdges();
-						} else {
-							pointerDragBehavior.releaseDrag();
 						}
 					});
 					pointerDragBehavior.onDragEndObservable.add((event) => {
@@ -527,8 +533,6 @@ export class InteractionManager {
 							this.#findGrabAndNotify(false, anchor.uniqueId);
 							// camera.detachControl(true);
 							rotateEdges();
-						} else {
-							pointerDragBehavior.releaseDrag();
 						}
 					});
 
@@ -552,27 +556,29 @@ export class InteractionManager {
 
 				const clickableObjects = [clipboard, fireExtinguisher];
 
-				const castRay = () => {
-					let ray = this.scene.createPickingRay(
-						this.scene.pointerX,
-						this.scene.pointerY,
-						Matrix.Identity(),
-						this.scene.activeCamera
-					);
-					let hit = this.scene.pickWithRay(ray);
-					if (hit.pickedMesh) {
-						let topLevelMesh: Nullable<AbstractMesh>;
-						if (hit.pickedMesh.parent) {
-							topLevelMesh = hit.pickedMesh.parent as AbstractMesh;
-						} else {
-							topLevelMesh = hit.pickedMesh;
-						}
-						if (clickableObjects.includes(topLevelMesh)) {
-							pickedMesh = topLevelMesh;
-							this.modeSelectorMap[this.interactionMode][
-								anchor.uniqueId
-							].targetMesh = pickedMesh;
-							this.#findGrabAndNotify(true, anchor.uniqueId);
+				const castRay = (pointerEvent: PointerEvent) => {
+					if (pointerEvent.button === 0) {
+						let ray = this.scene.createPickingRay(
+							this.scene.pointerX,
+							this.scene.pointerY,
+							Matrix.Identity(),
+							this.scene.activeCamera
+						);
+						let hit = this.scene.pickWithRay(ray);
+						if (hit.pickedMesh) {
+							let topLevelMesh: Nullable<AbstractMesh>;
+							if (hit.pickedMesh.parent) {
+								topLevelMesh = hit.pickedMesh.parent as AbstractMesh;
+							} else {
+								topLevelMesh = hit.pickedMesh;
+							}
+							if (clickableObjects.includes(topLevelMesh)) {
+								pickedMesh = topLevelMesh;
+								this.modeSelectorMap[this.interactionMode][
+									anchor.uniqueId
+								].targetMesh = pickedMesh;
+								this.#findGrabAndNotify(true, anchor.uniqueId);
+							}
 						}
 					}
 				};
@@ -703,13 +709,15 @@ export class InteractionManager {
 		// TODO: find a way to dynamically load the cylinder names
 		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
 
+
 		for (let cylinderName of cylinderNames) {
 			const mesh = this.scene.getMeshByName(cylinderName);
 			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
-			interactableBehavior.moveAttached = false;
+			interactableBehavior.moveAttached = true;
 
 			const pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
 			pointerDragBehavior.enabled = false;
+			// pointerDragBehavior[cylinderName] = pointerDragBehavior;
 		}
 
 		this.xrExperience.input.controllers.forEach(this.#configureController);
