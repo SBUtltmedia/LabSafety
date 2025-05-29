@@ -44,7 +44,7 @@ export class InteractionManager {
     xrExperience?: WebXRDefaultExperience;
     isUsingXRObservable: Observable<Boolean> = new Observable();
 
-    private currentInteractionHandler: Nullable<BaseInteractionHandler> = null;
+    currentInteractionHandler: Nullable<BaseInteractionHandler> = null;
     
 
     constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
@@ -144,10 +144,6 @@ export class InteractionManager {
     };
 
     private switchMode = (mode: InteractionMode) => {
-        if (this.interactionMode === mode) {
-            return;
-        }
-
         // Drop everything before switching modes
         const selectors = this.getActiveSelectors();
         for (const selector of selectors) {
@@ -288,10 +284,12 @@ export class InteractionManager {
             return;
         }
 
+
         if (grab) {
             if (selector.targetMesh) {
                 selector.grabbedMesh = selector.targetMesh;
                 selector.targetMesh = null;
+				console.log(selector.grabbedMesh, selector.anchor, selector.grabber);
                 this.notifyGrabMeshObserver(selector.grabbedMesh, {
                     anchor: selector.anchor,
                     grabber: selector.grabber,

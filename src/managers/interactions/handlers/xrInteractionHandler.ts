@@ -22,9 +22,10 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     }
 
     public configure(): void {
-        if (this.configured) {
-            return;
-        }
+        // comment for now
+        // if (this.configured) {
+        //     return;
+        // }
 
         if (!this.xrExperience) {
             throw new Error(

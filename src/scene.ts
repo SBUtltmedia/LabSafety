@@ -85,10 +85,11 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // reticle.setParent(camera);
     // reticle.position.copyFrom(Axis.Z);
     // meshesToPreserveNames.push(reticle.name);
-
+    
     if ("xr" in window.navigator) {
         xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
-        interactionManager = new InteractionManager(scene, xrExperience); // @todo; Move outside this conditional
+        interactionManager = new InteractionManager(scene, xrExperience);
+
         await configureXR(xrExperience);
 
         // Collect names of meshes that should be instantiated only once, even across
@@ -228,6 +229,10 @@ export async function initScene(scene: Scene): Promise<Scene> {
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");
         xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+        const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
+        if (vrIcon) {
+            vrIcon.classList.remove("hide");
+        }        
     }
 
     let isTouchDevice = false;
@@ -261,6 +266,13 @@ export async function initScene(scene: Scene): Promise<Scene> {
     fadeIn(light);
 
     finalGameState.notifyObservers(Status.RESET);
+
+    console.log("XR EXP: ", xrExperience);
+
+    if (interactionManager && interactionManager.currentInteractionHandler)  {
+        console.log(interactionManager.currentInteractionHandler);
+        interactionManager.currentInteractionHandler.configure();
+    }
 
     return scene;
 }
