@@ -1,10 +1,10 @@
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import { GameStates } from "./StateMachine";
+import { GameStates } from "./stateMachine";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
-import { global } from "./GlobalState";
-import { drawBBText } from "./Blackboard";
+import { global } from "./globalState";
+import { drawBBText } from "./blackboard";
 import { HudHint, soundMap, platformMap, HUDAudioFiles, HintAudioFiles } from "./setupGameStates";
 
 

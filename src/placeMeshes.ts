@@ -1,7 +1,7 @@
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { meshMap } from "./loadMeshes";
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
     if (left.id < right.id) {

@@ -1,5 +1,5 @@
 import { Sound } from "@babylonjs/core/Audio/sound";
-import { Task } from "./Task";
+import { Task } from "./task";
 
 export interface IHUDHints {
     [key: string]: {[key: string]: string};

@@ -1,7 +1,7 @@
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Scene, ParticleHelper, Vector3, StandardMaterial, Color3 } from "@babylonjs/core";
-import { FireBehavior } from "./FireBehavior";
+import { FireBehavior } from "./fireBehavior";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Ellipse } from "@babylonjs/gui";
 

@@ -16,13 +16,13 @@ import { placeMeshes } from "./placeMeshes";
 import { processMeshes } from "./processMeshes";
 import { log } from "./utils";
 import { XR_OPTIONS, configureXR } from "./xr";
-import { loadSounds } from "./SoundManager";
+import { loadSounds } from "./soundManager";
 
-import { GameStates } from "./StateMachine";
+import { GameStates } from "./stateMachine";
 import { setupGameStates, stateMachine } from "./setupGameStates";
 import { GUIButtons } from "./InteractableButtons";
-import { finalGameState } from "./GameTasks";
-import { Status } from "./Task";
+import { finalGameState } from "./gameTasks";
+import { Status } from "./task";
 import { Observable } from "@babylonjs/core";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;

@@ -1,21 +1,19 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Task } from "./Task";
-import { ListItem } from "./UpdateClipboardBehavior";
-import { PouringBehavior } from "./PouringBehavior";
+import { Task } from "./task";
+import { ListItem } from "./updateClipboardBehavior";
+import { PouringBehavior } from "./pouringBehavior";
 import { log } from "./utils";
-import { Status } from "./Task";
+import { Status } from "./task";
 import { setupFires } from "./startFire";
-import { FireBehavior } from "./FireBehavior";
-import { GUIWindows } from "./GUIManager";
+import { FireBehavior } from "./fireBehavior";
+import { GUIWindows } from "./guiManager";
 import { enablePointerLock, initScene } from "./scene";
-import { global } from "./GlobalState";
+import { global } from "./globalState";
 import { setColor } from "./createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { MeshBuilder, Observable } from "@babylonjs/core";
 import { NUM_FIRES } from "./Constants";
-import { setupGameStates, stateMachine } from "./setupGameStates";
-import { GameStates } from "./StateMachine";
 import { Animation } from '@babylonjs/core/Animations/animation';
 
 

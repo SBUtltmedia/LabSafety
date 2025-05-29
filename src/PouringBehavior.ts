@@ -7,10 +7,10 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { HighlightBehavior } from "./HighlightBehavior";
+import { HighlightBehavior } from "./highlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "./interactionManager";
-import { global } from "./GlobalState";
+import { global } from "./globalState";
 import { ParticleSystem, StandardMaterial, Texture } from "@babylonjs/core";
 import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
 import { Animation } from '@babylonjs/core/Animations/animation';

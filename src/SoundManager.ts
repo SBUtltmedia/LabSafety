@@ -1,5 +1,5 @@
 import { Sound } from "@babylonjs/core/Audio/sound"
-import { global } from "./GlobalState"
+import { global } from "./globalState"
 
 
 export async function loadSounds(filePath: string): Promise<void> {

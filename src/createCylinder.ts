@@ -6,9 +6,9 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
+import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { PouringBehavior } from "./PouringBehavior";
+import { PouringBehavior } from "./pouringBehavior";
 import { interactionManager } from "./scene";
 import { InteractionMode } from "./interactionManager";
 import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";

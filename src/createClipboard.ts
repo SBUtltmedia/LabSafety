@@ -5,13 +5,13 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import { SOP_TEMPLATE_PATH } from "./Constants";
-import { FadeRespawnBehavior } from "./FadeRespawnBehavior";
-import { setupTasks } from "./GameTasks";
-import { global } from "./GlobalState";
+import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
+import { setupTasks } from "./gameTasks";
+import { global } from "./globalState";
 import { InteractableBehavior } from "./interactableBehavior";
 import { InteractionMode } from "./interactionManager";
 import { interactionManager } from "./scene";
-import { ListItem, UpdateClipboardBehavior } from "./UpdateClipboardBehavior";
+import { ListItem, UpdateClipboardBehavior } from "./updateClipboardBehavior";
 
 export function makeRespawnable(mesh: AbstractMesh): void {
     const fadeRespawnBehavior = new FadeRespawnBehavior();

@@ -1,5 +1,5 @@
 import { Control } from "@babylonjs/gui/2D/controls/control";
-import { makeThumbArea } from "./VirtualTouchJoystick";
+import { makeThumbArea } from "./virtualTouchJoystick";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
 

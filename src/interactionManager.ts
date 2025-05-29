@@ -2,7 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { PointerInput } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnums";
-import { PointerEventTypes, PointerInfo } from "@babylonjs/core/Events/pointerEvents";
+import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { HighlightLayer } from "@babylonjs/core/Layers/highlightLayer";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -17,9 +17,9 @@ import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionControll
 
 import { InteractableBehavior } from "./interactableBehavior";
 import { log } from "./utils";
-import { activateButton, grabButton, meshesLoaded } from "./scene";
+import { activateButton, meshesLoaded } from "./scene";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
-import { KeyboardEventTypes, UniversalCamera, IMouseEvent } from "@babylonjs/core";
+import { KeyboardEventTypes, UniversalCamera } from "@babylonjs/core";
 
 interface IModeSelectorMap {
 	[mode: number]: {
@@ -100,8 +100,13 @@ export class InteractionManager {
 
 	isUsingXRObservable: Observable<Boolean> = new Observable();
 
+	cylinderNames: string[] = ["cylinder-a", "cylinder-b", "cylinder-c"];
+	clickableObjects: Nullable<AbstractMesh>[] = [];
+	camera: UniversalCamera;
+
 	constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
 		this.scene = scene;
+		this.camera = scene.activeCamera as UniversalCamera;
 		if (xrExperience) {
 			this.xrExperience = xrExperience;
 			this.xrExperience.baseExperience.onStateChangedObservable.add(
@@ -419,6 +424,7 @@ export class InteractionManager {
 		grabber.position.setAll(0);
 		grabber.rotation.copyFromFloats(0, 0, 0);
 
+		//@ts-ignore An abstract mesh is better suited here
 		const anchor = new AbstractMesh("default-anchor");
 		anchor.isPickable = false;
 		anchor.setParent(camera);
@@ -431,6 +437,152 @@ export class InteractionManager {
 		this.hasDefaultSelector = true;
 	};
 
+	#setupCylinderInteractions = (anchor: AbstractMesh, canvas: HTMLCanvasElement) => {
+		for (let cylinderName of this.cylinderNames) {
+			const cylinderMesh =
+				this.scene.getMeshByName(cylinderName);
+
+			let ibh = cylinderMesh.getBehaviorByName(
+				"Interactable"
+			) as InteractableBehavior;
+			ibh.moveAttached = false;
+
+			const pointerDragBehavior = new PointerDragBehavior({
+				dragPlaneNormal: new Vector3(0, 1, 0),
+			});
+
+			pointerDragBehavior.moveAttached = true;
+
+			// Use drag plane in world space
+			pointerDragBehavior.useObjectOrientationForDragging = false;
+
+			const rotateEdges = () => {
+				// console.log(this.#scene.pointerX, this.#scene.pointerY);
+				let pointerX = this.scene.pointerX;
+				let pointerY = this.scene.pointerY;
+
+				// Define border thresholds (e.g., within 10 pixels of the edge)
+				const borderThreshold = 10;
+
+				// Check if the pointer is near the left or right border
+				const atLeftBorder = pointerX <= borderThreshold;
+				const atRightBorder =
+					pointerX >= canvas.width - borderThreshold;
+
+				// Check if the pointer is near the top or bottom border
+				const atTopBorder = pointerY <= borderThreshold;
+				const atBottomBorder =
+					pointerY >= canvas.height - borderThreshold;
+
+				const rotationDelta = 0.025;
+
+				// Log the results or take action if at any border
+				if (atLeftBorder) {
+					this.camera.rotation.y -= rotationDelta;
+				} else if (atRightBorder) {
+					this.camera.rotation.y += rotationDelta;
+				} else if (atTopBorder) {
+					this.camera.rotation.x -= rotationDelta;
+				} else if (atBottomBorder) {
+					this.camera.rotation.x += rotationDelta;
+				}
+			}
+
+			// Listen to drag events
+			pointerDragBehavior.onDragStartObservable.add((event) => {
+				// problem over here is that sometiems you pick-up the label which is not good
+
+				if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
+					console.log(event.pointerInfo.event.inputIndex);
+
+					let mesh = event.pointerInfo.pickInfo.pickedMesh;
+					for (let cName of this.cylinderNames) {
+						if (mesh.id.startsWith(cName)) {
+							mesh = this.scene.getMeshByName(cName);
+							break;
+						}
+					}
+					this.modeSelectorMap[this.interactionMode][
+						anchor.uniqueId
+					].targetMesh = mesh;
+					this.#findGrabAndNotify(true, anchor.uniqueId);
+					rotateEdges();
+				}
+			});
+			pointerDragBehavior.onDragEndObservable.add((event) => {
+				if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
+					let mesh = event.pointerInfo.pickInfo.pickedMesh;
+					for (let cName of this.cylinderNames) {
+						if (mesh.id.startsWith(cName)) {
+							mesh = this.scene.getMeshByName(cName);
+							break;
+						}
+					}
+					this.#findGrabAndNotify(false, anchor.uniqueId);
+					// camera.detachControl(true);
+					rotateEdges();
+				}
+			});
+
+			pointerDragBehavior.onDragObservable.add((event) => {
+				if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
+					this.camera.attachControl(true);
+					rotateEdges();
+				} else {
+					pointerDragBehavior.releaseDrag();
+				}
+			});
+			cylinderMesh.addBehavior(pointerDragBehavior);
+		}
+	}
+
+	#setupClickableObjectInteractions = (anchor: AbstractMesh) => {
+		const clipboard = this.scene.getMeshByName("clipboard");
+		const fireExtinguisher = this.scene.getMeshByName("fire-extinguisher");
+
+		if (clipboard) this.clickableObjects.push(clipboard);
+		if (fireExtinguisher) this.clickableObjects.push(fireExtinguisher);
+
+		let pickedMesh: Nullable<AbstractMesh>;
+
+		const castRay = (pointerEvent: PointerEvent) => {
+			if (pointerEvent.button === 0) { // Left click
+				let ray = this.scene.createPickingRay(
+					this.scene.pointerX,
+					this.scene.pointerY,
+					Matrix.Identity(),
+					this.scene.activeCamera
+				);
+				let hit = this.scene.pickWithRay(ray);
+				if (hit?.pickedMesh) {
+					let topLevelMesh: Nullable<AbstractMesh> = hit.pickedMesh.parent
+						? (hit.pickedMesh.parent as AbstractMesh)
+						: hit.pickedMesh;
+
+					if (this.clickableObjects.includes(topLevelMesh)) {
+						pickedMesh = topLevelMesh;
+						this.modeSelectorMap[this.interactionMode][
+							anchor.uniqueId
+						].targetMesh = pickedMesh;
+						this.#findGrabAndNotify(true, anchor.uniqueId);
+					}
+				}
+			}
+		};
+
+		const drop = (event: any, pickInfo?: any) => {
+			if (
+				this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh &&
+				(this.clickableObjects.includes(pickedMesh))
+			) {
+				pickedMesh = null;
+				this.#findGrabAndNotify(false, anchor.uniqueId);
+			}
+		};
+		this.scene.onPointerDown = castRay;
+		this.scene.onPointerUp = drop;
+	}
+
 	#configureInteraction = () => {
 		const selector = Object.values(
 			this.modeSelectorMap[InteractionMode.MOBILE]
@@ -441,170 +593,12 @@ export class InteractionManager {
 			);
 		}
 		const { anchor } = selector;
-
-		let cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
-
 		const canvas = this.scene.getEngine().getRenderingCanvas();
-
-        const camera = this.scene.activeCamera as UniversalCamera;
 
 		meshesLoaded.add((loaded) => {
 			if (this.interactionMode !== InteractionMode.XR && loaded) {
-				for (let cylinderName of cylinderNames) {
-					const cylinderMesh =
-						this.scene.getMeshByName(cylinderName);
-
-					let ibh = cylinderMesh.getBehaviorByName(
-						"Interactable"
-					) as InteractableBehavior;
-					ibh.moveAttached = false;
-
-					const pointerDragBehavior = new PointerDragBehavior({
-						dragPlaneNormal: new Vector3(0, 1, 0),
-					});
-
-					pointerDragBehavior.moveAttached = true;
-
-					// Use drag plane in world space
-					pointerDragBehavior.useObjectOrientationForDragging = false;
-
-                    const rotateEdges = () => {
-						// console.log(this.#scene.pointerX, this.#scene.pointerY);
-						let pointerX = this.scene.pointerX;
-						let pointerY = this.scene.pointerY;
-
-						// Define border thresholds (e.g., within 10 pixels of the edge)
-						const borderThreshold = 10;
-
-						// Check if the pointer is near the left or right border
-						const atLeftBorder = pointerX <= borderThreshold;
-						const atRightBorder =
-							pointerX >= canvas.width - borderThreshold;
-
-						// Check if the pointer is near the top or bottom border
-						const atTopBorder = pointerY <= borderThreshold;
-						const atBottomBorder =
-							pointerY >= canvas.height - borderThreshold;
-
-                        const rotationDelta = 0.025;
-
-						// Log the results or take action if at any border
-						if (atLeftBorder) {
-                            camera.rotation.y -= rotationDelta;
-                        } else if (atRightBorder) {
-                            camera.rotation.y += rotationDelta;
-                        } else if (atTopBorder) {
-                            camera.rotation.x -= rotationDelta;
-                        } else if (atBottomBorder) {
-                            camera.rotation.x += rotationDelta;
-                        }
-                    }
-
-					// Listen to drag events
-					pointerDragBehavior.onDragStartObservable.add((event) => {
-						// problem over here is that sometiems you pick-up the label which is not good
-						
-						if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
-							console.log(event.pointerInfo.event.inputIndex);
-
-							let mesh = event.pointerInfo.pickInfo.pickedMesh;
-							for (let cName of cylinderNames) {
-								if (mesh.id.startsWith(cName)) {
-									mesh = this.scene.getMeshByName(cName);
-									break;
-								}
-							}
-							this.modeSelectorMap[this.interactionMode][
-								anchor.uniqueId
-							].targetMesh = mesh;
-							this.#findGrabAndNotify(true, anchor.uniqueId);
-							rotateEdges();
-						}
-					});
-					pointerDragBehavior.onDragEndObservable.add((event) => {
-						if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
-							let mesh = event.pointerInfo.pickInfo.pickedMesh;
-							for (let cName of cylinderNames) {
-								if (mesh.id.startsWith(cName)) {
-									mesh = this.scene.getMeshByName(cName);
-									break;
-								}
-							}
-							this.#findGrabAndNotify(false, anchor.uniqueId);
-							// camera.detachControl(true);
-							rotateEdges();
-						}
-					});
-
-					pointerDragBehavior.onDragObservable.add((event) => {
-						if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
-							camera.attachControl(true);
-							rotateEdges();
-						} else {
-							pointerDragBehavior.releaseDrag();
-						}
-					});
-					cylinderMesh.addBehavior(pointerDragBehavior);
-				}
-
-				const clipboard = this.scene.getMeshByName("clipboard");
-
-				const fireExtinguisher =
-					this.scene.getMeshByName("fire-extinguisher");
-
-				let pickedMesh: Nullable<AbstractMesh>;
-
-				const clickableObjects = [clipboard, fireExtinguisher];
-
-				const castRay = (pointerEvent: PointerEvent) => {
-					if (pointerEvent.button === 0) {
-						let ray = this.scene.createPickingRay(
-							this.scene.pointerX,
-							this.scene.pointerY,
-							Matrix.Identity(),
-							this.scene.activeCamera
-						);
-						let hit = this.scene.pickWithRay(ray);
-						if (hit.pickedMesh) {
-							let topLevelMesh: Nullable<AbstractMesh>;
-							if (hit.pickedMesh.parent) {
-								topLevelMesh = hit.pickedMesh.parent as AbstractMesh;
-							} else {
-								topLevelMesh = hit.pickedMesh;
-							}
-							if (clickableObjects.includes(topLevelMesh)) {
-								pickedMesh = topLevelMesh;
-								this.modeSelectorMap[this.interactionMode][
-									anchor.uniqueId
-								].targetMesh = pickedMesh;
-								this.#findGrabAndNotify(true, anchor.uniqueId);
-							}
-						}
-					}
-				};
-
-				const drop = (event: any, pickInfo: any) => {
-					// make sure only pointerUp on left click is registered as drop
-					if (
-						this.modeSelectorMap[this.interactionMode][anchor.uniqueId].grabbedMesh && 
-						(clickableObjects.includes(pickedMesh)) && event.button === 0
-					) {
-						pickedMesh = null;
-						this.#findGrabAndNotify(false, anchor.uniqueId);
-					}
-				};
-
-				this.scene.onKeyboardObservable.add((kbInfo) => {
-					if (
-						kbInfo.type === KeyboardEventTypes.KEYUP &&
-						kbInfo.event.key === "x"
-					) {
-						this.#findGrabAndNotify(false, anchor.uniqueId);
-					}
-				});
-
-				this.scene.onPointerDown = castRay;
-				this.scene.onPointerUp = drop;
+				this.#setupCylinderInteractions(anchor, canvas);
+				this.#setupClickableObjectInteractions(anchor);
 			}
 		});
 	};
@@ -704,20 +698,16 @@ export class InteractionManager {
 		}
 
 		this.scene.onPointerDown = null;
-		this.scene.onPointerUp = null;	
-
-		// TODO: find a way to dynamically load the cylinder names
-		const cylinderNames = ["cylinder-a", "cylinder-b", "cylinder-c"];
+		this.scene.onPointerUp = null;
 
 
-		for (let cylinderName of cylinderNames) {
+		for (let cylinderName of this.cylinderNames) {
 			const mesh = this.scene.getMeshByName(cylinderName);
 			const interactableBehavior = mesh.getBehaviorByName("Interactable") as InteractableBehavior;
 			interactableBehavior.moveAttached = true;
 
 			const pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
 			pointerDragBehavior.enabled = false;
-			// pointerDragBehavior[cylinderName] = pointerDragBehavior;
 		}
 
 		this.xrExperience.input.controllers.forEach(this.#configureController);
