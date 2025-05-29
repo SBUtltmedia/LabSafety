@@ -5,18 +5,17 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 import { Nullable } from "@babylonjs/core/types";
 import { Ray } from "@babylonjs/core/Culling/ray";
 import { Axis } from "@babylonjs/core/Maths/math.axis";
-import { FireBehavior } from "./fireBehavior";
+import { FireBehavior } from "../behaviors/fireBehavior";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { SmokeParticles } from "./smokeParticles";
 
-import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState } from "./interactionManager";
-import { interactionManager } from "./scene";
-import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
-import { HighlightBehavior } from "./highlightBehavior";
-import { Animatable, AnimationEvent, Color3, RayHelper } from "@babylonjs/core";
+import { InteractableBehavior } from "../behaviors/interactableBehavior";
+import { ActivationState } from "../managers/interactionManager";
+import { interactionManager } from "../scene";
+import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
+import { HighlightBehavior } from "../behaviors/highlightBehavior";
+import { Animatable, Color3, RayHelper } from "@babylonjs/core";
 import { DEFAULT_BG, HIT_BG, HotspotEllipseMap } from "./startFire";
-import { Animation } from "@babylonjs/core/Animations/animation";
 import { Ellipse } from "@babylonjs/gui";
 
 

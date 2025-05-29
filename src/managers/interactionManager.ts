@@ -15,9 +15,9 @@ import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
-import { InteractableBehavior } from "./interactableBehavior";
-import { log } from "./utils";
-import { activateButton, meshesLoaded } from "./scene";
+import { InteractableBehavior } from "../behaviors/interactableBehavior";
+import { log } from "../utils";
+import { activateButton, meshesLoaded } from "../scene";
 import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { KeyboardEventTypes, UniversalCamera } from "@babylonjs/core";
 

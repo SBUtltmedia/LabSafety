@@ -1,9 +1,9 @@
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { enableCameraControls } from "./enableCameraControls";
-import { enableMeshCollisions } from "./enableCollisions";
-import { placeCamera } from "./placeCamera";
+import { enableCameraControls } from "../systems/enableCameraControls";
+import { enableMeshCollisions } from "../systems/enableCollisions";
+import { placeCamera } from "../systems/placeCamera";
 import { createBlackboard } from "./blackboard";
 
 export function createRoom(roomMesh: Mesh) {

@@ -1,6 +1,6 @@
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { log } from "./utils";
+import { log } from "../utils";
 
 export enum Status {
     SUCCESSFUL,

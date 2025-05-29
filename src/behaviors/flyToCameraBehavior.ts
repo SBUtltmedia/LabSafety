@@ -7,7 +7,7 @@ import { Animation } from '@babylonjs/core/Animations/animation';
 import { PointerEventTypes, PointerInfo } from '@babylonjs/core/Events/pointerEvents';
 import { Observer } from '@babylonjs/core/Misc/observable';
 import { WebXRExperienceHelper, WebXRState } from '@babylonjs/core/XR';
-import { BASE_FPS } from './Constants';
+import { BASE_FPS } from '../Constants';
 
 export default class FlyToCameraBehavior implements Behavior<AbstractMesh> {
     flying: boolean = false;  // The mesh is currently being animated

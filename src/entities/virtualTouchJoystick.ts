@@ -4,7 +4,6 @@ import { Control } from "@babylonjs/gui/2D/controls/control";
 import { Ellipse } from "@babylonjs/gui";
 import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { GUIButtons } from "./InteractableButtons";
 
 export let rightThumbContainer: Ellipse;
 

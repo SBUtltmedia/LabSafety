@@ -2,13 +2,13 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { createClipboard } from "./createClipboard";
-import { createCylinder } from "./createCylinder";
-import { createPlacard } from "./createPlacard";
-import { createRoom } from "./createRoom";
-import { createFireExtinguisher } from "./createFireExtinguisher";
-import { createGlassDivider } from "./createGlassDivider";
-import { meshMap } from "./loadMeshes";
+import { createClipboard } from "../entities/createClipboard";
+import { createCylinder } from "../entities/createCylinder";
+import { createPlacard } from "../entities/createPlacard";
+import { createRoom } from "../entities/createRoom";
+import { createFireExtinguisher } from "../entities/createFireExtinguisher";
+import { createGlassDivider } from "../entities/createGlassDivider";
+import { meshMap } from "../entities/loadMeshes";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.

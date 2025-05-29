@@ -1,5 +1,5 @@
 import { Camera } from "@babylonjs/core/Cameras/camera";
-import { MAX_DISPLACEMENT_PER_FRAME } from "./Constants";
+import { MAX_DISPLACEMENT_PER_FRAME } from "../Constants";
 
 export function enableCameraSnappingWorkaround(camera: Camera) {
     // @todo: will this mess up XR teleportation and movement?

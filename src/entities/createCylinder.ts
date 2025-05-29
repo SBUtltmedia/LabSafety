@@ -6,13 +6,12 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
-import { InteractableBehavior } from "./interactableBehavior";
-import { PouringBehavior } from "./pouringBehavior";
-import { interactionManager } from "./scene";
-import { InteractionMode } from "./interactionManager";
-import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";
-import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
+import { InteractableBehavior } from "../behaviors/interactableBehavior";
+import { PouringBehavior } from "../behaviors/pouringBehavior";
+import { interactionManager } from "../scene";
+import { InteractionMode } from "../managers/interactionManager";
+import { CylinderSmokeBehavior } from "../behaviors/cylinderSmokeBehavior";
 
 export function setColor(mesh: AbstractMesh, color: Color3) {
     const liquidMesh = mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid");

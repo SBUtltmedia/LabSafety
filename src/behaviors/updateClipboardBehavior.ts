@@ -6,7 +6,7 @@ import { Observer } from "@babylonjs/core/Misc/observable";
 
 import Handlebars from "handlebars";
 
-import { Status, Task } from "./task";
+import { Status, Task } from "../systems/task";
 import { Nullable } from "@babylonjs/core/types";
 
 const indicatorClassMap = {

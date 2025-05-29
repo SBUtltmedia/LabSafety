@@ -1,7 +1,7 @@
-import { HUD_HINTS_PATH } from "./Constants";
-import { IHUDHints, global } from "./globalState";
-import { GameStates, StateMachine } from "./stateMachine";
-import {Howl, Howler} from 'howler';
+import { HUD_HINTS_PATH } from "../Constants";
+import { IHUDHints, global } from "../globalState";
+import { GameStates, StateMachine } from "../systems/stateMachine";
+import {Howl} from 'howler';
 
 export let stateMachine: StateMachine;
 

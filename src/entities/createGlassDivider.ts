@@ -6,9 +6,9 @@ import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDra
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 
-import { InteractableBehavior } from "./interactableBehavior";
-import { GrabState } from "./interactionManager";
-import { interactionManager } from "./scene";
+import { InteractableBehavior } from "../behaviors/interactableBehavior";
+import { GrabState } from "../managers/interactionManager";
+import { interactionManager } from "../scene";
 
 const topLimit = 1.93;
 const bottomLimit = 1.3;

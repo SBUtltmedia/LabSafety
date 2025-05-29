@@ -1,10 +1,10 @@
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { GameState } from "./gameStateObjects";
-import { interactionManager } from "./scene";
-import { GrabState, InteractionMode } from "./interactionManager";
+import { interactionManager } from "../scene";
+import { GrabState, InteractionMode } from "../managers/interactionManager";
 import { finalGameState } from "./gameTasks";
 import { Status } from "./task";
-import { global } from "./globalState";
+import { global } from "../globalState";
 
 //Set up game states
 

@@ -1,5 +1,5 @@
-import { AbstractMesh, DynamicTexture, ICanvasRenderingContext, Mesh, Scene, StandardMaterial } from "@babylonjs/core";
-import { interactionManager } from "./scene";
+import { DynamicTexture, ICanvasRenderingContext, StandardMaterial } from "@babylonjs/core";
+import { interactionManager } from "../scene";
 
 function getLines(ctx: ICanvasRenderingContext, text: string, maxWidth: number) {
     var words = text.split(" ");

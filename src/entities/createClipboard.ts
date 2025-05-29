@@ -4,14 +4,14 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { SOP_TEMPLATE_PATH } from "./Constants";
-import { FadeRespawnBehavior } from "./fadeRespawnBehavior";
-import { setupTasks } from "./gameTasks";
-import { global } from "./globalState";
-import { InteractableBehavior } from "./interactableBehavior";
-import { InteractionMode } from "./interactionManager";
-import { interactionManager } from "./scene";
-import { ListItem, UpdateClipboardBehavior } from "./updateClipboardBehavior";
+import { SOP_TEMPLATE_PATH } from "../Constants";
+import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
+import { setupTasks } from "../systems/gameTasks";
+import { global } from "../globalState";
+import { InteractableBehavior } from "../behaviors/interactableBehavior";
+import { InteractionMode } from "../managers/interactionManager";
+import { interactionManager } from "../scene";
+import { ListItem, UpdateClipboardBehavior } from "../behaviors/updateClipboardBehavior";
 
 export function makeRespawnable(mesh: AbstractMesh): void {
     const fadeRespawnBehavior = new FadeRespawnBehavior();
