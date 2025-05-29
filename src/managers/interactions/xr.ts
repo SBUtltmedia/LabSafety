@@ -7,8 +7,8 @@ import { WebXRInputSource } from "@babylonjs/core/XR/webXRInputSource";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
-import { loadXRHands } from "../entities/loadXRHands";
-import { interactionManager, meshesToPreserveNames } from "../scene";
+import { loadXRHands } from "../../entities/loadXRHands";
+import { interactionManager, meshesToPreserveNames } from "../../scene";
 import { InteractionMode } from "./interactionManager";
 
 export const XR_OPTIONS: WebXRDefaultExperienceOptions = {

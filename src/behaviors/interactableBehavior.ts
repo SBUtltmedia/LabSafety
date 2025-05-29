@@ -4,7 +4,8 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
-import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionManager, InteractionMode } from "../managers/interactionManager";
+import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "../managers/interactions/handlers/baseInteractionHandler";
+import { InteractionManager } from "../managers/interactions/interactionManager"
 
 
 // The core behavior to implement grabbing a mesh and activating it while being grabbed.

@@ -1,7 +1,7 @@
 import { Observable } from "@babylonjs/core/Misc/observable";
 import { GameState } from "./gameStateObjects";
 import { interactionManager } from "../scene";
-import { GrabState, InteractionMode } from "../managers/interactionManager";
+import { GrabState, InteractionMode } from "../managers/interactions/handlers/baseInteractionHandler";
 import { finalGameState } from "./gameTasks";
 import { Status } from "./task";
 import { global } from "../globalState";
@@ -34,7 +34,7 @@ export class StateMachine {
             this.#delegateState(newState);
         });
 
-        interactionManager.onHasAnyTargetsObservable.add(isTarget => {
+        interactionManager.onHasAnyTargetsObservable.add((isTarget: any) => {
             if (isTarget) {
                 this.#delegateState(GameStates.PICK);
             } else {
@@ -44,7 +44,7 @@ export class StateMachine {
             }
         })
 
-        interactionManager.onModeChangeObservable.add(newMode => {
+        interactionManager.onModeChangeObservable.add((newMode: InteractionMode) => {
             this.platform = this.#getStringFromMode(newMode);
             this.currentGameState.platform = this.platform;
             this.currentGameState = new GameState(global.hudHints["GAME_STATE_BASE"], this.platform, GameStates.START);
@@ -54,7 +54,7 @@ export class StateMachine {
             }
         })
 
-        interactionManager.onGrabStateChangedObservable.add((meshGrabInfo)  => {
+        interactionManager.onGrabStateChangedObservable.add((meshGrabInfo: { state: GrabState; mesh: { name: string; }; })  => {
             if (meshGrabInfo.state === GrabState.GRAB) {
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
             } else {
@@ -72,7 +72,7 @@ export class StateMachine {
 
         })
 
-        interactionManager.isUsingXRObservable.add(isXR => {
+        interactionManager.isUsingXRObservable.add((isXR: any) => {
             if (isXR) {
                 this.currentGameState.configureXR();
             }

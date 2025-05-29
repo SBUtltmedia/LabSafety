@@ -10,7 +10,7 @@ import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
 import { PouringBehavior } from "../behaviors/pouringBehavior";
 import { interactionManager } from "../scene";
-import { InteractionMode } from "../managers/interactionManager";
+import { InteractionMode } from "../managers/interactions/interactionManager";
 import { CylinderSmokeBehavior } from "../behaviors/cylinderSmokeBehavior";
 
 export function setColor(mesh: AbstractMesh, color: Color3) {
@@ -41,7 +41,7 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
 
     let interactableBehavior;
 
-    if (interactionManager.mode === InteractionMode.XR) {
+    if (interactionManager.interactionMode === InteractionMode.XR) {
         interactableBehavior = new InteractableBehavior(interactionManager, {
             activatable: true,
             defaultAnchorRotation: new Vector3(0, Math.PI / 2, Math.PI),

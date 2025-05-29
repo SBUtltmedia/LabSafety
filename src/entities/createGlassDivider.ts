@@ -7,7 +7,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
-import { GrabState } from "../managers/interactionManager";
+import { GrabState } from "../managers/interactions/handlers/baseInteractionHandler";
 import { interactionManager } from "../scene";
 
 const topLimit = 1.93;

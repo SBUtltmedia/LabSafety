@@ -9,7 +9,7 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { HighlightBehavior } from "./highlightBehavior";
 import { InteractableBehavior } from "./interactableBehavior";
-import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "../managers/interactionManager";
+import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "../managers/interactions/handlers/baseInteractionHandler";
 import { global } from "../globalState";
 import { ParticleSystem } from "@babylonjs/core";
 import { CylinderSmokeBehavior } from "./cylinderSmokeBehavior";

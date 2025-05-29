@@ -7,7 +7,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { InteractableBehavior } from "./interactableBehavior";
-import { GrabState, IMeshGrabInfo } from "../managers/interactionManager";
+import { GrabState, IMeshGrabInfo } from "../managers/interactions/handlers/baseInteractionHandler";
 
 interface IAnimation {
     name: string,

@@ -10,7 +10,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { SmokeParticles } from "./smokeParticles";
 
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
-import { ActivationState } from "../managers/interactionManager";
+import { ActivationState } from "../managers/interactions/handlers/baseInteractionHandler";
 import { interactionManager } from "../scene";
 import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
 import { HighlightBehavior } from "../behaviors/highlightBehavior";

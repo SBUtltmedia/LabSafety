@@ -9,7 +9,7 @@ import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
 import { setupTasks } from "../systems/gameTasks";
 import { global } from "../globalState";
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
-import { InteractionMode } from "../managers/interactionManager";
+import { InteractionMode } from "../managers/interactions/interactionManager";
 import { interactionManager } from "../scene";
 import { ListItem, UpdateClipboardBehavior } from "../behaviors/updateClipboardBehavior";
 

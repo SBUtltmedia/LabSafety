@@ -9,13 +9,13 @@ import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRend
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { Ellipse } from "@babylonjs/gui";
 import { STARTING_POSITION, configureCamera } from "./entities/camera";
-import { InteractionManager } from "./managers/interactionManager";
+import { InteractionManager } from "./managers/interactions/interactionManager";
 import { loadMeshes, meshMap } from "./entities/loadMeshes";
 import { placeCamera } from "./systems/placeCamera";
 import { placeMeshes } from "./systems/placeMeshes";
 import { processMeshes } from "./systems/processMeshes";
 import { log } from "./utils";
-import { XR_OPTIONS, configureXR } from "./managers/xr";
+import { XR_OPTIONS, configureXR } from "./managers/interactions/xr";
 import { loadSounds } from "./managers/soundManager";
 
 import { GameStates } from "./systems/stateMachine";
@@ -137,7 +137,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
-        interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
+        interactionManager.onModeChangeObservable.notifyObservers(interactionManager.interactionMode);
         Engine.audioEngine.audioContext.resume();
         const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
         if (vrIcon) {
