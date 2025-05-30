@@ -109,9 +109,9 @@ export abstract class BaseInteractionHandler {
                 continue;
             }
 
-            const ibh = cylinderMesh.getBehaviorByName("Interactable") as Nullable<InteractableBehavior>;
-            if (ibh) {
-                ibh.moveAttached = false;
+            const interactableBehavior = cylinderMesh.getBehaviorByName("Interactable") as Nullable<InteractableBehavior>;
+            if (interactableBehavior) {
+                interactableBehavior.moveAttached = false;
             }
 
             const pointerDragBehavior = new PointerDragBehavior({

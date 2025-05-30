@@ -386,4 +386,3 @@ export class InteractionManager {
 }
 
 export { InteractionMode };
-

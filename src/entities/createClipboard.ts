@@ -7,7 +7,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { SOP_TEMPLATE_PATH } from "../Constants";
 import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
 import { setupTasks } from "../systems/gameTasks";
-import { global } from "../GlobalState";
+import { global } from "../globalState";
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
 import { InteractionMode } from "../managers/interactions/interactionManager";
 import { interactionManager } from "../scene";
