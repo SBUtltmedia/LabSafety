@@ -146,8 +146,11 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         const pointerDragBehavior = new PointerDragBehavior({
             dragPlaneNormal: new Vector3(0, 1, 0),
         });
-        pointerDragBehavior.moveAttached = true;
+        pointerDragBehavior.moveAttached = false;
         pointerDragBehavior.useObjectOrientationForDragging = false;
+
+        let lastDragPosition: Nullable<Vector3> = null;
+        let originalMeshPosition: Nullable<Vector3> = null;        
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
             let mode = this.interactionManager.interactionMode
@@ -163,8 +166,20 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 }
                 this.interactionManager.modeSelectorMap[mode][this.#anchor.uniqueId] = { anchor: this.#anchor, grabber: this.#grabber, grabbedMesh: this.#mesh, targetMesh: null };
                 this.#grab(this.#anchor, this.#grabber);
+
+                lastDragPosition = this.#mesh.position.clone();
+                originalMeshPosition = this.#mesh.position.clone();                
             }
         });
+
+        pointerDragBehavior.onDragObservable.add((event) => {
+            if (lastDragPosition) {
+                const currentDragPosition = event.dragPlanePoint;
+                const delta = currentDragPosition.subtract(lastDragPosition);
+                this.#mesh.moveWithCollisions(delta);
+                lastDragPosition.copyFrom(this.#mesh.position);
+            }
+        })
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
             let mode = this.interactionManager.interactionMode
@@ -174,6 +189,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 mode === InteractionMode.XR) {
 
                 this.#drop();
+                lastDragPosition = null;
+                originalMeshPosition = null;
             }
         });
 

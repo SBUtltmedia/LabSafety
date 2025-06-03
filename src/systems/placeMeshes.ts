@@ -2,6 +2,8 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { meshMap } from "../entities/loadMeshes";
 import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
+import { CreateEllipsoidLines } from "./createEllipsoidLines";
+import { Vector3 } from "@babylonjs/core";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
     if (left.id < right.id) {
@@ -36,7 +38,10 @@ export function placeMeshes(meshes: Mesh[]): void {
                 tableBoundingBox.maximum.y + cylinderVerticalOffset,
                 (2 * tableBoundingBox.minimum.z + tableBoundingBox.center.z) / 3
             );
-            
+
+            cylinder.ellipsoid = new Vector3(0.05, 0.18, 0.05);
+            cylinder.ellipsoidOffset = new Vector3(0, 0.077, 0);
+
             cylinder.rotationQuaternion = null;
             cylinder.rotation.copyFromFloats(Math.PI, 0, 0);
         });

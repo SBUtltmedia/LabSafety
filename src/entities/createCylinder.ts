@@ -39,6 +39,8 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
         texture.drawText(mesh.id.split("-").pop().toUpperCase(), 0, 225, font, "black", "white");
     }
 
+    mesh.checkCollisions = true;
+
     let interactableBehavior;
 
     if (interactionManager.interactionMode === InteractionMode.XR) {

@@ -53,6 +53,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                     pointerDragBehavior.onDragEndObservable.clear();
                     pointerDragBehavior.onDragObservable.clear();
 
+                    pointerDragBehavior.moveAttached = false;
+
                     this.pointerDragBehaviors.push(pointerDragBehavior);
                 }
             }
@@ -89,7 +91,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
 
                             let mesh = this.controllerDraggingMesh.get(controller);
                             if (mesh) {
-                                mesh.position.addInPlace(delta);
+                                // mesh.position.addInPlace(delta);
+                                mesh.moveWithCollisions(delta);
                             }
 
                             this.lastControllerDragging.set(controller, currentControllerPos.clone());
