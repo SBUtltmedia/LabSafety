@@ -16,7 +16,8 @@ export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
         doNotLoadControllerMeshes: true
     },
     pointerSelectionOptions: {
-        enablePointerSelectionOnAllControllers: true
+        enablePointerSelectionOnAllControllers: true,
+        overrideButtonId: "xr-standard-grip"
     },
     uiOptions: {
         onError: (e) => console.error(e)
