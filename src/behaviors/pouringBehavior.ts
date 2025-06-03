@@ -2,7 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 import { Behavior } from "@babylonjs/core/Behaviors/behavior";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Observable, Observer } from "@babylonjs/core/Misc/observable";
@@ -40,7 +40,7 @@ export class PouringBehavior implements Behavior<Mesh> {
     #scene: Scene;
     particleSystem: ParticleSystem;
     isParticlesSetup: boolean = false;
-    
+
     constructor() {
         this.#highlightBehavior = new HighlightBehavior(Color3.Green());
         this.onBeforePourObservable = new Observable();
@@ -74,19 +74,19 @@ export class PouringBehavior implements Behavior<Mesh> {
             if (state === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
-                    
+
                     if (global.sop.currentSubTask) {
-                        let [left,right] = global.sop.currentSubTask.name.split(" -> ");
-                        if( (this.mesh.id ===`cylinder-${left.toLowerCase()}`) && (target?.id === `cylinder-${right.toLowerCase()}`)){
-                            this.#changeTarget(target,new Color3(0, 255, 0))
+                        let [left, right] = global.sop.currentSubTask.name.split(" -> ");
+                        if ((this.mesh.id === `cylinder-${left.toLowerCase()}`) && (target?.id === `cylinder-${right.toLowerCase()}`)) {
+                            this.#changeTarget(target, new Color3(0, 255, 0))
                         }
-                        else{
-                            this.#changeTarget(target,new Color3(255, 0, 0))
+                        else {
+                            this.#changeTarget(target, new Color3(255, 0, 0))
                         }
                     }
                 });
             } else if (state === GrabState.DROP) {
-                this.#changeTarget(null,null);
+                this.#changeTarget(null, null);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
@@ -94,17 +94,17 @@ export class PouringBehavior implements Behavior<Mesh> {
                     this.#renderObserver.remove();
                     this.#renderObserver = null;
                 }
-            }           
+            }
         });
 
         this.#mobileGrabStateObserver = this.#interactableBehavior.onMobileGrabStateChangeObservable.add(state => {
             if (state === GrabState.GRAB) {
                 this.#renderObserver = scene.onBeforeRenderObservable.add(() => {
                     const target = this.#checkNearTarget(targets);
-                    this.#changeTarget(target,null);
+                    this.#changeTarget(target, null);
                 });
             } else if (state === GrabState.DROP) {
-                this.#changeTarget(null,null);
+                this.#changeTarget(null, null);
                 // The conditional is necessary because a DROP can be received without a corresponding GRAB.
                 // An example is when the cylinder is automatically dropped when a pour occurs and the user
                 // subsequently releases the squeeze, triggering another drop.
@@ -112,16 +112,16 @@ export class PouringBehavior implements Behavior<Mesh> {
                     this.#renderObserver.remove();
                     this.#renderObserver = null;
                 }
-            }            
+            }
         })
 
         let waitForFinish = false;
         let isQueued = false;
         const tiltQueue: { mesh: AbstractMesh; initialTilt: number; targetTilt: number }[] = [];
-        
+
         const processTiltQueue = () => {
             if (tiltQueue.length === 0 || waitForFinish) return;
-        
+
             const { mesh, initialTilt, targetTilt } = tiltQueue.shift()!;
             let tiltAnim = new Animation("rotate", "rotation.z", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT);
             let rotateKeys = [
@@ -137,7 +137,7 @@ export class PouringBehavior implements Behavior<Mesh> {
                 processTiltQueue(); // Process the next tilt in queue
             });
         }
-        
+
         // Function to queue tilt requests
         const tilt = (mesh: AbstractMesh, initialTilt: number, targetTilt: number) => {
             tiltQueue.push({ mesh, initialTilt, targetTilt });
@@ -145,14 +145,13 @@ export class PouringBehavior implements Behavior<Mesh> {
                 processTiltQueue();
             }
         }
-        
+
         let tilted = false;
-        let oldAngle: Vector3 = Vector3.Zero();
-        let oldPos: Vector3 = Vector3.Zero();
+        let oldAngle: Quaternion;
         let dir = 1;
         this.#activationStateObserver = this.#interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
             const mode = this.#interactableBehavior.interactionManager.interactionMode;
-        
+
             if (state === ActivationState.ACTIVE && !this.#empty && this.#currentTarget) {
                 isQueued = true; // Set flag to avoid duplicate tilt-back queue
                 if (mode === InteractionMode.DESKTOP || mode === InteractionMode.MOBILE) {
@@ -164,35 +163,52 @@ export class PouringBehavior implements Behavior<Mesh> {
                     }
                     tilted = true;
                 } else {
-                    const sourcePos = this.mesh.position;
-                    const targetPos = this.#currentTarget.position;
-        
-                    let dirVector = new Vector3(targetPos.x - sourcePos.x, targetPos.y - sourcePos.y, targetPos.z - sourcePos.z);
-                    oldAngle.copyFrom(this.mesh.rotation);
-                    oldPos.copyFrom(this.mesh.position);
-        
-                    this.mesh.lookAt(targetPos);
-                    this.mesh.rotation.x = 0;
-                    this.mesh.rotation.y *= -1;
-                    this.mesh.rotation.z = Math.PI + Math.PI / 4;
-        
-        
-                    this.mesh.position.y += 0.1;
+                    oldAngle = this.mesh.absoluteRotationQuaternion.clone();
+                    console.log(this.mesh.absoluteRotationQuaternion, oldAngle);
+
+                    const sourceMesh = this.mesh;
+                    const targetMesh = this.#currentTarget;
+
+                    // 1. Calculate the direction vector
+                    const sourcePos = sourceMesh.position;
+                    const targetPos = targetMesh.position;
+                    const dirVector = targetPos.subtract(sourcePos).normalize();
+
+                    // 2. Make the source look at the target
+                    sourceMesh.lookAt(targetPos);
+
+                    // 3. Tilt the source mesh forward (simulate pouring)
+                    const tiltAngle = Math.PI / 4; // 45 degrees
+                    const forwardAxis = new Vector3(1, 0, 0); // Tilt around local X-axis
+
+                    // Rotate around local axis using quaternion
+                    const tiltQuaternion = Quaternion.RotationAxis(forwardAxis, tiltAngle);
+
+                    // Apply tilt to current rotation
+                    sourceMesh.rotationQuaternion = sourceMesh.rotationQuaternion || Quaternion.RotationYawPitchRoll(
+                        sourceMesh.rotation.y, sourceMesh.rotation.x, sourceMesh.rotation.z
+                    );
+                    sourceMesh.rotationQuaternion = tiltQuaternion.multiply(sourceMesh.rotationQuaternion);
+
+                    // 4. Optional: adjust height a bit to make it visually look like it's hovering and pouring
+                    sourceMesh.position.y += 0.05; // Slight lift
+
+                    // Flag that it's now tilted
                     tilted = true;
                 }
                 this.pour();
             } else if (state === ActivationState.INACTIVE && isQueued) {
                 isQueued = false;
                 if (mode === InteractionMode.XR) {
-                    this.mesh.rotation.copyFrom(oldAngle);
-                    this.mesh.position.copyFrom(oldPos);
+                    this.mesh.rotationQuaternion = oldAngle.clone();
+                    console.log(this.mesh.absoluteRotationQuaternion, oldAngle);
                 } else {
                     tilt(this.mesh, dir * Math.PI / 3, 0); // Queue up the tilt back
                     dir = 1;
                 }
             }
         });
-        
+
 
         // this.onAttachObservable.notifyObservers(true);
     }
@@ -252,7 +268,7 @@ export class PouringBehavior implements Behavior<Mesh> {
         return bestTarget;
     }
 
-    #changeTarget(target: Nullable<AbstractMesh>,color:Color3) {
+    #changeTarget(target: Nullable<AbstractMesh>, color: Color3) {
         if (this.#currentTarget === target) {
             return;
         }
@@ -264,12 +280,12 @@ export class PouringBehavior implements Behavior<Mesh> {
         }
 
         this.#currentTarget = target;
-        
+
         if (this.#currentTarget) {
-            
+
             if (this.#currentTarget instanceof Mesh) {
                 this.#highlightBehavior.highlightSelf(color);
-                this.#highlightBehavior.highlightOther(this.#currentTarget,color );
+                this.#highlightBehavior.highlightOther(this.#currentTarget, color);
             }
         }
     }
@@ -296,9 +312,9 @@ export class PouringBehavior implements Behavior<Mesh> {
         smokeBehavior.startSystem();
     }
 
-    stopSmokes () {
+    stopSmokes() {
         const smokeBehavior = this.mesh.getBehaviorByName("smoke") as CylinderSmokeBehavior;
         smokeBehavior.startSystem();
     }
-    
+
 }

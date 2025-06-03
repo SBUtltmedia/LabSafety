@@ -309,8 +309,7 @@ export class InteractionManager {
     };
 
     private checkActivate = (activate: boolean, anchorId: number) => {
-        const { anchor, grabber, grabbedMesh } =
-            this.modeSelectorMap[this.interactionMode][anchorId];
+        const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
 
         if (!grabbedMesh) {
             return;

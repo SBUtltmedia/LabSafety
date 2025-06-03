@@ -228,4 +228,8 @@ export abstract class BaseInteractionHandler {
             }
         });
     }
+
+    public dispose(): void {
+        console.log("Method not implemented!");
+    }
 }

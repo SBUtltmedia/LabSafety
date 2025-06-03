@@ -1,4 +1,4 @@
-import { WebXRDefaultExperience, Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, RayHelper, Color3, PickingInfo } from "@babylonjs/core";
+import { WebXRDefaultExperience, Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, RayHelper, Color3, PickingInfo, Observer, WebXRControllerComponent } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
 import { BaseInteractionHandler, IModeSelectorMap, InteractionMode, IMeshGrabInfo, IMeshActivationInfo, GrabState } from "./baseInteractionHandler";
 
@@ -12,6 +12,11 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     private sixDofDragBehaviors: Array<SixDofDragBehavior> = [];
     private isSqueezing: boolean = false;
     private isTrigger: boolean = false;
+    private moveObserver: Observer<Scene>;
+    private squeezeObserver: Observer<WebXRControllerComponent>;
+    private triggerObserver: Observer<WebXRControllerComponent>;
+    private debugRayHelper: RayHelper;
+
 
     constructor(
         scene: Scene,
@@ -29,7 +34,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     }
 
     public configure(): void {
-        // comment for now
         // if (this.configured) {
         //     return;
         // }
@@ -41,8 +45,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
         }
 
         // Disable scene-wide pointer events for XR, as XR controllers handle interaction
-        this.scene.onPointerDown = null;
-        this.scene.onPointerUp = null;
+        // this.scene.onPointerDown = null;
+        // this.scene.onPointerUp = null;
 
         for (let cylinderName of this.cylinderNames) {
             const mesh = this.scene.getMeshByName(cylinderName);
@@ -53,30 +57,16 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                 }
 
                 const pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as Nullable<PointerDragBehavior>;
-                if (pointerDragBehavior) {
+                if (pointerDragBehavior && pointerDragBehavior.enabled) {
                     pointerDragBehavior.enabled = false;
                     pointerDragBehavior.detach();
+                }
 
-                    let sixDofDragBehavior = new SixDofDragBehavior();
+                let sixDofDragBehavior = mesh.getBehaviorByName("SixDofDrag") as Nullable<SixDofDragBehavior>
 
-                    sixDofDragBehavior.onDragStartObservable.add(() => {
-                        interactableBehavior.onGrabStateChangedObservable.notifyObservers({
-                            anchor: null,
-                            grabber: null,
-                            state: GrabState.GRAB
-                        });
-                    });
-
-                    sixDofDragBehavior.onDragEndObservable.add(() => {
-                        interactableBehavior.onGrabStateChangedObservable.notifyObservers({
-                            anchor: null,
-                            grabber: null,
-                            state: GrabState.DROP
-                        });
-                    });
-
+                if (!sixDofDragBehavior) {
+                    sixDofDragBehavior = new SixDofDragBehavior();
                     this.sixDofDragBehaviors.push(sixDofDragBehavior);
-
                     mesh.addBehavior(sixDofDragBehavior);
                 }
             }
@@ -91,6 +81,7 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     }
 
     private configureController = (controller: WebXRInputSource) => {
+        console.log("Configure controller");
         this.controllerDragging.set(controller, false);
         this.lastControllerDragging.set(controller, Vector3.Zero());
 
@@ -113,83 +104,91 @@ export class XRInteractionHandler extends BaseInteractionHandler {
         anchorId: number,
         controller: WebXRInputSource,
     ) => {
+        console.log("Configure motion controller");
         const squeeze = motionController.getComponentOfType("squeeze");
         if (squeeze) {
             let sixDofDragBehavior: Nullable<SixDofDragBehavior>;
             let wasPressed: boolean = false;
 
-            squeeze.onButtonStateChangedObservable.add(() => {
-                if (squeeze.value >= 0.7) {
-                    console.log("Checking squeeze");
-                    wasPressed = true;
-                    // this.findGrabAndNotify(squeeze.pressed, anchorId);
-                    let pointer = controller.pointer;
-                    let pointerPos = pointer.absolutePosition;
-                    let dir = pointer.forward;
-                    let ray = new Ray(pointerPos, dir, 0.2);
+            if (!this.squeezeObserver) {
+                this.squeezeObserver = squeeze.onButtonStateChangedObservable.add(() => {
+                    if (squeeze.value >= 0.7) {
+                        console.log("Checking squeeze");
+                        wasPressed = true;
 
-                    let rayHelper = new RayHelper(ray);
-                    rayHelper.show(this.scene, new Color3(0, 0, 1));
+                        let pointer = controller.pointer;
+                        let pointerPos = pointer.absolutePosition;
+                        let dir = pointer.forward;
+                        let ray = new Ray(pointerPos, dir, 0.2);
 
-                    const pickInfo = this.scene.pickWithRay(ray);
+                        // this.debugRayHelper = new RayHelper(ray);
+                        // this.debugRayHelper.show(this.scene, new Color3(0, 0, 1));
 
-                    if (pickInfo && pickInfo.hit) {
-                        this.isSqueezing = true;
+                        const pickInfo = this.scene.pickWithRay(ray);
 
-                        const intersectMesh = pickInfo.pickedMesh;
+                        if (pickInfo && pickInfo.hit) {
+                            this.isSqueezing = true;
 
-                        let parentMesh = intersectMesh;
+                            const intersectMesh = pickInfo.pickedMesh;
 
-                        while (parentMesh.parent) {
-                            parentMesh = parentMesh.parent as AbstractMesh;
+                            let parentMesh = intersectMesh;
+
+                            while (parentMesh.parent) {
+                                parentMesh = parentMesh.parent as AbstractMesh;
+                            }
+
+                            sixDofDragBehavior = parentMesh.getBehaviorByName("SixDofDrag") as SixDofDragBehavior;
+                            if (sixDofDragBehavior) {
+                                this.findGrabAndNotify(true, anchorId);
+                                sixDofDragBehavior.onDragStartObservable.notifyObservers({ position: controller.pointer.position });
+                                this.draggingWithSqueeze = true;
+                                this.controllerDragging.set(controller, true);
+                                this.lastControllerDragging.set(controller, controller.pointer.position.clone());
+                                this.controllerDraggingMesh.set(controller, parentMesh);
+                            }
                         }
-
-                        sixDofDragBehavior = parentMesh.getBehaviorByName("SixDofDrag") as SixDofDragBehavior;
+                    } else if (wasPressed && squeeze.changes.value.current < 0.7) {
+                        this.isSqueezing = false;
+                        wasPressed = false;
+                        this.draggingWithSqueeze = false;
+                        this.controllerDragging.set(controller, false);
+                        this.controllerDraggingMesh.set(controller, null);
                         if (sixDofDragBehavior) {
-                            sixDofDragBehavior.onDragStartObservable.notifyObservers({ position: controller.pointer.position });
-                            this.draggingWithSqueeze = true;
-                            this.controllerDragging.set(controller, true);
-                            this.lastControllerDragging.set(controller, controller.pointer.position.clone());
-                            this.controllerDraggingMesh.set(controller, parentMesh);
+                            sixDofDragBehavior.onDragEndObservable.notifyObservers({});
                         }
+                        this.findGrabAndNotify(false, anchorId);
+                        this.updateSixDofragBehaviorEnabled();
+                    } else {
+                        this.isSqueezing = false;
+                        this.findGrabAndNotify(false, anchorId);
+                        this.updateSixDofragBehaviorEnabled();
                     }
-                } else if (wasPressed && squeeze.changes.value.current < 0.7) {
-                    this.isSqueezing = false;
-                    wasPressed = false;
-                    this.draggingWithSqueeze = false;
-                    this.controllerDragging.set(controller, false);
-                    this.controllerDraggingMesh.set(controller, null);
-                    if (sixDofDragBehavior) {
-                        sixDofDragBehavior.onDragEndObservable.notifyObservers({});
-                    }
-                    this.updateSixDofragBehaviorEnabled();
-                } else {
-                    this.isSqueezing = false;
-                    this.updateSixDofragBehaviorEnabled();
-                }
-            });
+                });
+            }
         } else {
             console.log("Squeeze component not found on motion controller.");
         }
 
         const trigger = motionController.getMainComponent();
         if (trigger) {
-            trigger.onButtonStateChangedObservable.add(() => {
-                if (trigger.value > 0) {
-                    this.isTrigger = true;
+            if (!this.triggerObserver) {
+                this.triggerObserver = trigger.onButtonStateChangedObservable.add(() => {
+                    if (trigger.value > 0) {
+                        this.isTrigger = true;
+                    } else {
+                        this.isTrigger = false;
+                    }
                     if (trigger.changes.pressed) {
                         this.checkActivate(trigger.pressed, anchorId);
                     }
-                } else {
-                    this.isTrigger = false;
-                }
-                this.updateSixDofragBehaviorEnabled();
-            });
+                    this.updateSixDofragBehaviorEnabled();
+                });
+            }
         } else {
             console.log("Main component not found on motion controller.");
         }
 
-        this.scene.onBeforeRenderObservable.add(() => {
+        this.moveObserver = this.scene.onBeforeRenderObservable.add(() => {
             if (this.draggingWithSqueeze) {
                 for (let entry of this.controllerDragging) {
                     if (entry[1]) {
@@ -218,5 +217,15 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                 }
             }
         });
+    }
+
+    public dispose() {
+        console.log("Dispose called");
+        this.squeezeObserver.remove();
+        this.triggerObserver.remove();
+        this.moveObserver.remove();
+
+        // this.debugRayHelper.hide();
+        // this.debugRayHelper.dispose();
     }
 }
