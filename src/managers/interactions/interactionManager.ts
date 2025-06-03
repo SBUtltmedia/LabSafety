@@ -177,7 +177,9 @@ export class InteractionManager {
             throw new Error(`Default selector not found for mode: ${InteractionMode[mode]}`);
         }
 
-        // Dispose of previous handler if it exists
+        if (this.currentInteractionHandler) {
+            this.currentInteractionHandler.dispose();
+        }
         this.currentInteractionHandler = null; // Let GC handle previous instance
 
 		//@ts-ignore Create abstract mesh

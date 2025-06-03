@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes } from "@babylonjs/core";
+import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes, SixDofDragBehavior, PointerInfo, Observer } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
 import { CameraRotator } from "../../../systems/cameraUtils";
 
@@ -66,6 +66,10 @@ export abstract class BaseInteractionHandler {
     protected checkActivate: (activate: boolean, anchorId: number) => void;
     protected cameraRotator: CameraRotator;
 
+    protected pointerDragStartObserver: Observer<any>;
+    protected pointerDragObserver: Observer<any>;
+    protected pointerDragEndObserver: Observer<any>;
+
 
     constructor(
         scene: Scene,
@@ -120,7 +124,7 @@ export abstract class BaseInteractionHandler {
             pointerDragBehavior.moveAttached = true;
             pointerDragBehavior.useObjectOrientationForDragging = false;
 
-            pointerDragBehavior.onDragStartObservable.add((event) => {
+            this.pointerDragStartObserver = pointerDragBehavior.onDragStartObservable.add((event) => {
                 if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
                     let mesh = event.pointerInfo.pickInfo?.pickedMesh;
                     if (mesh) {
@@ -139,14 +143,16 @@ export abstract class BaseInteractionHandler {
                 }
             });
 
-            pointerDragBehavior.onDragEndObservable.add((event) => {
+            console.log(this.pointerDragStartObserver);
+
+            this.pointerDragEndObserver = pointerDragBehavior.onDragEndObservable.add((event) => {
                 if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
                     this.findGrabAndNotify(false, this.anchor.uniqueId);
                     this.cameraRotator.rotateCameraOnEdge();
                 }
             });
 
-            pointerDragBehavior.onDragObservable.add((event) => {
+            this.pointerDragObserver = pointerDragBehavior.onDragObservable.add((event) => {
                 if (event.pointerInfo.event.inputIndex === PointerInput.LeftClick) {
                     this.camera.attachControl(this.canvas, true);
                     this.cameraRotator.rotateCameraOnEdge();
@@ -157,6 +163,13 @@ export abstract class BaseInteractionHandler {
 
             cylinderMesh.addBehavior(pointerDragBehavior);
         }
+    }
+
+    protected removePointerDragObservers() {
+        console.log(this.pointerDragStartObserver, this.pointerDragEndObserver, this.pointerDragObserver);
+        this.pointerDragStartObserver.remove();
+        this.pointerDragEndObserver.remove();
+        this.pointerDragObserver.remove();
     }
 
     private getMeshInClickableMeshs(pickedMesh: AbstractMesh): AbstractMesh {

@@ -28,4 +28,8 @@ export class MobileInteractionHandler extends BaseInteractionHandler {
 
         this.configured = true;
     }
+
+    public dispose(): void {
+        this.removePointerDragObservers();
+    }
 }

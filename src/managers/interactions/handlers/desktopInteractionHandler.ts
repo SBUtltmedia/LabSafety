@@ -34,4 +34,9 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
 
         this.configured = true;
     }
+
+    public dispose(): void {
+        console.log("Disposing...");
+        this.removePointerDragObservers();
+    }
 }
