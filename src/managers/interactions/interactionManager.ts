@@ -286,12 +286,11 @@ export class InteractionManager {
             return;
         }
 
-
         if (grab) {
             if (selector.targetMesh) {
                 selector.grabbedMesh = selector.targetMesh;
                 selector.targetMesh = null;
-				console.log(selector.grabbedMesh, selector.anchor, selector.grabber);
+
                 this.notifyGrabMeshObserver(selector.grabbedMesh, {
                     anchor: selector.anchor,
                     grabber: selector.grabber,

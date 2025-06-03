@@ -4,6 +4,7 @@ import { meshMap } from "../entities/loadMeshes";
 import { FadeRespawnBehavior } from "../behaviors/fadeRespawnBehavior";
 import { CreateEllipsoidLines } from "./createEllipsoidLines";
 import { Vector3 } from "@babylonjs/core";
+import { HighlightBehavior } from "../behaviors/highlightBehavior";
 
 function compareById(left: AbstractMesh, right: AbstractMesh): number {
     if (left.id < right.id) {
@@ -44,6 +45,8 @@ export function placeMeshes(meshes: Mesh[]): void {
 
             cylinder.rotationQuaternion = null;
             cylinder.rotation.copyFromFloats(Math.PI, 0, 0);
+
+            (cylinder.getBehaviorByName("Highlight") as HighlightBehavior)?.unhighlightAll();
         });
 
         placards.forEach((placard, i) => {

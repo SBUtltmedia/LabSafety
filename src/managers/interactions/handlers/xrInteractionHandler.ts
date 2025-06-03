@@ -112,7 +112,7 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                     }
                 }
             }
-        });        
+        });
     };
 
     private updatePointerDragEnabled = () => {

@@ -147,13 +147,10 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             dragPlaneNormal: new Vector3(0, 1, 0),
         });
         pointerDragBehavior.moveAttached = false;
-        pointerDragBehavior.useObjectOrientationForDragging = false;
-
-        let lastDragPosition: Nullable<Vector3> = null;
-        let originalMeshPosition: Nullable<Vector3> = null;        
+        pointerDragBehavior.useObjectOrientationForDragging = false;    
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
-            let mode = this.interactionManager.interactionMode
+            let mode = this.interactionManager.interactionMode;
             if ((mode === InteractionMode.DESKTOP &&
                 event.pointerInfo.event.inputIndex === PointerInput.LeftClick) ||
                 mode === InteractionMode.MOBILE ||
@@ -165,20 +162,12 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                     this.#grabber = scene.getMeshByName("default-grabber");
                 }
                 this.interactionManager.modeSelectorMap[mode][this.#anchor.uniqueId] = { anchor: this.#anchor, grabber: this.#grabber, grabbedMesh: this.#mesh, targetMesh: null };
-                this.#grab(this.#anchor, this.#grabber);
-
-                lastDragPosition = this.#mesh.position.clone();
-                originalMeshPosition = this.#mesh.position.clone();                
+                this.#grab(this.#anchor, this.#grabber);             
             }
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
-            if (lastDragPosition) {
-                const currentDragPosition = event.dragPlanePoint;
-                const delta = currentDragPosition.subtract(lastDragPosition);
-                this.#mesh.moveWithCollisions(delta);
-                lastDragPosition.copyFrom(this.#mesh.position);
-            }
+            this.#mesh.moveWithCollisions(event.delta);
         })
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
@@ -189,8 +178,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 mode === InteractionMode.XR) {
 
                 this.#drop();
-                lastDragPosition = null;
-                originalMeshPosition = null;
             }
         });
 
