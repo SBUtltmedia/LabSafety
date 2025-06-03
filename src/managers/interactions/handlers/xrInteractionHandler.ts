@@ -17,7 +17,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     private triggerObserver: Observer<WebXRControllerComponent>;
     private debugRayHelper: RayHelper;
 
-
     constructor(
         scene: Scene,
         modeSelectorMap: IModeSelectorMap,
@@ -135,10 +134,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                     if (squeeze.changes.pressed) {
                         this.findGrabAndNotify(squeeze.pressed, anchorId);
                     }
-                    if (squeeze.value >= 0.7) {
-                        console.log("Checking squeeze");
-                        wasPressed = true;
 
+                    if (squeeze.value >= 0.7) {
                         let pointer = controller.pointer;
                         let pointerPos = pointer.absolutePosition;
                         let dir = pointer.forward;
@@ -148,6 +145,7 @@ export class XRInteractionHandler extends BaseInteractionHandler {
 
                         if (pickInfo && pickInfo.hit) {
                             this.isSqueezing = true;
+                            wasPressed = true;
 
                             const intersectMesh = pickInfo.pickedMesh;
 

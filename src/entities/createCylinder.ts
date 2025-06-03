@@ -51,8 +51,8 @@ export function createCylinder(mesh: Mesh, color: Color3): void {
         interactableBehavior = new InteractableBehavior(interactionManager, {
             activatable: true,
             defaultAnchorRotation: new Vector3(0, Math.PI / 2, Math.PI),
-            moveAttached: false
-            
+            moveAttached: false,
+            usePointerDrag: true
         });
     } 
 

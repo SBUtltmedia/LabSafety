@@ -312,7 +312,7 @@ export class InteractionManager {
 
     private checkActivate = (activate: boolean, anchorId: number) => {
         const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
-
+        console.log(anchor, grabbedMesh, grabber);
         if (!grabbedMesh) {
             return;
         }
@@ -332,7 +332,7 @@ export class InteractionManager {
         }
     };
 
-    private notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => {
+    public notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => {
         if (mesh.isDisposed()) {
             for (const mode in this.modeSelectorMap) {
                 for (const selector of Object.values(
@@ -378,6 +378,8 @@ export class InteractionManager {
                 "InteractionManager: activated mesh must have InteractableBehavior."
             );
         }
+
+        console.log("Trying to notify: ", activationInfo);
         this.onMeshActivationStateChangedObservable.notifyObserver(
             behavior.activationStateObserver,
             activationInfo,

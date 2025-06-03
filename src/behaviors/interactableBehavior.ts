@@ -6,6 +6,8 @@ import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 
 import { ActivationState, GrabState, IMeshActivationInfo, IMeshGrabInfo, InteractionMode } from "../managers/interactions/handlers/baseInteractionHandler";
 import { InteractionManager } from "../managers/interactions/interactionManager"
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
+import { PointerInput } from "@babylonjs/core/DeviceInput/InputDevices/deviceEnums";
 
 
 // The core behavior to implement grabbing a mesh and activating it while being grabbed.
@@ -26,6 +28,7 @@ export interface IInteractableOptions {
     moveAttached?: boolean, // Specifies whether the default grab implementation is used (default true)
     defaultAnchorPosition?: Vector3 // The position (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
     defaultAnchorRotation?: Vector3, // The rotation (local to the anchor) to set a mesh to on grab (default Vector3.Zero()). Has no effect when moveAttached is false.
+    usePointerDrag?: boolean,
     modeDefaults?: {
         [mode: number]: {
             defaultAnchorPosition?: Vector3, // Same as above, but only applied in the specified interaction mode. This, if specified, takes precedence over IInteractableOptions.defaultPosition.
@@ -52,6 +55,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     defaults: IDefaults = {};
     hideGrabber: boolean = true;
     #moveAttached: boolean;
+    #usePointerDrag: boolean;
     #grabberWasVisible: boolean = false;
     #activatable: boolean;
     #active: boolean = false; // Precondition: this.#activatable && this.grabbing
@@ -60,18 +64,19 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #defaultGrabObserver: Nullable<Observer<IMeshGrabInfo>> = null;
     #enabled: boolean = true;
     onAttachObservable: Observable<Boolean> = new Observable();
-    
+
     constructor(interactionManager: InteractionManager, options?: IInteractableOptions) {
         this.interactionManager = interactionManager;
         this.#activatable = Boolean(options?.activatable);
         this.#moveAttached = options?.moveAttached === false ? false : true;
+        this.#usePointerDrag = options?.usePointerDrag ?? false;
 
         for (const mode of [InteractionMode.DESKTOP, InteractionMode.MOBILE, InteractionMode.XR, InteractionMode.LOADING]) {
             this.defaults[mode] = {
                 defaultAnchorPosition: options?.modeDefaults?.[mode]?.defaultAnchorPosition || options?.defaultAnchorPosition || Vector3.Zero(),
                 defaultAnchorRotation: options?.modeDefaults?.[mode]?.defaultAnchorRotation || options?.defaultAnchorRotation || Vector3.Zero()
             }
-        }
+        }    
     }
 
     get name(): string {
@@ -121,8 +126,10 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: #defaultGrabObserver && mesh
     // Postconditions: !#defaultGrabObserver
     #disableDefaultGrab = (): void => {
-        this.#defaultGrabObserver.remove();
-        this.#defaultGrabObserver = null;
+        if (this.#defaultGrabObserver) {
+            this.#defaultGrabObserver.remove();
+            this.#defaultGrabObserver = null;
+        }
 
         // Deregistering the observer doesn't actually make the
         // mesh stop following the anchor's movements, so do
@@ -131,6 +138,46 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         if (this.grabbing) {
             this.#mesh.setParent(null);
         }
+
+        // can use pointer drag here?
+    }
+
+    #enablePointerDrag = (): void => {
+        const pointerDragBehavior = new PointerDragBehavior({
+            dragPlaneNormal: new Vector3(0, 1, 0),
+        });
+        pointerDragBehavior.moveAttached = true;
+        pointerDragBehavior.useObjectOrientationForDragging = false;
+
+        pointerDragBehavior.onDragStartObservable.add((event) => {
+            let mode = this.interactionManager.interactionMode
+            if ((mode === InteractionMode.DESKTOP &&
+                event.pointerInfo.event.inputIndex === PointerInput.LeftClick) ||
+                mode === InteractionMode.MOBILE ||
+                mode === InteractionMode.XR) {
+                
+                let scene = this.#mesh.getScene();
+                if (this.interactionManager.interactionMode === InteractionMode.DESKTOP || this.interactionManager.interactionMode === InteractionMode.MOBILE) {
+                    this.#anchor = scene.getMeshByName("default-anchor");
+                    this.#grabber = scene.getMeshByName("default-grabber");
+                }
+                this.interactionManager.modeSelectorMap[mode][this.#anchor.uniqueId] = { anchor: this.#anchor, grabber: this.#grabber, grabbedMesh: this.#mesh, targetMesh: null };
+                this.#grab(this.#anchor, this.#grabber);
+            }
+        });
+
+        pointerDragBehavior.onDragEndObservable.add((event) => {
+            let mode = this.interactionManager.interactionMode
+            if ((mode === InteractionMode.DESKTOP &&
+                event.pointerInfo.event.inputIndex === PointerInput.LeftClick) ||
+                mode === InteractionMode.MOBILE ||
+                mode === InteractionMode.XR) {
+
+                this.#drop();
+            }
+        });
+
+        this.#mesh.addBehavior(pointerDragBehavior);        
     }
 
     set moveAttached(value: boolean) {
@@ -179,7 +226,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Postconditions: this.grabbing
     #grab = (anchor: AbstractMesh, grabber: AbstractMesh): void => {
         this.onGrabStateChangedObservable.notifyObservers({ anchor, grabber, state: GrabState.GRAB });
-        
+
         // Satisfying the postcondition
         this.#anchor = anchor;
         this.#grabber = grabber;
@@ -201,13 +248,13 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         // Show the grabber (e.g. the hand) if it was visible before
         if (this.hideGrabber && this.#grabberWasVisible) {
             this.#grabber.isVisible = true;
-        }        
-        
+        }
+
         this.onGrabStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: GrabState.DROP });
 
         // Satisfying postcondition !this.grabbing
         this.#anchor = null;
-        this.#grabber = null;        
+        this.#grabber = null;
     }
 
     init(): void {
@@ -223,11 +270,15 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         }
         if (this.#moveAttached) {
             this.#enableDefaultGrab();
+        } else {
+            this.#disableDefaultGrab();
+        }
+
+        if (this.#usePointerDrag) {
+            this.#enablePointerDrag();
         }
         this.interactionManager.interactableMeshes.push(this.#mesh);
         this.onAttachObservable.notifyObservers(true);
-
-
     }
 
     // Preconditions: !#subscribed and #attached
@@ -242,7 +293,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 this.#drop();
             }
         }, this.#mesh.uniqueId);
-        this.#activationStateObserver = this.interactionManager.onMeshActivationStateChangedObservable.add(({ anchor, grabber, state}) => {
+        this.#activationStateObserver = this.interactionManager.onMeshActivationStateChangedObservable.add(({ anchor, grabber, state }) => {
+            console.log("Fire activation state!", this.#activatable);
             if (this.#activatable && this.grabbing) {
                 if (state === ActivationState.ACTIVE && !this.#active) {
                     this.#activate();

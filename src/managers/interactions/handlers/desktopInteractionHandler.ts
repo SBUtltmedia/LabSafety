@@ -12,7 +12,6 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
 
         meshesLoaded.add((loaded) => {
             if (loaded) {
-                this.setupCylinderInteractions();
                 this.setupClickableObjectInteractions();
                 this.setupKeyboardInteraction();
             }
@@ -21,6 +20,7 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
         this.scene.onPointerObservable.add((pointerInfo) => {
             if (this.interactionMode === InteractionMode.DESKTOP) { // Ensure this is only active in desktop mode
                 if (pointerInfo.event.inputIndex === PointerInput.RightClick) {
+                    console.log("Right click");
                     if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                         this.checkActivate(true, this.anchor.uniqueId);
                     } else if (
@@ -37,6 +37,5 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
 
     public dispose(): void {
         console.log("Disposing...");
-        this.removePointerDragObservers();
     }
 }
