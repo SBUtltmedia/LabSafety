@@ -1,10 +1,9 @@
-import { WebXRDefaultExperience, Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, RayHelper, Color3, PickingInfo, Observer, WebXRControllerComponent, PointerInfo } from "@babylonjs/core";
+import { WebXRDefaultExperience, Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, RayHelper, Color3, PickingInfo, Observer, WebXRControllerComponent, PointerInfo, Observable } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
 import { BaseInteractionHandler, IModeSelectorMap, InteractionMode, IMeshGrabInfo, IMeshActivationInfo, GrabState } from "./baseInteractionHandler";
 
 export class XRInteractionHandler extends BaseInteractionHandler {
     private configured: boolean = false;
-    private xrExperience: WebXRDefaultExperience;
     private draggingWithSqueeze: boolean = false;
     private controllerDragging: Map<WebXRInputSource, Boolean> = new Map();
     private lastControllerDragging: Map<WebXRInputSource, Vector3> = new Map();
@@ -16,21 +15,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     private squeezeObserver: Observer<WebXRControllerComponent>;
     private triggerObserver: Observer<WebXRControllerComponent>;
     private debugRayHelper: RayHelper;
-
-    constructor(
-        scene: Scene,
-        modeSelectorMap: IModeSelectorMap,
-        interactionMode: InteractionMode,
-        anchor: AbstractMesh,
-        notifyGrabMeshObserver: (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => void,
-        notifyActivationMeshObserver: (mesh: AbstractMesh, activationInfo: IMeshActivationInfo) => void,
-        findGrabAndNotify: (grab: boolean, anchorId: number) => void,
-        checkActivate: (activate: boolean, anchorId: number) => void,
-        xrExperience: WebXRDefaultExperience
-    ) {
-        super(scene, modeSelectorMap, interactionMode, anchor, notifyGrabMeshObserver, notifyActivationMeshObserver, findGrabAndNotify, checkActivate);
-        this.xrExperience = xrExperience;
-    }
 
     public configure(): void {
         if (!this.xrExperience) {
@@ -49,9 +33,9 @@ export class XRInteractionHandler extends BaseInteractionHandler {
 
                 let pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as Nullable<PointerDragBehavior>;
                 if (pointerDragBehavior) {
-                    pointerDragBehavior.onDragStartObservable.clear();
-                    pointerDragBehavior.onDragEndObservable.clear();
-                    pointerDragBehavior.onDragObservable.clear();
+                    // pointerDragBehavior.onDragStartObservable.clear();
+                    // pointerDragBehavior.onDragEndObservable.clear();
+                    // pointerDragBehavior.onDragObservable.clear();
 
                     pointerDragBehavior.moveAttached = false;
 
@@ -90,10 +74,10 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                             const delta = currentControllerPos.subtract(this.lastControllerDragging.get(controller));
 
                             let mesh = this.controllerDraggingMesh.get(controller);
-                            if (mesh) {
-                                // mesh.position.addInPlace(delta);
-                                mesh.moveWithCollisions(delta);
-                            }
+                            // if (mesh) {
+                            //     // mesh.position.addInPlace(delta);
+                            //     mesh.moveWithCollisions(delta);
+                            // }
 
                             this.lastControllerDragging.set(controller, currentControllerPos.clone());
 

@@ -11,12 +11,11 @@ import { Observable } from "@babylonjs/core/Misc/observable";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 
-import { InteractableBehavior } from "../../behaviors/interactableBehavior";
-import { IMeshGrabInfo, IMeshActivationInfo, InteractionMode, IGrabInfo, GrabState, ActivationState, IModeSelectorMap, ISelector, BaseInteractionHandler } from "./handlers/baseInteractionHandler";
+import { IMeshGrabInfo, IMeshActivationInfo, InteractionMode, IGrabInfo, GrabState, ActivationState, IModeSelectorMap, ISelector, BaseInteractionHandler, InteractionHandlerConfig } from "./handlers/baseInteractionHandler";
+import { MeshSelector } from "../../systems/meshUtils";
 import { DesktopInteractionHandler } from "./handlers/desktopInteractionHandler";
 import { MobileInteractionHandler } from "./handlers/mobileInteractionHandler";
 import { XRInteractionHandler } from "./handlers/xrInteractionHandler";
-import { MeshSelector } from "../../systems/meshUtils";
 
 const SELECTOR_LENGTH = 9.0;
 const SELECTOR_DIAMETER = 0.005;
@@ -45,7 +44,7 @@ export class InteractionManager {
     isUsingXRObservable: Observable<Boolean> = new Observable();
 
     currentInteractionHandler: Nullable<BaseInteractionHandler> = null;
-    
+
 
     constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
         this.scene = scene;
@@ -143,12 +142,29 @@ export class InteractionManager {
         }
     };
 
+    private instatntiateInteractionHandler(
+        config: InteractionHandlerConfig
+    ): BaseInteractionHandler {
+        switch (config.interactionMode) {
+            case InteractionMode.DESKTOP:
+                return new DesktopInteractionHandler(config);
+            case InteractionMode.MOBILE:
+                return new MobileInteractionHandler(config);
+            case InteractionMode.XR:
+                return new XRInteractionHandler(config);
+            case InteractionMode.LOADING:
+                console.log("Loading state");
+                return new DesktopInteractionHandler(config);
+        }
+    }    
+
+
     private switchMode = (mode: InteractionMode) => {
         // Drop everything before switching modes
         const selectors = this.getActiveSelectors();
         for (const selector of selectors) {
             if (selector.grabbedMesh) {
-                this.notifyGrabMeshObserver(selector.grabbedMesh, {
+                this.currentInteractionHandler.notifyGrabMeshObserver(selector.grabbedMesh, {
                     anchor: selector.anchor,
                     grabber: selector.grabber,
                     state: GrabState.DROP,
@@ -182,54 +198,22 @@ export class InteractionManager {
         }
         this.currentInteractionHandler = null; // Let GC handle previous instance
 
-		//@ts-ignore Create abstract mesh
+        //@ts-ignore Create abstract mesh
         const anchorForHandler = defaultSelector ? defaultSelector.anchor : new AbstractMesh("dummy-anchor"); // Fallback for XR if no default anchor is used in handlers
 
-        switch (mode) {
-            case InteractionMode.DESKTOP:
-                this.currentInteractionHandler = new DesktopInteractionHandler(
-                    this.scene,
-                    this.modeSelectorMap,
-                    InteractionMode.DESKTOP,
-                    anchorForHandler,
-                    this.notifyGrabMeshObserver.bind(this),
-                    this.notifyActivationMeshObserver.bind(this),
-                    this.findGrabAndNotify.bind(this),
-                    this.checkActivate.bind(this)
-                );
-                break;
-            case InteractionMode.MOBILE:
-                this.currentInteractionHandler = new MobileInteractionHandler(
-                    this.scene,
-                    this.modeSelectorMap,
-                    InteractionMode.MOBILE,
-                    anchorForHandler,
-                    this.notifyGrabMeshObserver.bind(this),
-                    this.notifyActivationMeshObserver.bind(this),
-                    this.findGrabAndNotify.bind(this),
-                    this.checkActivate.bind(this)
-                );
-                break;
-            case InteractionMode.XR:
-                if (!this.xrExperience) {
-                    throw new Error("XR experience not provided for XR mode.");
-                }
+        let config: InteractionHandlerConfig = {
+            scene: this.scene,
+            modeSelectorMap: this.modeSelectorMap,
+            interactionMode: mode,
+            anchor: anchorForHandler,
+            xrCamera: this.xrExperience,
+            onMeshGrabStateChangedObservable: this.onMeshGrabStateChangedObservable,
+            onGrabStateChangedObservable: this.onGrabStateChangedObservable,
+            onMeshActivationStateChangedObservable: this.onMeshActivationStateChangedObservable
+        };
 
-                this.currentInteractionHandler = new XRInteractionHandler(
-                    this.scene,
-                    this.modeSelectorMap,
-                    InteractionMode.XR,
-                    anchorForHandler,
-                    this.notifyGrabMeshObserver.bind(this),
-                    this.notifyActivationMeshObserver.bind(this),
-                    this.findGrabAndNotify.bind(this),
-                    this.checkActivate.bind(this),
-                    this.xrExperience
-                );
-                break;
-            case InteractionMode.LOADING:
-                break;
-        }
+        this.currentInteractionHandler = this.instatntiateInteractionHandler(config);
+
         if (this.currentInteractionHandler) {
             this.currentInteractionHandler.configure();
         }
@@ -262,7 +246,7 @@ export class InteractionManager {
         grabber.position.setAll(0);
         grabber.rotation.copyFromFloats(0, 0, 0);
 
-		//@ts-ignore Need to create an abstract mesh
+        //@ts-ignore Need to create an abstract mesh
         const anchor = new AbstractMesh("default-anchor", this.scene);
         anchor.isPickable = false;
         anchor.setParent(camera);
@@ -278,113 +262,6 @@ export class InteractionManager {
     getActiveSelectors = (): ISelector[] => {
         return Object.values(this.modeSelectorMap[this.interactionMode]);
     };
-
-    private findGrabAndNotify = (grab: boolean, anchorId: number) => {
-        const selector = this.modeSelectorMap[this.interactionMode][anchorId];
-        if (!selector) {
-            console.warn(`Selector not found for anchorId: ${anchorId} in mode: ${InteractionMode[this.interactionMode]}`);
-            return;
-        }
-
-        if (grab) {
-            if (selector.targetMesh) {
-                selector.grabbedMesh = selector.targetMesh;
-                selector.targetMesh = null;
-
-                this.notifyGrabMeshObserver(selector.grabbedMesh, {
-                    anchor: selector.anchor,
-                    grabber: selector.grabber,
-                    state: GrabState.GRAB,
-                });
-            }
-        } else {
-            if (selector.grabbedMesh) {
-                this.notifyGrabMeshObserver(selector.grabbedMesh, {
-                    anchor: selector.anchor,
-                    grabber: selector.grabber,
-                    state: GrabState.DROP,
-                });
-                selector.grabbedMesh = null;
-            }
-        }
-    };
-
-    private checkActivate = (activate: boolean, anchorId: number) => {
-        const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
-        console.log(anchor, grabbedMesh, grabber);
-        if (!grabbedMesh) {
-            return;
-        }
-
-        if (activate) {
-            this.notifyActivationMeshObserver(grabbedMesh, {
-                anchor,
-                grabber,
-                state: ActivationState.ACTIVE,
-            });
-        } else {
-            this.notifyActivationMeshObserver(grabbedMesh, {
-                anchor,
-                grabber,
-                state: ActivationState.INACTIVE,
-            });
-        }
-    };
-
-    public notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => {
-        if (mesh.isDisposed()) {
-            for (const mode in this.modeSelectorMap) {
-                for (const selector of Object.values(
-                    this.modeSelectorMap[mode]
-                )) {
-                    if (selector.grabbedMesh === mesh) {
-                        selector.grabbedMesh = null;
-                    }
-                }
-            }
-            return;
-        }
-        const behavior = mesh.getBehaviorByName(
-            "Interactable"
-        ) as Nullable<InteractableBehavior>; // Use Nullable
-        if (!behavior) {
-            throw new Error(
-                "InteractionManager: grabbed mesh must have InteractableBehavior."
-            );
-        }
-        this.onMeshGrabStateChangedObservable.notifyObserver(
-            behavior.grabStateObserver,
-            grabInfo
-        );
-        this.onGrabStateChangedObservable.notifyObservers({
-            mesh,
-            state: grabInfo.state,
-        });
-    };
-
-    private notifyActivationMeshObserver = (
-        mesh: AbstractMesh,
-        activationInfo: IMeshActivationInfo
-    ) => {
-        if (mesh.isDisposed()) {
-            return;
-        }
-        const behavior = mesh.getBehaviorByName(
-            "Interactable"
-        ) as Nullable<InteractableBehavior>; // Use Nullable
-        if (!behavior) {
-            throw new Error(
-                "InteractionManager: activated mesh must have InteractableBehavior."
-            );
-        }
-
-        console.log("Trying to notify: ", activationInfo);
-        this.onMeshActivationStateChangedObservable.notifyObserver(
-            behavior.activationStateObserver,
-            activationInfo,
-            mesh.uniqueId
-        );
-    };	
 }
 
 export { InteractionMode };

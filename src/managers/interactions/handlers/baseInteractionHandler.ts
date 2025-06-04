@@ -1,6 +1,9 @@
-import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes, SixDofDragBehavior, PointerInfo, Observer } from "@babylonjs/core";
+import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes, SixDofDragBehavior, PointerInfo, Observer, Observable, WebXRDefaultExperience } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
 import { CameraRotator } from "../../../systems/cameraUtils";
+import { DesktopInteractionHandler } from "./desktopInteractionHandler";
+import { MobileInteractionHandler } from "./mobileInteractionHandler";
+import { XRInteractionHandler } from "./xrInteractionHandler";
 
 export interface IModeSelectorMap {
     [mode: number]: {
@@ -49,6 +52,17 @@ export enum ActivationState {
     INACTIVE,
 }
 
+export interface InteractionHandlerConfig {
+    scene: Scene;
+    modeSelectorMap: IModeSelectorMap;
+    interactionMode: InteractionMode;
+    anchor: AbstractMesh;
+    xrCamera: WebXRDefaultExperience;
+    onMeshGrabStateChangedObservable: Observable<any>;
+    onGrabStateChangedObservable: Observable<any>;
+    onMeshActivationStateChangedObservable: Observable<any>;
+}
+
 export abstract class BaseInteractionHandler {
     protected scene: Scene;
     protected modeSelectorMap: IModeSelectorMap;
@@ -58,41 +72,28 @@ export abstract class BaseInteractionHandler {
     protected cylinderNames: string[] = ["cylinder-a", "cylinder-b", "cylinder-c"];
     protected clickableObjectsIds: Nullable<string>[] = [];
     protected canvas: HTMLCanvasElement;
-
-    // Callbacks to communicate with the main InteractionManager
-    protected notifyGrabMeshObserver: (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => void;
-    protected notifyActivationMeshObserver: (mesh: AbstractMesh, activationInfo: IMeshActivationInfo) => void;
-    protected findGrabAndNotify: (grab: boolean, anchorId: number) => void;
-    protected checkActivate: (activate: boolean, anchorId: number) => void;
-    protected cameraRotator: CameraRotator;
+    protected xrExperience: WebXRDefaultExperience;
 
     protected pointerDragStartObserver: Observer<any>;
     protected pointerDragObserver: Observer<any>;
     protected pointerDragEndObserver: Observer<any>;
-
+    protected onMeshGrabStateChangedObservable: Observable<any>;
+    protected onGrabStateChangedObservable: Observable<any>;
+    protected onMeshActivationStateChangedObservable: Observable<any>;
 
     constructor(
-        scene: Scene,
-        modeSelectorMap: IModeSelectorMap,
-        interactionMode: InteractionMode,
-        anchor: AbstractMesh,
-        notifyGrabMeshObserver: (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => void,
-        notifyActivationMeshObserver: (mesh: AbstractMesh, activationInfo: IMeshActivationInfo) => void,
-        findGrabAndNotify: (grab: boolean, anchorId: number) => void,
-        checkActivate: (activate: boolean, anchorId: number) => void,
+        config: InteractionHandlerConfig
     ) {
-        this.scene = scene;
-        this.modeSelectorMap = modeSelectorMap;
-        this.interactionMode = interactionMode;
-        this.anchor = anchor;
-        this.camera = scene.activeCamera as UniversalCamera;
-        this.canvas = scene.getEngine().getRenderingCanvas();
-
-        this.notifyGrabMeshObserver = notifyGrabMeshObserver;
-        this.notifyActivationMeshObserver = notifyActivationMeshObserver;
-        this.findGrabAndNotify = findGrabAndNotify;
-        this.checkActivate = checkActivate;
-        this.cameraRotator = new CameraRotator(this.scene, this.camera, this.canvas);
+        this.scene = config.scene;
+        this.modeSelectorMap = config.modeSelectorMap;
+        this.interactionMode = config.interactionMode;
+        this.anchor = config.anchor;
+        this.camera = config.scene.activeCamera as UniversalCamera;
+        this.canvas = config.scene.getEngine().getRenderingCanvas();
+        this.onMeshGrabStateChangedObservable = config.onMeshGrabStateChangedObservable;
+        this.onGrabStateChangedObservable = config.onGrabStateChangedObservable;
+        this.onMeshActivationStateChangedObservable = config.onMeshActivationStateChangedObservable;
+        this.xrExperience = config.xrCamera;
 
         this.initializeClickableObjects();
     }
@@ -178,4 +179,111 @@ export abstract class BaseInteractionHandler {
     public dispose(): void {
         console.log("Method not implemented!");
     }
+
+    protected findGrabAndNotify(grab: boolean, anchorId: number) {
+        const selector = this.modeSelectorMap[this.interactionMode][anchorId];
+        if (!selector) {
+            console.warn(`Selector not found for anchorId: ${anchorId} in mode: ${InteractionMode[this.interactionMode]}`);
+            return;
+        }
+
+        if (grab) {
+            if (selector.targetMesh) {
+                selector.grabbedMesh = selector.targetMesh;
+                selector.targetMesh = null;
+
+                this.notifyGrabMeshObserver(selector.grabbedMesh, {
+                    anchor: selector.anchor,
+                    grabber: selector.grabber,
+                    state: GrabState.GRAB,
+                });
+            }
+        } else {
+            if (selector.grabbedMesh) {
+                this.notifyGrabMeshObserver(selector.grabbedMesh, {
+                    anchor: selector.anchor,
+                    grabber: selector.grabber,
+                    state: GrabState.DROP,
+                });
+                selector.grabbedMesh = null;
+            }
+        }
+    };
+
+    public notifyGrabMeshObserver = (mesh: AbstractMesh, grabInfo: IMeshGrabInfo) => {
+        if (mesh.isDisposed()) {
+            for (const mode in this.modeSelectorMap) {
+                for (const selector of Object.values(
+                    this.modeSelectorMap[mode]
+                )) {
+                    if (selector.grabbedMesh === mesh) {
+                        selector.grabbedMesh = null;
+                    }
+                }
+            }
+            return;
+        }
+        const behavior = mesh.getBehaviorByName(
+            "Interactable"
+        ) as Nullable<InteractableBehavior>; // Use Nullable
+        if (!behavior) {
+            throw new Error(
+                "InteractionManager: grabbed mesh must have InteractableBehavior."
+            );
+        }
+        this.onMeshGrabStateChangedObservable.notifyObserver(
+            behavior.grabStateObserver,
+            grabInfo
+        );
+        this.onGrabStateChangedObservable.notifyObservers({
+            mesh,
+            state: grabInfo.state,
+        });
+    };
+
+    protected notifyActivationMeshObserver = (
+        mesh: AbstractMesh,
+        activationInfo: IMeshActivationInfo
+    ) => {
+        if (mesh.isDisposed()) {
+            return;
+        }
+        const behavior = mesh.getBehaviorByName(
+            "Interactable"
+        ) as Nullable<InteractableBehavior>; // Use Nullable
+        if (!behavior) {
+            throw new Error(
+                "InteractionManager: activated mesh must have InteractableBehavior."
+            );
+        }
+
+        console.log("Trying to notify: ", activationInfo);
+        this.onMeshActivationStateChangedObservable.notifyObserver(
+            behavior.activationStateObserver,
+            activationInfo,
+            mesh.uniqueId
+        );
+    };
+
+    protected checkActivate = (activate: boolean, anchorId: number) => {
+        const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
+        console.log(anchor, grabbedMesh, grabber);
+        if (!grabbedMesh) {
+            return;
+        }
+
+        if (activate) {
+            this.notifyActivationMeshObserver(grabbedMesh, {
+                anchor,
+                grabber,
+                state: ActivationState.ACTIVE,
+            });
+        } else {
+            this.notifyActivationMeshObserver(grabbedMesh, {
+                anchor,
+                grabber,
+                state: ActivationState.INACTIVE,
+            });
+        }
+    };
 }

@@ -11,7 +11,6 @@ export class MobileInteractionHandler extends BaseInteractionHandler {
 
         meshesLoaded.add((loaded) => {
             if (loaded) {
-                this.setupCylinderInteractions();
                 this.setupClickableObjectInteractions();
             }
         });
@@ -30,6 +29,6 @@ export class MobileInteractionHandler extends BaseInteractionHandler {
     }
 
     public dispose(): void {
-        this.removePointerDragObservers();
+        console.log("Dispose called");
     }
 }

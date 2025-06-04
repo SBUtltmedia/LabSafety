@@ -147,7 +147,9 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             dragPlaneNormal: new Vector3(0, 1, 0),
         });
         pointerDragBehavior.moveAttached = false;
-        pointerDragBehavior.useObjectOrientationForDragging = false;    
+        pointerDragBehavior.useObjectOrientationForDragging = false; 
+        
+        let canvas = document.getElementById("canvas");
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
             let mode = this.interactionManager.interactionMode;
@@ -168,6 +170,11 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
         pointerDragBehavior.onDragObservable.add((event) => {
             this.#mesh.moveWithCollisions(event.delta);
+            let mode = this.interactionManager.interactionMode;
+
+            if (mode === InteractionMode.DESKTOP) {
+                this.#mesh.getScene().activeCamera.attachControl(canvas, true);
+            }
         })
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
