@@ -53,7 +53,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     }
 
     private configureController = (controller: WebXRInputSource) => {
-        console.log("Configure controller");
         this.controllerDragging.set(controller, false);
         this.lastControllerDragging.set(controller, Vector3.Zero());
 
@@ -110,7 +109,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
         anchorId: number,
         controller: WebXRInputSource,
     ) => {
-        console.log("Configure motion controller");
         const squeeze = motionController.getComponentOfType("squeeze");
         if (squeeze) {
             let pointerDragBehavior: Nullable<PointerDragBehavior>;

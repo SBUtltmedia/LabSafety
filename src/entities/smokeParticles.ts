@@ -61,7 +61,6 @@ export class SmokeParticles {
 
         let emitterSphere = MeshBuilder.CreateSphere("emitterSphere", {diameter: 0.05})
         emitterSphere.parent = this.#mesh.getChildMeshes().find(mesh => mesh.name === "Hose");
-        console.log("hose: ", this.#mesh.getChildMeshes().find(mesh => mesh.name === "Hose"))
 
         emitterSphere.position = new Vector3(0, 0.08, 0);
         // emitterSphere.rotation = new Vector3(0, Math.PI/2, 0);
@@ -74,8 +73,6 @@ export class SmokeParticles {
             // gui.add(particleSystem, entry[0]);
         }
         // gui.add(particleSystem, obj["gravity"].x);
-        console.log(Object.entries(particleSystem));
-
 
         particleSystem.blendMode = ParticleSystem.BLENDMODE_STANDARD;
 

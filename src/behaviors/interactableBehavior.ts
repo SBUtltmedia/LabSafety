@@ -305,7 +305,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             }
         }, this.#mesh.uniqueId);
         this.#activationStateObserver = this.interactionManager.onMeshActivationStateChangedObservable.add(({ anchor, grabber, state }) => {
-            console.log("Fire activation state!", this.#activatable);
             if (this.#activatable && this.grabbing) {
                 if (state === ActivationState.ACTIVE && !this.#active) {
                     this.#activate();

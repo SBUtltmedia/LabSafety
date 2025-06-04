@@ -17,8 +17,6 @@ export const createGUIElement = (mesh: Mesh) => {
     let adt = AdvancedDynamicTexture.CreateForMesh(mesh);
     let c1 = new Ellipse();
 
-    console.log(adt);
-
     c1.width = "100%"
     c1.height = "100%";
     c1.color = "Orange";

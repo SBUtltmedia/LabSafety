@@ -123,7 +123,12 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
         // XR laser pointers
         meshesToPreserveNames.push("laserPointer");
+    } else {
+        interactionManager = new InteractionManager(scene);
+    }
 
+    if (!interactionManager) {
+        console.error("InteractionManager was not initialized. Fatal error.");
     }
     
     await loadSounds("./json/sounds.json");
@@ -267,10 +272,7 @@ export async function initScene(scene: Scene): Promise<Scene> {
 
     finalGameState.notifyObservers(Status.RESET);
 
-    console.log("XR EXP: ", xrExperience);
-
     if (interactionManager && interactionManager.currentInteractionHandler)  {
-        console.log(interactionManager.currentInteractionHandler);
         interactionManager.currentInteractionHandler.configure();
     }
 

@@ -257,7 +257,6 @@ export abstract class BaseInteractionHandler {
             );
         }
 
-        console.log("Trying to notify: ", activationInfo);
         this.onMeshActivationStateChangedObservable.notifyObserver(
             behavior.activationStateObserver,
             activationInfo,
@@ -267,7 +266,6 @@ export abstract class BaseInteractionHandler {
 
     protected checkActivate = (activate: boolean, anchorId: number) => {
         const { anchor, grabber, grabbedMesh } = this.modeSelectorMap[this.interactionMode][anchorId];
-        console.log(anchor, grabbedMesh, grabber);
         if (!grabbedMesh) {
             return;
         }

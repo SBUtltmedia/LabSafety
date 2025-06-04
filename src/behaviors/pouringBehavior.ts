@@ -164,7 +164,6 @@ export class PouringBehavior implements Behavior<Mesh> {
                     tilted = true;
                 } else {
                     oldAngle = this.mesh.absoluteRotationQuaternion.clone();
-                    console.log(this.mesh.absoluteRotationQuaternion, oldAngle);
 
                     const sourceMesh = this.mesh;
                     const targetMesh = this.#currentTarget;
@@ -201,7 +200,6 @@ export class PouringBehavior implements Behavior<Mesh> {
                 isQueued = false;
                 if (mode === InteractionMode.XR) {
                     this.mesh.rotationQuaternion = oldAngle.clone();
-                    console.log(this.mesh.absoluteRotationQuaternion, oldAngle);
                 } else {
                     tilt(this.mesh, dir * Math.PI / 3, 0); // Queue up the tilt back
                     dir = 1;

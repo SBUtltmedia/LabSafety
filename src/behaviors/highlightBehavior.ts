@@ -25,7 +25,6 @@ export class HighlightBehavior implements Behavior<Mesh> {
     }
 
     attach = (mesh: Mesh) => {
-        console.log("Attach!")
         this.mesh = mesh;
     }
 
