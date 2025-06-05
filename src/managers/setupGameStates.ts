@@ -20,7 +20,7 @@ export let HUDAudioFiles = new Map<string, Howl>();
 export let HintAudioFiles = new Map<HudHint, FileArray>();
 
 const filePathPrefix = "sounds/narration"
-
+const soundExtension=".ogg"
 const createHowlerObject = (filename: string) => {
     return new Promise((resolve, reject) => {
         const sound = new Howl({
@@ -60,12 +60,12 @@ export const setupGameStates = async(platform: string) => {
                 global.hudHints = Object.assign({}, json);
                 Object.keys(global.hudHints).map((hudName, hudIdx) => {
                     soundMap.set(global.hudHints[hudName], hudIdx + 1);
-                    HintAudioFiles.set(global.hudHints[hudName], {"desktop": `desktop_${hudIdx + 1}.wav`, "mobile": `mobile_${hudIdx + 1}.wav`, "xr": `xr_${hudIdx + 1}.wav`});
+                    HintAudioFiles.set(global.hudHints[hudName], {"desktop": `desktop_${hudIdx + 1}.${soundExtension}`, "mobile": `mobile_${hudIdx + 1}.${soundExtension}`, "xr": `xr_${hudIdx + 1}.${soundExtension}`});
                 });
                 soundMap.keys().forEach(key => {
                     const hudIdx = soundMap.get(key);
                     ["desktop", "mobile", "xr"].forEach(platform => {
-                        const fileName = `${platform}_${hudIdx}.wav`;
+                        const fileName = `${platform}_${hudIdx}.${soundExtension}`;
                         HUDAudioFiles.set(fileName, null);
                     })
                 })
