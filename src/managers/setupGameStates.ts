@@ -20,7 +20,7 @@ export let HUDAudioFiles = new Map<string, Howl>();
 export let HintAudioFiles = new Map<HudHint, FileArray>();
 
 const filePathPrefix = "sounds/narration"
-const soundExtension=".ogg"
+const soundExtension="ogg"
 const createHowlerObject = (filename: string) => {
     return new Promise((resolve, reject) => {
         const sound = new Howl({

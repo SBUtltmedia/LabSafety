@@ -11,7 +11,7 @@ import { Observable } from "@babylonjs/core/Misc/observable";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 
-import { IMeshGrabInfo, IMeshActivationInfo, InteractionMode, IGrabInfo, GrabState, ActivationState, IModeSelectorMap, ISelector, BaseInteractionHandler, InteractionHandlerConfig } from "./handlers/baseInteractionHandler";
+import { IMeshGrabInfo, IMeshActivationInfo, InteractionMode, IGrabInfo, GrabState, IModeSelectorMap, ISelector, BaseInteractionHandler, InteractionHandlerConfig } from "./handlers/baseInteractionHandler";
 import { MeshSelector } from "../../systems/meshUtils";
 import { DesktopInteractionHandler } from "./handlers/desktopInteractionHandler";
 import { MobileInteractionHandler } from "./handlers/mobileInteractionHandler";

@@ -20,6 +20,8 @@ export class GameState {
     howlerAudioObject: Howl;
     playBaseAudioOnce: boolean = true;
 
+    static isLost: boolean = false;
+
     set platform(val: string) {
         this._platform = val;
     }
@@ -98,8 +100,11 @@ export class BaseState extends GameState {
     static playAfterSOPFirstTime: boolean = true;
     hudHint: HudHint;
 
-    constructor(hudHint: HudHint, platform: string) {
-        super(hudHint, platform, GameStates.BASE);
+    constructor(hudHint: HudHint, platform: string, isLost: boolean = false) {
+        if (GameState.isLost) {
+            hudHint = global.hudHints["GAME_STATE_FAIL"]
+        }
+        super(hudHint, platform, GameStates.BASE, null);
         this.hudHint = hudHint;
         this.updateHUDText();
         this.displayingHUD = true;
@@ -114,6 +119,9 @@ export class BaseState extends GameState {
             } else if (this.hudHint === global.hudHints["GAME_STATE_AFTER_SOP"] && BaseState.playAfterSOPFirstTime) {
                 BaseState.playAfterSOPFirstTime = false;
                 this.howlerAudioObject.play();
+            } else if (this.hudHint === global.hudHints["GAME_STATE_FAIL"]) {
+                GameState.isLost = true;
+                this.howlerAudioObject.play();
             }
         }
     }
@@ -125,7 +133,12 @@ export class BaseState extends GameState {
             if (args.length > 0) {
                 let mesh: AbstractMesh = args[0];
                 if (mesh.name === "fire-extinguisher") {
-                    return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"], this.platform);        
+                    if (GameState.isLost) {
+                        return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"], this.platform);        
+                    } else {
+                        // play the other audio file
+                        return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER_NO_FIRE"], this.platform);
+                    }
                 } else if (mesh.name.startsWith("cylinder")) {
                     return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"], this.platform);
                 } else if (mesh.name.startsWith("Door")) {
@@ -133,6 +146,9 @@ export class BaseState extends GameState {
                 }
             }                        
             return new GrabState(global.hudHints["GAME_STATE_PICK"], this.platform);
+        } else if (newState === GameStates.RESET) {
+            GameState.isLost = false;
+            return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
         }
 
         return null;
@@ -151,9 +167,12 @@ export class GrabState extends GameState {
         this.platform = platform;
         this.stopHintAudio();
         if (newState === GameStates.LOSE) {
-            return new EndState(global.hudHints["GAME_STATE_FAIL"], this.platform);
+            return new BaseState(global.hudHints["GAME_STATE_FAIL"], this.platform);
         } else if (newState === GameStates.WIN) {
             return new EndState(global.hudHints["GAME_STATE_SOP_PASS"], this.platform);
+        } else if (newState === GameStates.RESET) {
+            GameState.isLost = false;
+            return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
         }
         return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
     }

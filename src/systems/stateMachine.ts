@@ -17,7 +17,8 @@ export enum GameStates {
     PICK,
     WIN,
     LOSE,
-    PICK_SOP
+    PICK_SOP,
+    RESET
 }
 
 export class StateMachine {
@@ -56,6 +57,7 @@ export class StateMachine {
 
         interactionManager.onGrabStateChangedObservable.add((meshGrabInfo: { state: GrabState; mesh: { name: string; }; })  => {
             if (meshGrabInfo.state === GrabState.GRAB) {
+                console.log("Grab!");
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
             } else {
                 if (meshGrabInfo.mesh.name === "clipboard") {
@@ -80,9 +82,11 @@ export class StateMachine {
 
         finalGameState.add(newStatus => {
             if (newStatus === Status.FAILURE) {
+                console.log("Lose!");
                 this.#delegateState(GameStates.LOSE);
             } else if (newStatus === Status.RESET) {
                 console.log("Reset state machine");
+                this.#delegateState(GameStates.RESET);
             } else if (newStatus === Status.SUCCESSFUL) {
                 this.#delegateState(GameStates.WIN);
             }

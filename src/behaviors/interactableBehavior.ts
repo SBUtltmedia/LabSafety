@@ -144,7 +144,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
     #enablePointerDrag = (): void => {
         const pointerDragBehavior = new PointerDragBehavior({
-            dragPlaneNormal: new Vector3(0, 1, 0),
+            dragPlaneNormal: new Vector3(0, 0, 1),
         });
         pointerDragBehavior.moveAttached = false;
         pointerDragBehavior.useObjectOrientationForDragging = false; 
@@ -163,8 +163,11 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                     this.#anchor = scene.getMeshByName("default-anchor");
                     this.#grabber = scene.getMeshByName("default-grabber");
                 }
+ 
                 this.interactionManager.modeSelectorMap[mode][this.#anchor.uniqueId] = { anchor: this.#anchor, grabber: this.#grabber, grabbedMesh: this.#mesh, targetMesh: null };
-                this.#grab(this.#anchor, this.#grabber);             
+
+                this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.GRAB});
+                this.#grab(this.#anchor, this.#grabber);
             }
         });
 
@@ -184,6 +187,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 mode === InteractionMode.MOBILE ||
                 mode === InteractionMode.XR) {
 
+                this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.DROP});
                 this.#drop();
             }
         });
@@ -236,8 +240,10 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: !this.grabbing
     // Postconditions: this.grabbing
     #grab = (anchor: AbstractMesh, grabber: AbstractMesh): void => {
+        console.log("Notify observers");
         this.onGrabStateChangedObservable.notifyObservers({ anchor, grabber, state: GrabState.GRAB });
 
+        console.log(anchor, grabber);
         // Satisfying the postcondition
         this.#anchor = anchor;
         this.#grabber = grabber;
@@ -301,6 +307,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 this.#grabberWasVisible = grabber.isVisible;
                 this.#grab(anchor, grabber);
             } else if (state === GrabState.DROP && this.grabbing) {
+                console.log("Triggering drop");
                 this.#drop();
             }
         }, this.#mesh.uniqueId);

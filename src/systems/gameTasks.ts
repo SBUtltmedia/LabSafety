@@ -151,6 +151,8 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
 
+                finalGameState.notifyObservers(Status.FAILURE);
+
                 const whiteScreenMaterial = new StandardMaterial("whiteScreenMat", scene);
                 whiteScreenMaterial.emissiveColor = new Color3(1, 1, 1);
 
