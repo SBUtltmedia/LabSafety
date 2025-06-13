@@ -5,6 +5,7 @@ import { enableCameraControls } from "../systems/enableCameraControls";
 import { enableMeshCollisions } from "../systems/enableCollisions";
 import { placeCamera } from "../systems/placeCamera";
 import { createBlackboard } from "./blackboard";
+import { createPortal } from "./createPortal";
 
 export function createRoom(roomMesh: Mesh) {
     const camera = roomMesh.getScene().activeCamera as UniversalCamera;
@@ -12,6 +13,8 @@ export function createRoom(roomMesh: Mesh) {
     enableMeshCollisions(roomMesh);
 
     createBlackboard();
+
+    createPortal(roomMesh.getScene());
 
     placeCamera(camera);
 

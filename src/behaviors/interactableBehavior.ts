@@ -240,10 +240,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: !this.grabbing
     // Postconditions: this.grabbing
     #grab = (anchor: AbstractMesh, grabber: AbstractMesh): void => {
-        console.log("Notify observers");
         this.onGrabStateChangedObservable.notifyObservers({ anchor, grabber, state: GrabState.GRAB });
 
-        console.log(anchor, grabber);
         // Satisfying the postcondition
         this.#anchor = anchor;
         this.#grabber = grabber;

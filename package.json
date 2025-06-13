@@ -12,15 +12,15 @@
     "prod": "cross-env NODE_ENV=production vite --host"
   },
   "dependencies": {
-    "@babylonjs/core": "latest",
-    "cross-env": "latest",
-    "handlebars": "latest",
+    "@babylonjs/core": "^8.12.0",
+    "@babylonjs/gui": "^8.12.0",
+    "cross-env": "^7.0.3",
+    "handlebars": "^4.7.8",
     "howler": "^2.2.4",
-    "lil-gui": "^0.20.0",
-    "pepjs": "latest"
+    "pepjs": "^0.5.3"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "latest",
+    "@babylonjs/inspector": "^8.12.0",
     "@types/howler": "^2.2.4",
     "gh-pages": "latest",
     "rollup-plugin-visualizer": "latest",

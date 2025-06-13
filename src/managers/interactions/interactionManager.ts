@@ -88,8 +88,10 @@ export class InteractionManager {
         for (const selector of availableSelectors) {
             const targetMeshes = [];
             for (const target of validTargets) {
-                if (selector.grabber.intersectsMesh(target, true)) {
-                    targetMeshes.push(target);
+                if (target instanceof Mesh || target instanceof AbstractMesh) {
+                    if (selector.grabber.intersectsMesh(target, true)) {
+                        targetMeshes.push(target);
+                    }
                 }
             }
             selector.targetMesh = MeshSelector.getNearestTo( // Use MeshSelector helper

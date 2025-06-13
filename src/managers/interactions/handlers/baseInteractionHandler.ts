@@ -1,9 +1,5 @@
 import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes, SixDofDragBehavior, PointerInfo, Observer, Observable, WebXRDefaultExperience } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
-import { CameraRotator } from "../../../systems/cameraUtils";
-import { DesktopInteractionHandler } from "./desktopInteractionHandler";
-import { MobileInteractionHandler } from "./mobileInteractionHandler";
-import { XRInteractionHandler } from "./xrInteractionHandler";
 
 export interface IModeSelectorMap {
     [mode: number]: {
@@ -73,6 +69,7 @@ export abstract class BaseInteractionHandler {
     protected clickableObjectsIds: Nullable<string>[] = [];
     protected canvas: HTMLCanvasElement;
     protected xrExperience: WebXRDefaultExperience;
+    protected parentExceptionIds: string[] = ["ExitDoor"];
 
     protected pointerDragStartObserver: Observer<any>;
     protected pointerDragObserver: Observer<any>;
@@ -101,6 +98,7 @@ export abstract class BaseInteractionHandler {
     private initializeClickableObjects(): void {
         this.clickableObjectsIds.push("clipboard");
         this.clickableObjectsIds.push("fire-extinguisher");
+        this.clickableObjectsIds.push("ExitDoor");
     }
 
     // Abstract method that concrete handlers must implement
@@ -109,6 +107,10 @@ export abstract class BaseInteractionHandler {
     private getMeshInClickableMeshs(pickedMesh: AbstractMesh): AbstractMesh {
         if (!pickedMesh) {
             return null;
+        }
+
+        if (this.parentExceptionIds.includes(pickedMesh.id) || this.clickableObjectsIds.includes(pickedMesh.id)) {
+            return pickedMesh;
         }
 
         let topLevelMesh: Nullable<AbstractMesh> = pickedMesh;
@@ -137,7 +139,6 @@ export abstract class BaseInteractionHandler {
                 const hit = this.scene.pickWithRay(ray);
                 if (hit?.pickedMesh) {
                     let curPickedMesh: Nullable<AbstractMesh> = this.getMeshInClickableMeshs(hit.pickedMesh);
-
                     if (curPickedMesh) {
                         this.modeSelectorMap[this.interactionMode][
                             this.anchor.uniqueId

@@ -9,6 +9,8 @@ import { createRoom } from "../entities/createRoom";
 import { createFireExtinguisher } from "../entities/createFireExtinguisher";
 import { createGlassDivider } from "../entities/createGlassDivider";
 import { meshMap } from "../entities/loadMeshes";
+import { createDoor } from "../entities/createDoor";
+import { TransformNode } from "@babylonjs/core";
 
 export function processMeshes(meshes: Mesh[]) {
     // @todo: make constants out of the names.
@@ -23,6 +25,7 @@ export function processMeshes(meshes: Mesh[]) {
     const glassDivider = meshes.find(mesh => mesh.name === meshMap["Glass Divider"]);
 
     createRoom(roomMesh);
+    createDoor(roomMesh.getChildTransformNodes().find(node => node.name === "DoorSystem") as AbstractMesh);
 //    roomMesh.setEnabled(false);
     createGlassDivider(glassDivider);
 

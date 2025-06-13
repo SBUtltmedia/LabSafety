@@ -75,9 +75,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     scene.activeCamera.attachControl(canvas, true);
     light1.intensity = 0;
 
-    // Enable audio
-    Engine.audioEngine.useCustomUnlockedButton = true;
-
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
@@ -144,7 +141,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
         interactionManager.onModeChangeObservable.notifyObservers(interactionManager.interactionMode);
-        Engine.audioEngine.audioContext.resume();
         const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
         if (vrIcon) {
             vrIcon.classList.remove("hide");
