@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, UniversalCamera, Nullable, PointerDragBehavior, Vector3, PointerInput, Matrix, KeyboardEventTypes, SixDofDragBehavior, PointerInfo, Observer, Observable, WebXRDefaultExperience } from "@babylonjs/core";
+import { Scene, AbstractMesh, UniversalCamera, Nullable, Matrix, KeyboardEventTypes, Observer, Observable, WebXRDefaultExperience } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
 
 export interface IModeSelectorMap {

@@ -1,4 +1,6 @@
-import { Color3, GlowLayer, MeshBuilder, RectAreaLight, Scene, StandardMaterial, Texture, Vector3, VolumetricLightScatteringPostProcess } from "@babylonjs/core";
+import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Texture, VolumetricLightScatteringPostProcess } from "@babylonjs/core";
+
+export let godraysList: VolumetricLightScatteringPostProcess[] = [];
 
 export function createPortal(scene: Scene) {
     let color = new Color3(0.01, 0.05, 0);
@@ -18,17 +20,24 @@ export function createPortal(scene: Scene) {
     plane.rotation.y = -Math.PI / 2;
 
     plane.position.copyFrom(scene.getMeshByName("ExitDoor").getAbsolutePosition());
-    plane.position.x = - 4.2;
+    plane.position.x = -4.2;
     plane.position.y = 1;
     plane.position.z = -1.67;
 
-    plane.scaling.x = 0.7;
-    plane.scaling.y = 0.6;
+    plane.scaling.x = 0.535;
+    plane.scaling.y = 0.44;
 
+    godrays(plane, scene);
+
+    plane.isVisible = false;
+}
+
+export function godrays(mesh: Mesh, scene: Scene) {
     let camera = scene.activeCamera;
     let engine = scene.getEngine();
-    let godrays = new VolumetricLightScatteringPostProcess('godrays', 1.0, camera, plane, 100, Texture.BILINEAR_SAMPLINGMODE, engine, false);
+    let godrays = new VolumetricLightScatteringPostProcess(`godrays_${mesh.name}`, 1.0, camera, mesh, 100, Texture.BILINEAR_SAMPLINGMODE, engine, false);
 
+    //@ts-ignore works fine and was taken from the default babylon playground.
     godrays._volumetricLightScatteringRTT.renderParticles = true;
 
     godrays.exposure = 0.1;
@@ -36,6 +45,5 @@ export function createPortal(scene: Scene) {
     godrays.weight = 0.98767;
     godrays.density = 0.996;
 
-    plane.isVisible = false;
-
+    godraysList.push(godrays);
 }

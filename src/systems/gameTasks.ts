@@ -12,9 +12,11 @@ import { global } from "../globalState";
 import { setColor } from "../entities/createCylinder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { MeshBuilder, Observable } from "@babylonjs/core";
+import { Mesh, MeshBuilder, Observable } from "@babylonjs/core";
 import { NUM_FIRES } from "../Constants";
 import { Animation } from '@babylonjs/core/Animations/animation';
+import { isDoorOpen } from "../entities/createDoor";
+import { godraysList } from "../entities/createPortal";
 
 
 interface ITaskMap {
@@ -22,6 +24,7 @@ interface ITaskMap {
 }
 
 export const finalGameState: Observable<Status> = new Observable();
+export let isExtinguished = false;
 
 let isFire = false;
 
@@ -207,14 +210,25 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                     if (ok) {
                         for (let i = 1; i <= NUM_FIRES; i++) {
                             let emitter = scene.getMeshByName(`emitter${i}`)
-                            let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
-                            fireBehavior.extinguish();
+                            if (emitter) {
+                                let fireBehavior = emitter.getBehaviorByName("Fire") as FireBehavior;
+                                fireBehavior.extinguish();
+                            }
                         }
-                        obs.remove();
-                        GUIWindows.createFailureScreen(scene, () => {
-                            interactionManager.currentInteractionHandler.dispose();
-                            initScene(scene);
-                        });                    
+                        isExtinguished = true;
+                        if (isDoorOpen) {
+                            obs.remove();
+                            GUIWindows.createFailureScreen(scene, () => {
+                                interactionManager.currentInteractionHandler.dispose();
+                                let plane = scene.getMeshByName("portal") as Mesh;
+                                plane.isVisible = false;
+                                for (let godRay of godraysList) {
+                                    godRay.dispose(scene.activeCamera);
+                                }
+                                isExtinguished = false;
+                                initScene(scene);
+                            });
+                        }
                     }    
                 });
 

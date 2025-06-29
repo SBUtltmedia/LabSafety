@@ -138,8 +138,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         if (this.grabbing) {
             this.#mesh.setParent(null);
         }
-
-        // can use pointer drag here?
     }
 
     #enablePointerDrag = (): void => {
@@ -148,6 +146,8 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         });
         pointerDragBehavior.moveAttached = false;
         pointerDragBehavior.useObjectOrientationForDragging = false; 
+        
+        pointerDragBehavior.allowOtherButtonsDuringDrag = true;
         
         let canvas = document.getElementById("canvas");
 
@@ -168,7 +168,9 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
                 this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.GRAB});
                 this.#grab(this.#anchor, this.#grabber);
-            }
+            } else {
+                pointerDragBehavior.releaseDrag();
+            }         
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
@@ -181,15 +183,16 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         })
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
-            let mode = this.interactionManager.interactionMode
+            let mode = this.interactionManager.interactionMode;
+
             if ((mode === InteractionMode.DESKTOP &&
                 event.pointerInfo.event.inputIndex === PointerInput.LeftClick) ||
                 mode === InteractionMode.MOBILE ||
                 mode === InteractionMode.XR) {
-
+                
                 this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.DROP});
                 this.#drop();
-            }
+            }         
         });
 
         this.#mesh.addBehavior(pointerDragBehavior);        
@@ -270,6 +273,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         // Satisfying postcondition !this.grabbing
         this.#anchor = null;
         this.#grabber = null;
+
     }
 
     init(): void {
@@ -305,7 +309,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 this.#grabberWasVisible = grabber.isVisible;
                 this.#grab(anchor, grabber);
             } else if (state === GrabState.DROP && this.grabbing) {
-                console.log("Triggering drop");
                 this.#drop();
             }
         }, this.#mesh.uniqueId);

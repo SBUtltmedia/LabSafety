@@ -24,16 +24,16 @@ export class SmokeParticles {
             console.log("Using the GPU for particle system")
             particleSystem = new ParticleSystem("particles", 150000, scene);
         } else {
-            particleSystem = new ParticleSystem("particles", 100000 , scene);
+            particleSystem = new ParticleSystem("particles", 100000, scene);
         }
 
         particleSystem.particleTexture = new Texture("images/smokeParticleTexture2.png", scene);
-    
+
         let x = 1, y = 1.5, z = x;
 
-        particleSystem.color1 = new Color4(0.7,0.7,0.7, 0.3);
+        particleSystem.color1 = new Color4(0.7, 0.7, 0.7, 0.3);
         particleSystem.color2 = particleSystem.color1;
-        particleSystem.colorDead = new Color4(1,1,1, 0);
+        particleSystem.colorDead = new Color4(1, 1, 1, 0);
 
         particleSystem.renderingGroupId = 1;
 
@@ -47,19 +47,20 @@ export class SmokeParticles {
 
 
         let gravity = new Vector3(0, 0, 90)
-       let obj = { isLocal : true,
+        let obj = {
+            isLocal: true,
 
-        gravity,
+            gravity,
 
-        // how long before the particles dispose
-        minLifeTime : 0.2,
-        maxLifeTime : 1,
+            // how long before the particles dispose
+            minLifeTime: 0.2,
+            maxLifeTime: 1,
 
-        minSize : 0.05,
-        maxSize : 0.05
+            minSize: 0.05,
+            maxSize: 0.05
         }
 
-        let emitterSphere = MeshBuilder.CreateSphere("emitterSphere", {diameter: 0.05})
+        let emitterSphere = MeshBuilder.CreateSphere("emitterSphere", { diameter: 0.05 })
         emitterSphere.parent = this.#mesh.getChildMeshes().find(mesh => mesh.name === "Hose");
 
         emitterSphere.position = new Vector3(0, 0.08, 0);

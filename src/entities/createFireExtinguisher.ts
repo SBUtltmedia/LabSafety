@@ -57,7 +57,7 @@ export function createFireExtinguisher(mesh: Mesh): void {
 
     let currentHotspot = hotspotStack[hotspotStack.length - 1];
     hotspotStack.pop();
-  
+
 
     let prevRayHelper: RayHelper = null;
 
@@ -73,24 +73,24 @@ export function createFireExtinguisher(mesh: Mesh): void {
 
 
     let performHotspotAnimation = (c1: Ellipse, frame: number) => {
-        if (c1.background === toColor.toHexString() || frame === NUM_FRAMES) {
+        if (frame > NUM_FRAMES) {
             return;
         }
-        const lerpColor = Color3.Lerp(fromColor, toColor, frame / NUM_FRAMES);
+
+        const ratio = Math.min(1.0, frame / NUM_FRAMES);
+        const lerpColor = Color3.Lerp(fromColor, toColor, ratio);
 
         c1.background = lerpColor.toHexString();
 
         if (!isRelease) {
             requestAnimationFrame(() => performHotspotAnimation(c1, frame + 1));
         } else {
-            // reset back
             for (let hotspot of Object.keys(HotspotEllipseMap)) {
                 let c = HotspotEllipseMap[hotspot];
-                c.background = "#F00";
+                c.background = DEFAULT_BG;
             }
         }
     }
-
 
     interactableBehavior.onActivationStateChangedObservable.add(({ state }) => {
         if (state === ActivationState.ACTIVE) {
@@ -107,10 +107,10 @@ export function createFireExtinguisher(mesh: Mesh): void {
                     if (prevRayHelper !== null) {
                         prevRayHelper.dispose();
                     }
-        
+
                     const rayHelper = new RayHelper(ray);
                     rayHelper.show(scene, new Color3(0, 255, 0));
-                    prevRayHelper = rayHelper;                    
+                    prevRayHelper = rayHelper;
 
                     const olpickInfo = scene.pickWithRay(ray, pickedMesh => {
                         const isEmitter = pickedMesh.name.startsWith("hotspot");
@@ -121,14 +121,14 @@ export function createFireExtinguisher(mesh: Mesh): void {
                         hightlightBehav.highlightSelf(new Color3(0, 255, 0));
                     } else {
                         hightlightBehav.unhighlightSelf();
-                    }                    
+                    }
 
                     const pickInfo = scene.pickWithRay(ray, pickedMesh => {
                         const fireBehavior = pickedMesh.getBehaviorByName("Fire") as FireBehavior;
                         const isEmitter = pickedMesh.name.startsWith("hotspot");
                         return Boolean((fireBehavior && !fireBehavior.extinguished) || isEmitter);
                     });
-                    
+
                     if (pickInfo.hit && pickInfo.pickedMesh.name.startsWith("hotspot")) {
                         isRelease = false;
 
@@ -171,11 +171,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
                             let c1 = HotspotEllipseMap[key];
                             let anim = scene.getAnimatableByTarget(c1);
                             if (anim) {
-                                anim.onAnimationEnd = () => {};
+                                anim.onAnimationEnd = () => { };
                                 scene.stopAnimation(c1);
                             }
-                            c1.background = DEFAULT_BG;                        
-                        }                     
+                            c1.background = DEFAULT_BG;
+                        }
                     }
                 }
             });
@@ -189,11 +189,11 @@ export function createFireExtinguisher(mesh: Mesh): void {
             debugSphere2.isVisible = false;
             if (prevRayHelper !== null) {
                 prevRayHelper.dispose();
-            }            
+            }
             if (timeout) {
                 clearTimeout(timeout);
                 timeout = null;
-                timeoutCleared = true;             
+                timeoutCleared = true;
             }
             // Remove observer
             if (observer) {
@@ -204,10 +204,10 @@ export function createFireExtinguisher(mesh: Mesh): void {
                 let c1 = HotspotEllipseMap[key];
                 let anim = scene.getAnimatableByTarget(c1);
                 if (anim) {
-                    anim.onAnimationEnd = () => {};
+                    anim.onAnimationEnd = () => { };
                     scene.stopAnimation(c1);
                 }
-                c1.background = DEFAULT_BG;                        
+                c1.background = DEFAULT_BG;
             }
         }
     });

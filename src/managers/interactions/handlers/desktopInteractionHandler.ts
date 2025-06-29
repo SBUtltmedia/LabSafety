@@ -27,6 +27,7 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
                     ) {
                         this.checkActivate(false, this.anchor.uniqueId);
                     }
+                    pointerInfo.event.preventDefault();
                 }
             }
         });

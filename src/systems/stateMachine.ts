@@ -57,7 +57,6 @@ export class StateMachine {
 
         interactionManager.onGrabStateChangedObservable.add((meshGrabInfo: { state: GrabState; mesh: { name: string; }; })  => {
             if (meshGrabInfo.state === GrabState.GRAB) {
-                console.log("Grab!");
                 this.#delegateState(GameStates.GRAB, meshGrabInfo.mesh);
             } else {
                 if (meshGrabInfo.mesh.name === "clipboard") {
@@ -82,7 +81,6 @@ export class StateMachine {
 
         finalGameState.add(newStatus => {
             if (newStatus === Status.FAILURE) {
-                console.log("Lose!");
                 this.#delegateState(GameStates.LOSE);
             } else if (newStatus === Status.RESET) {
                 console.log("Reset state machine");

@@ -1,9 +1,10 @@
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Scene, ParticleHelper, Vector3 } from "@babylonjs/core";
+import { Scene, ParticleHelper, Vector3, StandardMaterial, Color3 } from "@babylonjs/core";
 import { FireBehavior } from "../behaviors/fireBehavior";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Ellipse } from "@babylonjs/gui";
+import { godrays } from "./createPortal";
 
 interface IHotspotMap {
     [key: string]: Ellipse
@@ -11,9 +12,13 @@ interface IHotspotMap {
 
 export let HotspotEllipseMap: IHotspotMap = {};
 export const DEFAULT_BG = "#FF0000";
-export const HIT_BG = "#00FF00";
+export const HIT_BG = "#0000BB";
 
 export const createGUIElement = (mesh: Mesh) => {
+    let mat = new StandardMaterial(mesh.name);
+    mat.emissiveColor = new Color3(1, 0.05, 0);
+    mesh.material = mat;
+    
     let adt = AdvancedDynamicTexture.CreateForMesh(mesh);
     let c1 = new Ellipse();
 
@@ -35,6 +40,8 @@ export const createHotspot = (name: string, pos: Vector3, scene: Scene) => {
     hotspot1.isVisible = false;
     hotspot1.position = pos;
     hotspot1.rotation = new Vector3(0, Math.PI / 2, 0);
+
+    godrays(hotspot1, scene);
 
     return hotspot1;
 }

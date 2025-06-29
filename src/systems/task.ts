@@ -5,7 +5,9 @@ import { log } from "../utils";
 export enum Status {
     SUCCESSFUL,
     FAILURE,
-    RESET
+    RESET,
+    EXTINGUISHED,
+    DOOR_OPEN
 }
 
 export class Task {

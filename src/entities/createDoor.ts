@@ -6,11 +6,13 @@ import { interactionManager } from "../scene";
 import { InteractableBehavior } from "../behaviors/interactableBehavior";
 import { GrabState } from "../managers/interactions/handlers/baseInteractionHandler";
 import { AbstractMesh, Mesh, Quaternion, Texture, TransformNode, VolumetricLightScatteringPostProcess } from "@babylonjs/core";
+import { isExtinguished } from "../systems/gameTasks";
+
+export let isDoorOpen = false;
 
 export function createDoor(doorNode: TransformNode) {
     const mesh = doorNode.getChildMeshes().find(mesh => mesh.name === "ExitDoor")
-
-    console.log("Mesh: ", mesh);
+    isDoorOpen = false;
     const interactableBehavior = new InteractableBehavior(interactionManager, {
         moveAttached: false
     });
@@ -19,14 +21,12 @@ export function createDoor(doorNode: TransformNode) {
     let scene = mesh.getScene();
 
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, state }) => {
-        if (state === GrabState.GRAB) {
-            console.log("Grab!");
+        if (state === GrabState.GRAB && isExtinguished) {
             renderObserver = scene.onBeforeRenderObservable.add(() => {
                 // console.log("Anchor:", anchor);
                 const diff = anchor.position.subtract(doorNode.position);
                 diff.y = 0;
                 if (diff.x > 0) {
-                    console.log("return");
                     return;
                 }
                 const offset = diff.z < 0 ? 0 : Math.PI;
@@ -36,9 +36,12 @@ export function createDoor(doorNode: TransformNode) {
 
                 let plane = scene.getMeshByName("portal") as Mesh;
                 plane.isVisible = true;
+                setTimeout(() => {
+                    isDoorOpen = true;
+                }, 1500);
             });
         } else if (state === GrabState.DROP) {
-            console.log("Drop");
+    
             if (renderObserver) {
                 renderObserver.remove();
                 renderObserver = null;
@@ -47,5 +50,4 @@ export function createDoor(doorNode: TransformNode) {
     });
     
     mesh.addBehavior(interactableBehavior);
-    console.log("Add behavior");
 }
