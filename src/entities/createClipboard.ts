@@ -22,7 +22,7 @@ export function createClipboard(mesh: AbstractMesh): void {
     const scene = mesh.getScene();
 
     const material = new StandardMaterial("clipboard-material", scene);
-    material.emissiveColor.copyFrom(Color3.White());
+    material.emissiveColor.copyFrom(Color3.Gray());
     material.useAlphaFromDiffuseTexture = true;
         
     const plane = mesh.getChildMeshes().find(childMesh => childMesh.name === `${mesh.id}-plane`);

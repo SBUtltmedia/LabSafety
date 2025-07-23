@@ -142,13 +142,15 @@ export class BaseState extends GameState {
                 } else if (mesh.name.startsWith("cylinder")) {
                     return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"], this.platform);
                 } else if (mesh.name.startsWith("Door")) {
-                    return new GrabState(global.hudHints["AME_STATE_DOOR_GRAB"], this.platform);
+                    return new GrabState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
                 }
             }                        
             return new GrabState(global.hudHints["GAME_STATE_PICK"], this.platform);
         } else if (newState === GameStates.RESET) {
             GameState.isLost = false;
             return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
+        } else if (newState === GameStates.OPEN_DOOR) {
+            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
         }
 
         return null;
@@ -173,6 +175,9 @@ export class GrabState extends GameState {
         } else if (newState === GameStates.RESET) {
             GameState.isLost = false;
             return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
+        } else if (newState === GameStates.OPEN_DOOR) {
+            console.log("New state open door");
+            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
         }
         return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
     }
@@ -200,6 +205,9 @@ export class PickState extends GameState {
         } else if (newState === GameStates.BASE) {
             this.stopHintAudio();
             return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
+        } else if (newState === GameStates.OPEN_DOOR) {
+            console.log("New state open door");
+            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
         }
         return null;
     }    

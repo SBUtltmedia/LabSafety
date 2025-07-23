@@ -32,6 +32,18 @@ export function createPortal(scene: Scene) {
     plane.isVisible = false;
 }
 
+export function disposePortal(scene: Scene) {
+    let mesh = scene.getMeshByName("portal");
+    if (mesh) {
+        let godRay = scene.getPostProcessByName(`godrays_${mesh.name}`);
+        if (godRay && godRay !== undefined) {
+            console.log(godRay);
+            godRay.dispose();
+        }
+        mesh.dispose();
+    }
+}
+
 export function godrays(mesh: Mesh, scene: Scene) {
     let camera = scene.activeCamera;
     let engine = scene.getEngine();

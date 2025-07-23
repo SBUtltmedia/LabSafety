@@ -24,6 +24,7 @@ import { GUIButtons } from "./entities/InteractableButtons";
 import { finalGameState } from "./systems/gameTasks";
 import { Status } from "./systems/task";
 import { Observable } from "@babylonjs/core";
+import { disposePortal } from "./entities/createPortal";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 

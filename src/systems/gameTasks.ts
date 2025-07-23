@@ -16,7 +16,7 @@ import { Mesh, MeshBuilder, Observable } from "@babylonjs/core";
 import { NUM_FIRES } from "../Constants";
 import { Animation } from '@babylonjs/core/Animations/animation';
 import { isDoorOpen } from "../entities/createDoor";
-import { godraysList } from "../entities/createPortal";
+import { disposePortal, godraysList } from "../entities/createPortal";
 
 
 interface ITaskMap {
@@ -27,6 +27,7 @@ export const finalGameState: Observable<Status> = new Observable();
 export let isExtinguished = false;
 
 let isFire = false;
+let isDoorOpenNotify = false;
 
 export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array<string>) => {
     const fires = setupFires(scene);
@@ -216,6 +217,10 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                             }
                         }
                         isExtinguished = true;
+                        if (!isDoorOpenNotify) {
+                            finalGameState.notifyObservers(Status.DOOR_OPEN);
+                            isDoorOpenNotify = true;
+                        }
                         if (isDoorOpen) {
                             obs.remove();
                             GUIWindows.createFailureScreen(scene, () => {
@@ -226,6 +231,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                                     godRay.dispose(scene.activeCamera);
                                 }
                                 isExtinguished = false;
+                                disposePortal(scene);
                                 initScene(scene);
                             });
                         }

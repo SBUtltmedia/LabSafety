@@ -18,7 +18,8 @@ export enum GameStates {
     WIN,
     LOSE,
     PICK_SOP,
-    RESET
+    RESET,
+    OPEN_DOOR
 }
 
 export class StateMachine {
@@ -87,6 +88,9 @@ export class StateMachine {
                 this.#delegateState(GameStates.RESET);
             } else if (newStatus === Status.SUCCESSFUL) {
                 this.#delegateState(GameStates.WIN);
+            } else if (newStatus == Status.DOOR_OPEN) {
+                console.log("Door OPEN!");
+                this.#delegateState(GameStates.OPEN_DOOR);
             }
         })
 
