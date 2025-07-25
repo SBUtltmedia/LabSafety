@@ -41,7 +41,7 @@ export const createHotspot = (name: string, pos: Vector3, scene: Scene) => {
     hotspot1.position = pos;
     hotspot1.rotation = new Vector3(0, Math.PI / 2, 0);
 
-    godrays(hotspot1, scene);
+    // godrays(hotspot1, scene);
 
     return hotspot1;
 }

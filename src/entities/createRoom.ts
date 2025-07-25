@@ -14,8 +14,6 @@ export function createRoom(roomMesh: Mesh) {
 
     createBlackboard();
 
-    createPortal(roomMesh.getScene());
-
     placeCamera(camera);
 
     // Enable controls here so we have thse room loaded before the user can move around.

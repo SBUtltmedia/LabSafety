@@ -7,6 +7,7 @@ import { InteractableBehavior } from "../behaviors/interactableBehavior";
 import { GrabState } from "../managers/interactions/handlers/baseInteractionHandler";
 import { AbstractMesh, Mesh, Quaternion, Texture, TransformNode, VolumetricLightScatteringPostProcess } from "@babylonjs/core";
 import { isExtinguished } from "../systems/gameTasks";
+import { createPortal } from "./createPortal";
 
 export let isDoorOpen = false;
 
@@ -22,6 +23,8 @@ export function createDoor(doorNode: TransformNode) {
 
     interactableBehavior.onGrabStateChangedObservable.add(({ anchor, state }) => {
         if (state === GrabState.GRAB && isExtinguished) {
+            createPortal(scene);
+
             renderObserver = scene.onBeforeRenderObservable.add(() => {
                 // console.log("Anchor:", anchor);
                 const diff = anchor.position.subtract(doorNode.position);
