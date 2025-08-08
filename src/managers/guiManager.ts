@@ -9,7 +9,6 @@ import { Button } from "@babylonjs/gui/2D/controls/button";
 import { Container } from "@babylonjs/gui/2D/controls/container";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
-import { disablePointerLock } from "../scene";
 
 class PromptWithButton {
     rect: Rectangle;
@@ -27,7 +26,6 @@ class PromptWithButton {
         this.text.isVisible = visible;
         this.button.isVisible = visible;
         document.exitPointerLock();
-        disablePointerLock();
     }
 }
 

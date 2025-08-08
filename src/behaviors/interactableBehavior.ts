@@ -50,7 +50,6 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     #grabStateObserver: Nullable<Observer<IMeshGrabInfo>> = null;
     #activationStateObserver: Nullable<Observer<IMeshActivationInfo>> = null;
     onGrabStateChangedObservable: Observable<IMeshGrabInfo> = new Observable();
-    onMobileGrabStateChangeObservable: Observable<GrabState> = new Observable();
     onActivationStateChangedObservable: Observable<IMeshActivationInfo> = new Observable();
     defaults: IDefaults = {};
     hideGrabber: boolean = true;
@@ -142,7 +141,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
     #enablePointerDrag = (): void => {
         const pointerDragBehavior = new PointerDragBehavior({
-            dragPlaneNormal: new Vector3(0, 0, 1),
+            dragPlaneNormal: new Vector3(1, 1, 1),
         });
         pointerDragBehavior.moveAttached = false;
         pointerDragBehavior.useObjectOrientationForDragging = false; 

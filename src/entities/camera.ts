@@ -12,5 +12,4 @@ export function configureCamera(camera: UniversalCamera): void {
     camera.speed = SPEED;
     camera.checkCollisions = true;
     camera.needMoveForGravity = false;
-
 }

@@ -57,6 +57,7 @@ export interface InteractionHandlerConfig {
     onMeshGrabStateChangedObservable: Observable<any>;
     onGrabStateChangedObservable: Observable<any>;
     onMeshActivationStateChangedObservable: Observable<any>;
+    clickableObjects: string[];
 }
 
 export abstract class BaseInteractionHandler {
@@ -92,13 +93,13 @@ export abstract class BaseInteractionHandler {
         this.onMeshActivationStateChangedObservable = config.onMeshActivationStateChangedObservable;
         this.xrExperience = config.xrCamera;
 
-        this.initializeClickableObjects();
+        this.initializeClickableObjects(config.clickableObjects);
     }
 
-    private initializeClickableObjects(): void {
-        this.clickableObjectsIds.push("clipboard");
-        this.clickableObjectsIds.push("fire-extinguisher");
-        this.clickableObjectsIds.push("ExitDoor");
+    private initializeClickableObjects(clickableObjects: string[]): void {
+        for (let clickableObject of clickableObjects) {
+            this.clickableObjectsIds.push(clickableObject);
+        }
     }
 
     // Abstract method that concrete handlers must implement

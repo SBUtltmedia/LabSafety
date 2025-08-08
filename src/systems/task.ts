@@ -6,8 +6,6 @@ export enum Status {
     SUCCESSFUL,
     FAILURE,
     RESET,
-    EXTINGUISHED,
-    DOOR_OPEN
 }
 
 export class Task {

@@ -1,11 +1,8 @@
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { GameStates } from "./stateMachine";
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
-import { global } from "../globalState";
-import { drawBBText } from "../entities/blackboard";
-import { HudHint, HUDAudioFiles, HintAudioFiles } from "../managers/setupGameStates";
+import { HudHint, HUDAudioFiles, HintAudioFiles } from "../managers/audioManager";
 
 
 export class GameState {
@@ -49,9 +46,6 @@ export class GameState {
 
     handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
         this._platform = platform;
-        if (newState === GameStates.BASE) {
-            return new BaseState(global.hudHints["GAME_STATE_BASE"], this._platform);
-        }
         return null;
     }
 
@@ -59,7 +53,6 @@ export class GameState {
         if (this.text === null || this.text === undefined) {
             this.text = "Loading...";
         }
-        drawBBText(this.text);
     }
 
     configureXR(): void {
@@ -79,148 +72,4 @@ export class GameState {
             this.howlerAudioObject.stop();
         }
     }
-}
-
-export class StartState extends GameState {
-    constructor(hudHint: HudHint, platform: string) {
-        super(hudHint, platform, GameStates.START);
-        this.updateHUDText();
-        this.playHintAudio();
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.stopHintAudio();
-        this.platform = platform;
-        return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
-    }
-}
-
-export class BaseState extends GameState {
-    static playMoveHintFirstTime: boolean = true;
-    static playAfterSOPFirstTime: boolean = true;
-    hudHint: HudHint;
-
-    constructor(hudHint: HudHint, platform: string, isLost: boolean = false) {
-        if (GameState.isLost) {
-            hudHint = global.hudHints["GAME_STATE_FAIL"]
-        }
-        super(hudHint, platform, GameStates.BASE, null);
-        this.hudHint = hudHint;
-        this.updateHUDText();
-        this.displayingHUD = true;
-        this.playHintAudio();
-    }
-
-    playHintAudio(): void {
-        if (this.howlerAudioObject) {
-            if (this.hudHint === global.hudHints["GAME_STATE_BASE"] && BaseState.playMoveHintFirstTime) {
-                BaseState.playMoveHintFirstTime = false;
-                this.howlerAudioObject.play();
-            } else if (this.hudHint === global.hudHints["GAME_STATE_AFTER_SOP"] && BaseState.playAfterSOPFirstTime) {
-                BaseState.playAfterSOPFirstTime = false;
-                this.howlerAudioObject.play();
-            } else if (this.hudHint === global.hudHints["GAME_STATE_FAIL"]) {
-                GameState.isLost = true;
-                this.howlerAudioObject.play();
-            }
-        }
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        if (newState === GameStates.GRAB) {
-            this.stopHintAudio();
-            if (args.length > 0) {
-                let mesh: AbstractMesh = args[0];
-                if (mesh.name === "fire-extinguisher") {
-                    if (GameState.isLost) {
-                        return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"], this.platform);        
-                    } else {
-                        // play the other audio file
-                        return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER_NO_FIRE"], this.platform);
-                    }
-                } else if (mesh.name.startsWith("cylinder")) {
-                    return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"], this.platform);
-                } else if (mesh.name.startsWith("Door")) {
-                    return new GrabState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
-                }
-            }                        
-            return new GrabState(global.hudHints["GAME_STATE_PICK"], this.platform);
-        } else if (newState === GameStates.RESET) {
-            GameState.isLost = false;
-            return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
-        } else if (newState === GameStates.OPEN_DOOR) {
-            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
-        }
-
-        return null;
-    }
-}
-
-export class GrabState extends GameState {
-    constructor(hudHint: HudHint, platform: string) {
-        super(hudHint, platform, GameStates.GRAB);
-        this.updateHUDText();
-        this.displayingHUD = true;
-        this.playHintAudio();
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        this.stopHintAudio();
-        if (newState === GameStates.LOSE) {
-            return new BaseState(global.hudHints["GAME_STATE_FAIL"], this.platform);
-        } else if (newState === GameStates.WIN) {
-            return new EndState(global.hudHints["GAME_STATE_SOP_PASS"], this.platform);
-        } else if (newState === GameStates.RESET) {
-            GameState.isLost = false;
-            return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
-        } else if (newState === GameStates.OPEN_DOOR) {
-            console.log("New state open door");
-            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
-        }
-        return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
-    }
-}
-
-
-export class PickState extends GameState {
-    constructor(hudHint: HudHint, platform: string) {
-        super(hudHint, platform, GameStates.PICK);
-        this.updateHUDText();
-        this.playHintAudio();
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        this.platform = platform;
-        if (newState === GameStates.GRAB) {
-            this.stopHintAudio();
-            if (args.length > 0) {
-                let mesh: AbstractMesh = args[0];
-                if (mesh.name === "fire-extinguisher") {
-                    return new GrabState(global.hudHints["GAME_STATE_PICK_FIREEXTINGUISHER"], this.platform);        
-                }
-            }
-            return new GrabState(global.hudHints["GAME_STATE_PICK_CYLINDER"], this.platform);
-        } else if (newState === GameStates.BASE) {
-            this.stopHintAudio();
-            return new BaseState(global.hudHints["GAME_STATE_BASE"], this.platform);
-        } else if (newState === GameStates.OPEN_DOOR) {
-            console.log("New state open door");
-            return new BaseState(global.hudHints["GAME_STATE_DOOR_GRAB"], this.platform);
-        }
-        return null;
-    }    
-}
-
-export class EndState extends GameState {
-    constructor(hudHint: HudHint, platform: string) {
-        super(hudHint, platform, GameStates.PICK);
-        this.updateHUDText();
-        this.playHintAudio();
-    }
-
-    handleStateChange(newState: GameStates, platform: string, ...args: any): GameState {
-        return this;
-    }    
 }

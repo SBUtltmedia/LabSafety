@@ -8,8 +8,7 @@ import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRAbstractMotionController } from "@babylonjs/core/XR/motionController/webXRAbstractMotionController";
 
 import { loadXRHands } from "../../entities/loadXRHands";
-import { interactionManager, meshesToPreserveNames } from "../../scene";
-import { InteractionMode } from "./interactionManager";
+import { InteractionManager, InteractionMode } from "./interactionManager";
 
 export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
     inputOptions: {
@@ -24,7 +23,8 @@ export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
     }
 };
 
-export async function configureXR(xrExperience: WebXRDefaultExperience): Promise<void> {
+export async function configureXR(xrExperience: WebXRDefaultExperience,
+    interactionManager: InteractionManager, meshesToPreserveNames: string[]): Promise<void> {
     let displayPointer = false;
 
     xrExperience.pointerSelection.laserPointerDefaultColor = Color3.Green();
@@ -64,10 +64,10 @@ export async function configureXR(xrExperience: WebXRDefaultExperience): Promise
     const hands = await loadXRHands(leftHandName, rightHandName);
 
     for (const controller of xrExperience.input.controllers) {
-        configureController(controller, hands[`${controller.inputSource.handedness}`]);
+        configureController(controller, hands[`${controller.inputSource.handedness}`], interactionManager, meshesToPreserveNames);
     }
     xrExperience.input.onControllerAddedObservable.add(controller => {
-        configureController(controller, hands[`${controller.inputSource.handedness}`]);
+        configureController(controller, hands[`${controller.inputSource.handedness}`], interactionManager, meshesToPreserveNames);
     });
     xrExperience.input.onControllerRemovedObservable.add(controller => {
         let index = meshesToPreserveNames.findIndex(name => name === controller.pointer.name);
@@ -105,16 +105,18 @@ function displayXRSplashScreen(xrExperience: WebXRDefaultExperience, scene: Scen
     }
 }
 
-function configureController(controller: WebXRInputSource, handMesh: AbstractMesh): void {
+function configureController(controller: WebXRInputSource, handMesh: AbstractMesh,
+    interactionManager: InteractionManager, meshesToPreserveNames: string[]): void {
     meshesToPreserveNames.push(controller.pointer.name);
     if (controller.grip) {
         meshesToPreserveNames.push(controller.grip.name);
     }
     handMesh.isPickable = false;
-    addHandMesh(controller, handMesh, controller.inputSource.handedness);
+    addHandMesh(controller, handMesh, controller.inputSource.handedness, interactionManager, meshesToPreserveNames);
 }
 
-function addHandMesh(controller: WebXRInputSource, handMesh: AbstractMesh, handedness: XRHandedness): void {
+function addHandMesh(controller: WebXRInputSource, handMesh: AbstractMesh, handedness: XRHandedness,
+    interactionManager: InteractionManager, meshesToPreserveNames: string[]): void {
     handMesh.setParent(controller.pointer);
     handMesh.rotationQuaternion = null;
     if (handedness !== "none") {

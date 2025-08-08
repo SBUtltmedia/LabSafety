@@ -1,6 +1,6 @@
-import { WebXRDefaultExperience, Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, RayHelper, Color3, PickingInfo, Observer, WebXRControllerComponent, PointerInfo, Observable } from "@babylonjs/core";
+import { Scene, AbstractMesh, Nullable, PointerDragBehavior, WebXRInputSource, WebXRAbstractMotionController, SixDofDragBehavior, Vector3, Ray, Observer, WebXRControllerComponent } from "@babylonjs/core";
 import { InteractableBehavior } from "../../../behaviors/interactableBehavior";
-import { BaseInteractionHandler, IModeSelectorMap, InteractionMode, IMeshGrabInfo, IMeshActivationInfo, GrabState } from "./baseInteractionHandler";
+import { BaseInteractionHandler } from "./baseInteractionHandler";
 
 export class XRInteractionHandler extends BaseInteractionHandler {
     private configured: boolean = false;
@@ -14,7 +14,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     private moveObserver: Observer<Scene>;
     private squeezeObserver: Observer<WebXRControllerComponent>;
     private triggerObserver: Observer<WebXRControllerComponent>;
-    private debugRayHelper: RayHelper;
 
     public configure(): void {
         if (!this.xrExperience) {
@@ -22,6 +21,10 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                 "Tried to configure XR interaction without an XR experience."
             );
         }
+
+        // Make the XR hand models visible        
+        this.scene.getMeshByName("left").isVisible = true;
+        this.scene.getMeshByName("right").isVisible = true;  
 
         for (let cylinderName of this.cylinderNames) {
             const mesh = this.scene.getMeshByName(cylinderName);
@@ -33,10 +36,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
 
                 let pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as Nullable<PointerDragBehavior>;
                 if (pointerDragBehavior) {
-                    // pointerDragBehavior.onDragStartObservable.clear();
-                    // pointerDragBehavior.onDragEndObservable.clear();
-                    // pointerDragBehavior.onDragObservable.clear();
-
                     pointerDragBehavior.moveAttached = false;
 
                     this.pointerDragBehaviors.push(pointerDragBehavior);
@@ -73,10 +72,6 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                             const delta = currentControllerPos.subtract(this.lastControllerDragging.get(controller));
 
                             let mesh = this.controllerDraggingMesh.get(controller);
-                            // if (mesh) {
-                            //     // mesh.position.addInPlace(delta);
-                            //     mesh.moveWithCollisions(delta);
-                            // }
 
                             this.lastControllerDragging.set(controller, currentControllerPos.clone());
 
@@ -199,11 +194,5 @@ export class XRInteractionHandler extends BaseInteractionHandler {
 
     public dispose() {
         console.log("Dispose called");
-        // this.squeezeObserver.remove();
-        // this.triggerObserver.remove();
-        // this.moveObserver.remove();
-
-        // this.debugRayHelper.hide();
-        // this.debugRayHelper.dispose();
     }
 }

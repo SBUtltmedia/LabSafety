@@ -1,6 +1,6 @@
 import { PointerInput, PointerEventTypes } from "@babylonjs/core";
-import { meshesLoaded } from "../../../scene";
 import { BaseInteractionHandler, InteractionMode } from "./baseInteractionHandler";
+import { sceneLoadedObservable } from "../../scene/SceneManager";
 
 export class DesktopInteractionHandler extends BaseInteractionHandler {
     private configured = false;
@@ -10,12 +10,16 @@ export class DesktopInteractionHandler extends BaseInteractionHandler {
             return;
         }
 
-        meshesLoaded.add((loaded) => {
+        // Make the XR hand models invisible
+        sceneLoadedObservable.add((loaded) => {
             if (loaded) {
-                this.setupClickableObjectInteractions();
-                this.setupKeyboardInteraction();
+                this.scene.getMeshByName("left").isVisible = false;
+                this.scene.getMeshByName("right").isVisible = false;
             }
-        });
+        })
+        
+        this.setupClickableObjectInteractions();
+        this.setupKeyboardInteraction();    
 
         this.scene.onPointerObservable.add((pointerInfo) => {
             if (this.interactionMode === InteractionMode.DESKTOP) { // Ensure this is only active in desktop mode

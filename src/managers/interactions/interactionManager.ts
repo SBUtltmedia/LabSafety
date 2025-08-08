@@ -42,12 +42,17 @@ export class InteractionManager {
 
     xrExperience?: WebXRDefaultExperience;
     isUsingXRObservable: Observable<Boolean> = new Observable();
+    clickableObjects: string[] = [];
 
     currentInteractionHandler: Nullable<BaseInteractionHandler> = null;
 
 
-    constructor(scene: Scene, xrExperience?: WebXRDefaultExperience) {
+    constructor(scene: Scene, xrExperience?: WebXRDefaultExperience, clickableObjects?: string[]) {
         this.scene = scene;
+
+        if (clickableObjects) {
+            this.clickableObjects = clickableObjects;
+        }
 
         if (xrExperience) {
             this.xrExperience = xrExperience;
@@ -123,6 +128,7 @@ export class InteractionManager {
     }
 
     private switchModeFromXRState = (state: WebXRState) => {
+        console.log("New XR State: ", state.toString());
         console.log("-------------Switch from XR state --- ");
         if (state === WebXRState.NOT_IN_XR) {
             console.log("Not in XR");
@@ -211,7 +217,8 @@ export class InteractionManager {
             xrCamera: this.xrExperience,
             onMeshGrabStateChangedObservable: this.onMeshGrabStateChangedObservable,
             onGrabStateChangedObservable: this.onGrabStateChangedObservable,
-            onMeshActivationStateChangedObservable: this.onMeshActivationStateChangedObservable
+            onMeshActivationStateChangedObservable: this.onMeshActivationStateChangedObservable,
+            clickableObjects: this.clickableObjects
         };
 
         this.currentInteractionHandler = this.instatntiateInteractionHandler(config);
