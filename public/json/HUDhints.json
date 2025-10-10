@@ -53,5 +53,10 @@
         "desktop": "Drag around the door's handle to open it",
         "mobile":  "Drag around the door's handle to open it",
         "xr":  "Drag around the door's handle to open it."
+    },
+    "GAME_STATE_PICK_FIREEXTINGUISHER_NO_FIRE": {
+        "desktop": "You probably shouldn't play with emergency equipment unless you really need it!",
+        "mobile":  "You probably shouldn't play with emergency equipment unless you really need it!",
+        "xr":  "You probably shouldn't play with emergency equipment unless you really need it!."        
     }
 }

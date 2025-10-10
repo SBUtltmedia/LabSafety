@@ -8,22 +8,23 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { UtilityLayerRenderer } from "@babylonjs/core/Rendering/utilityLayerRenderer";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { Ellipse } from "@babylonjs/gui";
-import { STARTING_POSITION, configureCamera } from "./camera";
-import { InteractionManager } from "./interactionManager";
-import { loadMeshes, meshMap } from "./loadMeshes";
-import { placeCamera } from "./placeCamera";
-import { placeMeshes } from "./placeMeshes";
-import { processMeshes } from "./processMeshes";
+import { STARTING_POSITION, configureCamera } from "./entities/camera";
+import { InteractionManager } from "./managers/interactions/interactionManager";
+import { loadMeshes, meshMap } from "./entities/loadMeshes";
+import { placeCamera } from "./systems/placeCamera";
+import { placeMeshes } from "./systems/placeMeshes";
+import { processMeshes } from "./systems/processMeshes";
 import { log } from "./utils";
-import { XR_OPTIONS, configureXR } from "./xr";
-import { loadSounds } from "./SoundManager";
+import { XR_OPTIONS, configureXR } from "./managers/interactions/xr";
+import { loadSounds } from "./managers/soundManager";
 
-import { GameStates } from "./StateMachine";
-import { setupGameStates, stateMachine } from "./setupGameStates";
-import { GUIButtons } from "./InteractableButtons";
-import { finalGameState } from "./GameTasks";
-import { Status } from "./Task";
+import { GameStates } from "./systems/stateMachine";
+import { setupGameStates, stateMachine } from "./managers/setupGameStates";
+import { GUIButtons } from "./entities/InteractableButtons";
+import { finalGameState } from "./systems/gameTasks";
+import { Status } from "./systems/task";
 import { Observable } from "@babylonjs/core";
+import { disposePortal } from "./entities/createPortal";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -75,9 +76,6 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     scene.activeCamera.attachControl(canvas, true);
     light1.intensity = 0;
 
-    // Enable audio
-    Engine.audioEngine.useCustomUnlockedButton = true;
-
     // To prevent the reticle clipping through objects in the scene
     utilityLayer = new UtilityLayerRenderer(scene);
 
@@ -85,10 +83,11 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // reticle.setParent(camera);
     // reticle.position.copyFrom(Axis.Z);
     // meshesToPreserveNames.push(reticle.name);
-
+    
     if ("xr" in window.navigator) {
         xrExperience = await scene.createDefaultXRExperienceAsync(XR_OPTIONS);
-        interactionManager = new InteractionManager(scene, xrExperience); // @todo; Move outside this conditional
+        interactionManager = new InteractionManager(scene, xrExperience);
+
         await configureXR(xrExperience);
 
         // Collect names of meshes that should be instantiated only once, even across
@@ -122,7 +121,12 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
 
         // XR laser pointers
         meshesToPreserveNames.push("laserPointer");
+    } else {
+        interactionManager = new InteractionManager(scene);
+    }
 
+    if (!interactionManager) {
+        console.error("InteractionManager was not initialized. Fatal error.");
     }
     
     await loadSounds("./json/sounds.json");
@@ -137,8 +141,7 @@ export async function createSceneAsync(engine: Engine): Promise<Scene> {
     // setTimeout(()=> splashScreen.style.opacity="1",1000)
     splashScreen.addEventListener("click", () => {
         splashScreen.classList.add("hide");
-        interactionManager.onModeChangeObservable.notifyObservers(interactionManager.mode);
-        Engine.audioEngine.audioContext.resume();
+        interactionManager.onModeChangeObservable.notifyObservers(interactionManager.interactionMode);
         const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
         if (vrIcon) {
             vrIcon.classList.remove("hide");
@@ -228,6 +231,10 @@ export async function initScene(scene: Scene): Promise<Scene> {
     if ("xr" in window.navigator) {
         xrExperience.teleportation.removeFloorMeshByName("Floor");
         xrExperience.teleportation.addFloorMesh(scene.getMeshByName("Floor"));
+        const vrIcon = document.getElementsByClassName("babylonVRicon")[0];
+        if (vrIcon) {
+            vrIcon.classList.remove("hide");
+        }        
     }
 
     let isTouchDevice = false;
@@ -261,6 +268,10 @@ export async function initScene(scene: Scene): Promise<Scene> {
     fadeIn(light);
 
     finalGameState.notifyObservers(Status.RESET);
+
+    if (interactionManager && interactionManager.currentInteractionHandler)  {
+        interactionManager.currentInteractionHandler.configure();
+    }
 
     return scene;
 }

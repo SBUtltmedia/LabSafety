@@ -6,14 +6,14 @@ import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Helpers/sceneHelpers"; // To enable creating the default XR experience
 import 'pepjs'
 import { createSceneAsync } from "./scene";
-import { setUpEngine } from "./setUpEngine";
+import { setUpEngine } from "./managers/setUpEngine";
 import { Engine } from "@babylonjs/core/Engines/engine";
 
 if (import.meta.env.DEV) {
     console.log("Running in development mode");
 }
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const canvas = document.getElementById("canvas") as unknown as HTMLCanvasElement;
 
 // The stencil engine option is necessary for mesh highlighting to work.
 const engine = new Engine(canvas, true, { stencil: true });
