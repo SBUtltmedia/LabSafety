@@ -247,14 +247,14 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
 
         console.log("Grab!")
 
-        // Satisfying the postcondition
-        this.#anchor = anchor;
-        this.#grabber = grabber;
-
         // Hide the grabber
         if (this.hideGrabber && this.#grabberWasVisible) {
             grabber.isVisible = false;
         }
+
+        // Satisfying the postcondition
+        this.#anchor = anchor;
+        this.#grabber = grabber;        
     }
 
     // Preconditions: this.grabbing
@@ -265,15 +265,15 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
             this.#deactivate();
         }
 
+        console.log("Drop!");
+
         // Show the grabber (e.g. the hand) if it was visible before
-        if (this.hideGrabber && this.#grabberWasVisible) {
+        if (this.#grabber && this.hideGrabber && this.#grabberWasVisible) {
             this.#grabber.isVisible = true;
         }
 
         this.onGrabStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: GrabState.DROP });
 
-        // Satisfying postcondition !this.grabbing
-        this.#anchor = null;
         this.#grabber = null;
 
     }

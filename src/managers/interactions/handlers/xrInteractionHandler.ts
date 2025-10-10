@@ -113,10 +113,11 @@ export class XRInteractionHandler extends BaseInteractionHandler {
         if (squeeze) {
             let pointerDragBehavior: Nullable<PointerDragBehavior>;
             let wasPressed: boolean = false;
-
+            let rayHelper: RayHelper;
             if (!this.squeezeObserver) {
                 this.squeezeObserver = squeeze.onButtonStateChangedObservable.add(() => {
                     if (squeeze.changes.pressed) {
+                        console.log("Find Grab And Notify");
                         this.findGrabAndNotify(squeeze.pressed, anchorId);
                     }
 
@@ -125,6 +126,9 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                         let pointerPos = pointer.absolutePosition;
                         let dir = pointer.forward;
                         let ray = new Ray(pointerPos, dir, 0.3);
+
+                        rayHelper = new RayHelper(ray);
+                        rayHelper.show(this.scene, new Color3(0,1,0));
 
                         const pickInfo = this.scene.pickWithRay(ray);
 
@@ -168,9 +172,17 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                                 dragPlanePoint: this.controllerDraggingMesh.get(controller).position.clone()
                             });
                         }
+                        if (rayHelper) {
+                            rayHelper.dispose();
+                            rayHelper = null;
+                        }
                         this.controllerDraggingMesh.set(controller, null);
                         this.updatePointerDragEnabled();
                     } else {
+                        if (rayHelper) {
+                            rayHelper.dispose();
+                            rayHelper = null;
+                        }
                         this.isSqueezing = false;
                         this.updatePointerDragEnabled();
                     }
