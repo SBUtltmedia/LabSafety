@@ -4,3 +4,4 @@ legacy
 .vscode
 dist/*
 docs/*
+*.log

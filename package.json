@@ -15,13 +15,16 @@
     "@babylonjs/core": "^8.14.0",
     "@babylonjs/gui": "^8.14.0",
     "cross-env": "^7.0.3",
+    "fs": "^0.0.1-security",
     "handlebars": "^4.7.8",
     "howler": "^2.2.4",
+    "path": "^0.12.7",
     "pepjs": "^0.5.3"
   },
   "devDependencies": {
     "@babylonjs/inspector": "^8.14.0",
     "@types/howler": "^2.2.4",
+    "@types/node": "^24.7.1",
     "gh-pages": "latest",
     "rollup-plugin-visualizer": "latest",
     "typescript": "latest",

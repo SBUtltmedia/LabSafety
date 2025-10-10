@@ -124,11 +124,14 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                         let pointer = controller.pointer;
                         let pointerPos = pointer.absolutePosition;
                         let dir = pointer.forward;
-                        let ray = new Ray(pointerPos, dir, 0.2);
+                        let ray = new Ray(pointerPos, dir, 0.3);
 
                         const pickInfo = this.scene.pickWithRay(ray);
 
+                        console.log("Casting ray");
+
                         if (pickInfo && pickInfo.hit) {
+                            console.log("Pick Info Hit!!");
                             this.isSqueezing = true;
                             wasPressed = true;
 
