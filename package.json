@@ -12,7 +12,7 @@
     "prod": "cross-env NODE_ENV=production vite --host"
   },
   "dependencies": {
-    "@babylonjs/core": "latest",
+    "@babylonjs/core": "^7.0.0",
     "cross-env": "latest",
     "handlebars": "latest",
     "howler": "^2.2.4",
@@ -20,7 +20,7 @@
     "pepjs": "latest"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "latest",
+    "@babylonjs/inspector": "^7.0.0",
     "@types/howler": "^2.2.4",
     "gh-pages": "latest",
     "rollup-plugin-visualizer": "latest",
