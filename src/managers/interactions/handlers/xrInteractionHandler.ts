@@ -5,9 +5,10 @@ import { BaseInteractionHandler, IModeSelectorMap, InteractionMode, IMeshGrabInf
 export class XRInteractionHandler extends BaseInteractionHandler {
     private configured: boolean = false;
     private draggingWithSqueeze: boolean = false;
-    private controllerDragging: Map<WebXRInputSource, Boolean> = new Map();
-    private lastControllerDragging: Map<WebXRInputSource, Vector3> = new Map();
-    private controllerDraggingMesh: Map<WebXRInputSource, Nullable<AbstractMesh>> = new Map();
+    private controllerDragging: Map<string, Boolean> = new Map();
+    private lastControllerDragging: Map<string, Vector3> = new Map();
+    private controllerDraggingMesh: Map<string, Nullable<AbstractMesh>> = new Map();
+    private controllerHandednessMap: Map<string, WebXRInputSource> = new Map();
     private pointerDragBehaviors: Array<PointerDragBehavior> = [];
     private isSqueezing: boolean = false;
     private isTrigger: boolean = false;
@@ -54,8 +55,9 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     }
 
     private configureController = (controller: WebXRInputSource) => {
-        this.controllerDragging.set(controller, false);
-        this.lastControllerDragging.set(controller, Vector3.Zero());
+        this.controllerHandednessMap.set(controller.inputSource.handedness, controller);
+        this.controllerDragging.set(controller.inputSource.handedness, false);
+        this.lastControllerDragging.set(controller.inputSource.handedness, Vector3.Zero());
 
         if (controller.motionController) {
             this.configureMotionController(controller.motionController, controller.pointer.uniqueId, controller);
@@ -68,18 +70,18 @@ export class XRInteractionHandler extends BaseInteractionHandler {
             if (this.draggingWithSqueeze) {
                 for (let entry of this.controllerDragging) {
                     if (entry[1]) {
-                        let controller = entry[0];
+                        let controller = this.controllerHandednessMap.get(entry[0]);
                         if (controller.pointer && controller.pointer.position) {
                             const currentControllerPos = controller.pointer.position;
-                            const delta = currentControllerPos.subtract(this.lastControllerDragging.get(controller));
+                            const delta = currentControllerPos.subtract(this.lastControllerDragging.get(controller.inputSource.handedness));
 
-                            let mesh = this.controllerDraggingMesh.get(controller);
+                            let mesh = this.controllerDraggingMesh.get(controller.inputSource.handedness);
                             // if (mesh) {
                             //     // mesh.position.addInPlace(delta);
                             //     mesh.moveWithCollisions(delta);
                             // }
 
-                            this.lastControllerDragging.set(controller, currentControllerPos.clone());
+                            this.lastControllerDragging.set(controller.inputSource.handedness, currentControllerPos.clone());
 
                             let pointerDragBehavior = mesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
                             if (pointerDragBehavior) {
@@ -161,9 +163,9 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                                     dragPlanePoint: parentMesh.position
                                 });
                                 this.draggingWithSqueeze = true;
-                                this.controllerDragging.set(controller, true);
-                                this.lastControllerDragging.set(controller, controller.pointer.position.clone());
-                                this.controllerDraggingMesh.set(controller, parentMesh);                                
+                                this.controllerDragging.set(controller.inputSource.handedness, true);
+                                this.lastControllerDragging.set(controller.inputSource.handedness, controller.pointer.position.clone());
+                                this.controllerDraggingMesh.set(controller.inputSource.handedness, parentMesh);                                
                             } else {
                                 // Optional: Log a warning so you know when this happens
                                 console.warn("Attempted to start a drag, but the pointer object was null or undefined.");
@@ -175,11 +177,12 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                         this.draggingWithSqueeze = false;
                         if (pointerDragBehavior) {
                             console.log("Drop pointer unique id: ", pointer.uniqueId);
+                            console.log("Drop controllerDragging and controllerMeshes size: ", this.controllerDragging.size, this.controllerDraggingMesh.size)
                             if (pointer && pointer.uniqueId) {
                                 pointerDragBehavior.onDragEndObservable.notifyObservers({
                                     pointerId: controller.pointer.uniqueId,
                                     pointerInfo: null,
-                                    dragPlanePoint: this.controllerDraggingMesh.get(controller).position.clone()
+                                    dragPlanePoint: this.controllerDraggingMesh.get(controller.inputSource.handedness).position.clone()
                                 });
                             }
                         }
@@ -187,8 +190,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
                             rayHelper.dispose();
                             rayHelper = null;
                         }
-                        this.controllerDraggingMesh.set(controller, null);
-                        this.controllerDragging.set(controller, false);
+                        this.controllerDraggingMesh.set(controller.inputSource.handedness, null);
+                        this.controllerDragging.set(controller.inputSource.handedness, false);
                         this.updatePointerDragEnabled();
                     } else {
                         if (rayHelper) {
