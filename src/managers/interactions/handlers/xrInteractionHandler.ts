@@ -17,6 +17,7 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     private debugRayHelper: RayHelper;
 
     public configure(): void {
+        console.log("Configuring XR interactions");
         if (!this.xrExperience) {
             throw new Error(
                 "Tried to configure XR interaction without an XR experience."
@@ -99,8 +100,8 @@ export class XRInteractionHandler extends BaseInteractionHandler {
     };
 
     private updatePointerDragEnabled = () => {
-        for (let sixDofDragBehavior of this.pointerDragBehaviors) {
-            sixDofDragBehavior.moveAttached = !(this.isSqueezing || this.isTrigger);
+        for (let pointerDrag of this.pointerDragBehaviors) {
+            pointerDrag.moveAttached = !(this.isSqueezing || this.isTrigger);
         }
     }
 
@@ -109,6 +110,7 @@ export class XRInteractionHandler extends BaseInteractionHandler {
         anchorId: number,
         controller: WebXRInputSource,
     ) => {
+        console.log("Configure motion controller");
         const squeeze = motionController.getComponentOfType("squeeze");
         if (squeeze) {
             let pointerDragBehavior: Nullable<PointerDragBehavior>;
@@ -116,67 +118,77 @@ export class XRInteractionHandler extends BaseInteractionHandler {
             let rayHelper: RayHelper;
             if (!this.squeezeObserver) {
                 this.squeezeObserver = squeeze.onButtonStateChangedObservable.add(() => {
-                    if (squeeze.changes.pressed) {
+                    let pointer = controller.pointer;
+                    let pointerPos = pointer.absolutePosition;
+                    let dir = pointer.forward;
+                    console.log("Casting ray", pointer.uniqueId, pointerPos, dir);
+                    let ray = new Ray(pointerPos, dir, 0.3);
+
+                    rayHelper = new RayHelper(ray);
+                    rayHelper.show(this.scene, new Color3(0,1,0));
+
+                    const pickInfo = this.scene.pickWithRay(ray);
+
+                    if (squeeze.changes.pressed && pickInfo && pickInfo.hit) {
                         console.log("Find Grab And Notify");
                         this.findGrabAndNotify(squeeze.pressed, anchorId);
                     }
 
-                    if (squeeze.value >= 0.7) {
-                        let pointer = controller.pointer;
-                        let pointerPos = pointer.absolutePosition;
-                        let dir = pointer.forward;
-                        let ray = new Ray(pointerPos, dir, 0.3);
+                    if (squeeze.value >= 0.7 && pickInfo && pickInfo.hit) {
+                        console.log("Pick Info Hit!!");
+                        this.isSqueezing = true;
+                        wasPressed = true;
 
-                        rayHelper = new RayHelper(ray);
-                        rayHelper.show(this.scene, new Color3(0,1,0));
+                        const intersectMesh = pickInfo.pickedMesh;
 
-                        const pickInfo = this.scene.pickWithRay(ray);
+                        let parentMesh = intersectMesh;
 
-                        console.log("Casting ray");
+                        while (parentMesh.parent) {
+                            parentMesh = parentMesh.parent as AbstractMesh;
+                        }
 
-                        if (pickInfo && pickInfo.hit) {
-                            console.log("Pick Info Hit!!");
-                            this.isSqueezing = true;
-                            wasPressed = true;
+                        console.log("Parent mesh: ", parentMesh.name);
 
-                            const intersectMesh = pickInfo.pickedMesh;
-
-                            let parentMesh = intersectMesh;
-
-                            while (parentMesh.parent) {
-                                parentMesh = parentMesh.parent as AbstractMesh;
-                            }
-
-                            pointerDragBehavior = parentMesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
-                            if (pointerDragBehavior) {
+                        pointerDragBehavior = parentMesh.getBehaviorByName("PointerDrag") as PointerDragBehavior;
+                        if (pointerDragBehavior) {
+                            console.log("Grab pointer unique id: ", pointer.uniqueId);
+                            if (pointer && pointer.uniqueId) {
+                                // The pointer object exists, so we can safely access its properties.
+                                console.log("Pointer drag: ", pointerDragBehavior.name);
                                 pointerDragBehavior.onDragStartObservable.notifyObservers({
-                                    pointerId: controller.pointer.uniqueId,
+                                    pointerId: pointer.uniqueId,
                                     pointerInfo: null,
                                     dragPlanePoint: parentMesh.position
                                 });
                                 this.draggingWithSqueeze = true;
                                 this.controllerDragging.set(controller, true);
                                 this.lastControllerDragging.set(controller, controller.pointer.position.clone());
-                                this.controllerDraggingMesh.set(controller, parentMesh);
+                                this.controllerDraggingMesh.set(controller, parentMesh);                                
+                            } else {
+                                // Optional: Log a warning so you know when this happens
+                                console.warn("Attempted to start a drag, but the pointer object was null or undefined.");
                             }
                         }
                     } else if (wasPressed && squeeze.changes.value.current < 0.7) {
                         this.isSqueezing = false;
                         wasPressed = false;
                         this.draggingWithSqueeze = false;
-                        this.controllerDragging.set(controller, false);
                         if (pointerDragBehavior) {
-                            pointerDragBehavior.onDragEndObservable.notifyObservers({
-                                pointerId: controller.pointer.uniqueId,
-                                pointerInfo: null,
-                                dragPlanePoint: this.controllerDraggingMesh.get(controller).position.clone()
-                            });
+                            console.log("Drop pointer unique id: ", pointer.uniqueId);
+                            if (pointer && pointer.uniqueId) {
+                                pointerDragBehavior.onDragEndObservable.notifyObservers({
+                                    pointerId: controller.pointer.uniqueId,
+                                    pointerInfo: null,
+                                    dragPlanePoint: this.controllerDraggingMesh.get(controller).position.clone()
+                                });
+                            }
                         }
                         if (rayHelper) {
                             rayHelper.dispose();
                             rayHelper = null;
                         }
                         this.controllerDraggingMesh.set(controller, null);
+                        this.controllerDragging.set(controller, false);
                         this.updatePointerDragEnabled();
                     } else {
                         if (rayHelper) {

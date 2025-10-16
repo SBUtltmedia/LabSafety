@@ -88,7 +88,7 @@ export class Task {
         
         // Note: Currently, `valid` should always be true.
         if (valid) {
-            log(`Failing Task ${this.name}`);
+            // log(`Failing Task ${this.name}`);
             this.#status = Status.FAILURE;
         } else {
             throw new Error(`Task ${this.name}: An observer skipped following observers.`);
@@ -118,7 +118,7 @@ export class Task {
             this.#status = Status.RESET;
             this.fail();
         } else {
-            log(`Succeeding Task ${this.name}`);
+            // log(`Succeeding Task ${this.name}`);
         }
     }
 

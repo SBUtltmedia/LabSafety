@@ -53,8 +53,8 @@ export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array
         let pouringBehavior = fromMesh.getBehaviorByName("Pouring") as PouringBehavior;
 
         pouringBehavior.onMidPourObservable.add(target => {
-            log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
-            log(`Poured mesh name: ${target.name}`);
+            // log(`Pouring mesh name: ${pouringBehavior.mesh.name}`);
+            // log(`Poured mesh name: ${target.name}`);
 
             const targetColor = (target.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
             const sourceColor = (pouringBehavior.mesh.getChildMeshes().find(childMesh => childMesh.id.split("-").pop() === "liquid").material as StandardMaterial).diffuseColor;
@@ -86,7 +86,7 @@ export const setupTasks = (scene: Scene, listItems: ListItem[], cylinders: Array
         task.onTaskStateChangeObservable.add(status => {
             if (status === Status.SUCCESSFUL) {
                 if (!global.sounds.success.isPlaying && !global.sounds.explosion.isPlaying) {
-                    log("Playing ding");
+                    // log("Playing ding");
                     global.sounds.ding.stop();
                     global.sounds.ding.play();
                 }
@@ -151,7 +151,7 @@ const setupSOP = (scene: Scene, pouringTasks: Task[], cylinders: Array<String>) 
                 break;
             case Status.FAILURE:
                 // Play explosion, start a fire.
-                log("Fail SOP");
+                // log("Fail SOP");
                 global.sounds.explosion.stop();
                 global.sounds.explosion.play();
 

@@ -25,6 +25,7 @@ export const XR_OPTIONS: WebXRDefaultExperienceOptions = {
 };
 
 export async function configureXR(xrExperience: WebXRDefaultExperience): Promise<void> {
+    console.log("Configuring XR controllers");
     let displayPointer = false;
 
     xrExperience.pointerSelection.laserPointerDefaultColor = Color3.Green();
@@ -67,6 +68,7 @@ export async function configureXR(xrExperience: WebXRDefaultExperience): Promise
         configureController(controller, hands[`${controller.inputSource.handedness}`]);
     }
     xrExperience.input.onControllerAddedObservable.add(controller => {
+        console.log("Configure controller: ", controller.inputSource.handedness);
         configureController(controller, hands[`${controller.inputSource.handedness}`]);
     });
     xrExperience.input.onControllerRemovedObservable.add(controller => {
@@ -106,6 +108,7 @@ function displayXRSplashScreen(xrExperience: WebXRDefaultExperience, scene: Scen
 }
 
 function configureController(controller: WebXRInputSource, handMesh: AbstractMesh): void {
+    console.log("Configure controller");
     meshesToPreserveNames.push(controller.pointer.name);
     if (controller.grip) {
         meshesToPreserveNames.push(controller.grip.name);

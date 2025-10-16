@@ -157,13 +157,16 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 event.pointerInfo.event.inputIndex === PointerInput.LeftClick) ||
                 mode === InteractionMode.MOBILE ||
                 mode === InteractionMode.XR) {
-                
+                                
                 let scene = this.#mesh.getScene();
+                this.#anchor = scene.getMeshByName("default-anchor");
+
                 if (this.interactionManager.interactionMode === InteractionMode.DESKTOP || this.interactionManager.interactionMode === InteractionMode.MOBILE) {
-                    this.#anchor = scene.getMeshByName("default-anchor");
                     this.#grabber = scene.getMeshByName("default-grabber");
                 }
- 
+                
+                console.log("Pointer drag mode select");
+                console.log("Anchor unique id", this.#anchor.uniqueId);
                 this.interactionManager.modeSelectorMap[mode][this.#anchor.uniqueId] = { anchor: this.#anchor, grabber: this.#grabber, grabbedMesh: this.#mesh, targetMesh: null };
 
                 this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.GRAB});
@@ -192,6 +195,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
                 
                 this.interactionManager.onGrabStateChangedObservable.notifyObservers({mesh: this.#mesh, state: GrabState.DROP});
                 this.#drop();
+                
             }         
         });
 
@@ -229,6 +233,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: this.#activatable, this.grabbing, and !this.#active
     // Postconditions: this.#activatable, this.grabbing, and this.#active
     #activate = (): void => {
+        console.log("Activate!");
         this.#active = true;
         this.onActivationStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: ActivationState.ACTIVE });
     }
@@ -236,6 +241,11 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Preconditions: this.#activatable, this.grabbing, and this.#active (Simplifies to this.#active)
     // Postconditions: this.#activatable, this.grabbing, and !this.#active
     #deactivate = (): void => {
+        console.log("Deactivate");
+        if (!this.#anchor || !this.#grabber) {
+            console.warn("Tried to deactivate without valid anchor or grabber.");
+            return;
+        }        
         this.#active = false;
         this.onActivationStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: ActivationState.INACTIVE });
     }
@@ -248,13 +258,15 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         console.log("Grab!")
 
         // Hide the grabber
-        if (this.hideGrabber && this.#grabberWasVisible) {
+        if (grabber && this.hideGrabber && this.#grabberWasVisible) {
             grabber.isVisible = false;
         }
 
         // Satisfying the postcondition
         this.#anchor = anchor;
-        this.#grabber = grabber;        
+        this.#grabber = grabber;
+
+        console.log("New anchor unique id: ", this.#anchor.uniqueId);
     }
 
     // Preconditions: this.grabbing
@@ -275,6 +287,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
         this.onGrabStateChangedObservable.notifyObservers({ anchor: this.#anchor, grabber: this.#grabber, state: GrabState.DROP });
 
         this.#grabber = null;
+        this.#anchor = null;
 
     }
 
@@ -306,6 +319,7 @@ export class InteractableBehavior implements Behavior<AbstractMesh> {
     // Postconditions: #subscribed
     #subscribeToInteractionManager = (): void => {
         // TODO: race condition investigate
+        console.log("This mesh unique id: ", this.#mesh.uniqueId)
         this.#grabStateObserver = this.interactionManager.onMeshGrabStateChangedObservable.add(({ anchor, grabber, state }) => {
             if (state === GrabState.GRAB && !this.grabbing) {
                 this.#grabberWasVisible = grabber.isVisible;

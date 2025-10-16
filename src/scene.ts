@@ -24,7 +24,6 @@ import { GUIButtons } from "./entities/InteractableButtons";
 import { finalGameState } from "./systems/gameTasks";
 import { Status } from "./systems/task";
 import { Observable } from "@babylonjs/core";
-import { disposePortal } from "./entities/createPortal";
 export let xrExperience: WebXRDefaultExperience;
 export let interactionManager: InteractionManager;
 
@@ -50,7 +49,7 @@ export let utilityLayer: UtilityLayerRenderer;
 let stateMachineFirstTime = false;
 
 export async function createSceneAsync(engine: Engine): Promise<Scene> {
-    log("createSceneAsync start");
+    console.log("createSceneAsync start");
     const scene = new Scene(engine);
     const light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
     const camera = new UniversalCamera("camera", STARTING_POSITION);
@@ -184,6 +183,7 @@ export async function initScene(scene: Scene): Promise<Scene> {
     meshMap["fire-extinguisher"] = "fire-extinguisherc"
     
     const light = scene.getLightByName("light1");
+    console.log(light.intensity);
     light.intensity = 0;
     const camera = scene.activeCamera;
     const meshesToDispose = scene.meshes.filter(mesh => !meshesToPreserveNames.includes(mesh.name))
